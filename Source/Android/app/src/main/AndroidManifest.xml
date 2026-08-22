@@ -86,6 +86,13 @@
             android:label="@string/settings"/>
 
         <activity
+            android:name=".features.skylanders.catalog.SkylanderPortalActivity"
+            android:exported="true"
+            android:configChanges="orientation|screenSize|keyboardHidden"
+            android:theme="@style/Theme.Dolphin.Main"
+            android:label="Skylanders" />
+
+        <activity
             android:name=".features.skylanders.catalog.SkylanderGalleryActivity"
             android:exported="true"
             android:theme="@style/Theme.Dolphin.Main"

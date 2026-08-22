@@ -49,6 +49,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity
 import org.dolphinemu.dolphinemu.features.skylanders.SkylanderConfig
+import org.dolphinemu.dolphinemu.features.skylanders.catalog.SkylanderPortalActivity
 import org.dolphinemu.dolphinemu.features.skylanders.model.Skylander
 import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlot
 import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlotAdapter
@@ -515,7 +516,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             MENU_SET_IR_MODE -> setIRMode()
             MENU_ACTION_CHOOSE_DOUBLETAP -> chooseDoubleTapButton()
             MENU_ACTION_SETTINGS -> SettingsActivity.launch(this, MenuTag.SETTINGS)
-            MENU_ACTION_SKYLANDERS -> showSkylanderPortalSettings()
+            MENU_ACTION_SKYLANDERS -> showSkylanderPortal()
             MENU_ACTION_INFINITY_BASE -> showInfinityBaseSettings()
             MENU_ACTION_EXIT -> emulationFragment!!.stopEmulation()
         }
@@ -885,6 +886,16 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
             }
             .setPositiveButton(R.string.ok, null)
             .show()
+    }
+
+    /**
+     * Oeffnet das eigene Skylanders-Menue (Phase 5) statt des alten Dialogs.
+     * Der alte Dialog bleibt als showSkylanderPortalSettings() erhalten, wird
+     * aber nicht mehr aufgerufen — er stuerzt beim Laden vorhandener Dateien ab,
+     * weil Androids Dateiauswahl nur Leserechte vergibt.
+     */
+    private fun showSkylanderPortal() {
+        startActivity(Intent(this, SkylanderPortalActivity::class.java))
     }
 
     private fun showSkylanderPortalSettings() {
