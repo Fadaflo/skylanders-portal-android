@@ -7,7 +7,6 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.MotionEvent
-import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import org.dolphinemu.dolphinemu.databinding.ActivitySkylanderPortalBinding
@@ -38,6 +37,7 @@ class SkylanderPortalActivity : AppCompatActivity() {
     private var activeSlot = 0
 
     private var lastStickMove = 0L
+    private var columns = 4
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,8 +54,10 @@ class SkylanderPortalActivity : AppCompatActivity() {
             isOwned = { owned.containsKey(it.id to it.variant) },
             onClick = { place(it) }
         )
-        binding.gridFigures.layoutManager = GridLayoutManager(this, columnCount())
+        columns = columnCount()
+        binding.gridFigures.layoutManager = GridLayoutManager(this, columns)
         binding.gridFigures.adapter = adapter
+        adapter.selected = 0
 
         binding.textFilterElement.setOnClickListener { cycleElement() }
         binding.textFilterGame.setOnClickListener { cycleGame() }
@@ -65,7 +67,6 @@ class SkylanderPortalActivity : AppCompatActivity() {
 
         updateFilterLabels()
         updateStatus()
-        binding.gridFigures.requestFocus()
     }
 
     /** Spaltenzahl nach Bildschirmbreite; quer werden es mehr als hochkant. */
@@ -189,6 +190,7 @@ class SkylanderPortalActivity : AppCompatActivity() {
     private fun refresh() {
         updateFilterLabels()
         adapter.submit(visibleFigures())
+        adapter.selected = if (adapter.itemCount > 0) 0 else -1
         binding.gridFigures.scrollToPosition(0)
         updateStatus()
     }
@@ -207,16 +209,69 @@ class SkylanderPortalActivity : AppCompatActivity() {
     }
 
     private fun updateStatus() {
-        binding.textStatus.text =
+        val marked = adapter.figureAt(adapter.selected)
+        binding.textStatus.text = if (marked != null) {
+            marked.name + "  (" + adapter.itemCount + " Figuren, " + owned.size + " eigene)"
+        } else {
             adapter.itemCount.toString() + " Figuren, " + owned.size + " in der Sammlung"
+        }
+    }
+
+    // ---------------------------------------------------------------- Auswahl
+
+    /**
+     * Bewegt die Markierung im Raster. Eigene Rechnung statt Androids
+     * Fokussuche, damit das Steuerkreuz auch als Achse funktioniert.
+     */
+    private fun moveSelection(dx: Int, dy: Int) {
+        val count = adapter.itemCount
+        if (count == 0) return
+
+        val current = adapter.selected.coerceAtLeast(0)
+        var next = current + dx + dy * columns
+        if (dx != 0) {
+            // Zeilenwechsel am Rand vermeiden gibt es bewusst nicht: durchlaufen
+            // ist beim Blaettern durch 517 Figuren angenehmer.
+            next = next.coerceIn(0, count - 1)
+        } else {
+            if (next < 0 || next >= count) return
+        }
+
+        adapter.selected = next
+        binding.gridFigures.scrollToPosition(next)
+        updateStatus()
+    }
+
+    private fun placeSelected() {
+        adapter.figureAt(adapter.selected)?.let { place(it) }
     }
 
     // ------------------------------------------------------------- Controller
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent): Boolean {
         when (keyCode) {
-            KeyEvent.KEYCODE_BUTTON_A -> {
-                currentFocus?.performClick()
+            KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_CENTER -> {
+                placeSelected()
+                return true
+            }
+
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                moveSelection(-1, 0)
+                return true
+            }
+
+            KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                moveSelection(1, 0)
+                return true
+            }
+
+            KeyEvent.KEYCODE_DPAD_UP -> {
+                moveSelection(0, -1)
+                return true
+            }
+
+            KeyEvent.KEYCODE_DPAD_DOWN -> {
+                moveSelection(0, 1)
                 return true
             }
 
@@ -272,18 +327,17 @@ class SkylanderPortalActivity : AppCompatActivity() {
         val now = System.currentTimeMillis()
         if (now - lastStickMove < STICK_REPEAT_MS) return true
 
-        val x = event.getAxisValue(MotionEvent.AXIS_X)
-        val y = event.getAxisValue(MotionEvent.AXIS_Y)
-        val direction = when {
-            y < -STICK_THRESHOLD -> View.FOCUS_UP
-            y > STICK_THRESHOLD -> View.FOCUS_DOWN
-            x < -STICK_THRESHOLD -> View.FOCUS_LEFT
-            x > STICK_THRESHOLD -> View.FOCUS_RIGHT
-            else -> return true
-        }
+        // Linker Stick und Steuerkreuz. Das Steuerkreuz des DualShock 4 kommt
+        // als Achsenpaar HAT_X/HAT_Y, nicht als Taste.
+        val x = event.getAxisValue(MotionEvent.AXIS_X) + event.getAxisValue(MotionEvent.AXIS_HAT_X)
+        val y = event.getAxisValue(MotionEvent.AXIS_Y) + event.getAxisValue(MotionEvent.AXIS_HAT_Y)
+
+        val dx = if (x < -STICK_THRESHOLD) -1 else if (x > STICK_THRESHOLD) 1 else 0
+        val dy = if (y < -STICK_THRESHOLD) -1 else if (y > STICK_THRESHOLD) 1 else 0
+        if (dx == 0 && dy == 0) return true
 
         lastStickMove = now
-        currentFocus?.focusSearch(direction)?.requestFocus()
+        if (dy != 0) moveSelection(0, dy) else moveSelection(dx, 0)
         return true
     }
 

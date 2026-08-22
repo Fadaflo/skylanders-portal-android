@@ -19,6 +19,19 @@ class SkylanderFigureAdapter(
     private val onClick: ((CatalogFigure) -> Unit)? = null
 ) : RecyclerView.Adapter<SkylanderFigureAdapter.ViewHolder>() {
 
+    /**
+     * Die markierte Figur. Eigene Auswahl statt Androids Fokus, weil das
+     * Steuerkreuz des DualShock 4 als Achse ankommt und Androids Navigation
+     * davon nichts mitbekommt. -1 heisst: nichts markiert (Touch-Bedienung).
+     */
+    var selected: Int = -1
+        set(value) {
+            val old = field
+            field = value
+            if (old >= 0) notifyItemChanged(old)
+            if (value >= 0) notifyItemChanged(value)
+        }
+
     class ViewHolder(val binding: ListItemSkylanderFigureBinding) :
         RecyclerView.ViewHolder(binding.root)
 
@@ -26,11 +39,7 @@ class SkylanderFigureAdapter(
         val inflater = LayoutInflater.from(parent.context)
         val binding = ListItemSkylanderFigureBinding.inflate(inflater, parent, false)
         if (onClick != null) {
-            binding.root.isFocusable = true
             binding.root.isClickable = true
-            binding.root.setBackgroundResource(
-                android.R.drawable.list_selector_background
-            )
         }
         return ViewHolder(binding)
     }
@@ -46,7 +55,14 @@ class SkylanderFigureAdapter(
             SkylanderCatalog.getElementIcon(context, figure.element)
         )
 
-        holder.itemView.alpha = if (isOwned(figure)) 1.0f else 0.45f
+        val marked = position == selected
+        holder.itemView.alpha = when {
+            marked -> 1.0f
+            isOwned(figure) -> 1.0f
+            else -> 0.45f
+        }
+        holder.itemView.setBackgroundColor(if (marked) HIGHLIGHT else 0)
+        holder.binding.textFigureName.isSelected = marked
         onClick?.let { listener ->
             holder.itemView.setOnClickListener { listener(figure) }
         }
@@ -57,5 +73,12 @@ class SkylanderFigureAdapter(
     fun submit(newFigures: List<CatalogFigure>) {
         figures = newFigures
         notifyDataSetChanged()
+    }
+
+    fun figureAt(position: Int): CatalogFigure? = figures.getOrNull(position)
+
+    companion object {
+        /** Halbdurchsichtiges Weiss als Markierung; faellt in beiden Themen auf. */
+        private const val HIGHLIGHT = 0x40FFFFFF
     }
 }
