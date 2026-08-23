@@ -85,6 +85,20 @@
             android:theme="@style/Theme.Dolphin.Main"
             android:label="@string/settings"/>
 
+        <!-- Eigenes Symbol auf dem Startbildschirm: startet Giants unmittelbar. -->
+        <activity
+            android:name=".features.skylanders.catalog.GiantsLauncherActivity"
+            android:exported="true"
+            android:icon="@mipmap/ic_giants"
+            android:label="Skylanders Giants"
+            android:theme="@style/Theme.Dolphin.Main">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
         <activity
             android:name=".features.skylanders.catalog.SkylanderGalleryActivity"
             android:exported="true"

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Hintergrund des Startsymbols. Dunkel, damit das freigestellte Artwork
+         auf hellen wie dunklen Startbildschirmen steht. -->
+    <color name="giants_icon_background">#12141C</color>
+</resources>
