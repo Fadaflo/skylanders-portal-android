@@ -14,14 +14,25 @@ import org.dolphinemu.dolphinemu.utils.AfterDirectoryInitializationRunner
 import org.dolphinemu.dolphinemu.utils.DirectoryInitialization
 
 /**
- * Das Symbol auf dem Startbildschirm: startet Skylanders Giants unmittelbar.
+ * Ein Symbol auf dem Startbildschirm, das unmittelbar ein bestimmtes Spiel
+ * startet.
  *
  * Zeigt selbst nichts an — sie wartet, bis Dolphins Ordner und die Spieleliste
  * bereit sind, sucht das Spiel und uebergibt an die EmulationActivity. Findet
  * sie es nicht, oeffnet sie die gewohnte Spieleliste, statt kommentarlos
  * nichts zu tun.
+ *
+ * Je Spiel eine Unterklasse mit eigenem Symbol und eigener Beschriftung im
+ * Manifest. Der Name muss genau genug sein, um die Skylanders-Spiele
+ * auseinanderzuhalten — „Skylanders" allein reicht nicht mehr, sobald mehrere
+ * im Ordner liegen.
  */
-class GiantsLauncherActivity : AppCompatActivity() {
+abstract class GameLauncherActivity : AppCompatActivity() {
+
+    /** Teil des Spieltitels, der dieses Spiel eindeutig macht. */
+    protected abstract val gameName: String
+
+    private var started = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,31 +44,35 @@ class GiantsLauncherActivity : AppCompatActivity() {
         }
     }
 
-    private var started = false
-
     private fun onGamesReady(games: Array<GameFile>) {
         if (started) return
 
-        val giants = games.firstOrNull { it.getTitle().contains(GAME_NAME, ignoreCase = true) }
-        if (giants == null) {
+        val game = games.firstOrNull { it.getTitle().contains(gameName, ignoreCase = true) }
+        if (game == null) {
             // Die Liste kommt in mehreren Schueben; erst wenn sie fertig ist und
             // das Spiel fehlt, ist es wirklich nicht da.
             if (GameFileCacheManager.isLoadingOrRescanning()) return
 
-            Toast.makeText(this, R_MISSING, Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "$gameName nicht gefunden.", Toast.LENGTH_LONG).show()
             startActivity(Intent(this, MainActivity::class.java))
             finish()
             return
         }
 
         started = true
-        EmulationActivity.launch(this, giants.getPath(), false)
+        EmulationActivity.launch(this, game.getPath(), false)
         finish()
     }
+}
 
-    companion object {
-        private const val GAME_NAME = "Skylanders"
-        private const val R_MISSING =
-            "Skylanders Giants nicht gefunden. Bitte den Spieleordner hinzufuegen."
-    }
+class GiantsLauncherActivity : GameLauncherActivity() {
+    override val gameName = "Giants"
+}
+
+class TrapTeamLauncherActivity : GameLauncherActivity() {
+    override val gameName = "Trap Team"
+}
+
+class SwapForceLauncherActivity : GameLauncherActivity() {
+    override val gameName = "Swap Force"
 }

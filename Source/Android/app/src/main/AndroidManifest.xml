@@ -85,7 +85,9 @@
             android:theme="@style/Theme.Dolphin.Main"
             android:label="@string/settings"/>
 
-        <!-- Eigenes Symbol auf dem Startbildschirm: startet Giants unmittelbar. -->
+        <!-- Je ein Symbol auf dem Startbildschirm, das sein Spiel unmittelbar
+             startet. Der Name im Quelltext muss die Spiele auseinanderhalten:
+             "Skylanders" allein reicht nicht, sobald mehrere im Ordner liegen. -->
         <activity
             android:name=".features.skylanders.catalog.GiantsLauncherActivity"
             android:exported="true"
@@ -98,6 +100,33 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".features.skylanders.catalog.TrapTeamLauncherActivity"
+            android:exported="true"
+            android:icon="@mipmap/ic_trapteam"
+            android:label="Skylanders Trap Team"
+            android:theme="@style/Theme.Dolphin.Main">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <activity
+            android:name=".features.skylanders.catalog.SwapForceLauncherActivity"
+            android:exported="true"
+            android:icon="@mipmap/ic_swapforce"
+            android:label="Skylanders Swap Force"
+            android:theme="@style/Theme.Dolphin.Main">
+
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
 
         <activity
             android:name=".features.skylanders.catalog.SkylanderGalleryActivity"
