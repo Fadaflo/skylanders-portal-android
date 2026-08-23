@@ -61,6 +61,18 @@
             android:textSize="15sp"
             android:textStyle="bold" />
 
+        <TextView
+            android:id="@+id/tab_items"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="Gegenstände"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+
         <ImageView
             android:id="@+id/glyph_mode"
             android:layout_width="18dp"

@@ -87,7 +87,7 @@ class SkylanderPortalFragment : Fragment() {
     /** Wird von der EmulationActivity gesetzt, damit das Menue sich schliessen kann. */
     var onClose: (() -> Unit)? = null
 
-    private enum class Mode { COLLECTION, SUMMON, MAXED }
+    private enum class Mode { COLLECTION, SUMMON, MAXED, ITEMS }
     private enum class Focus { PORTAL, GRID }
 
     // ------------------------------------------------------------ Lebenszyklus
@@ -132,6 +132,7 @@ class SkylanderPortalFragment : Fragment() {
         binding.tabCollection.setOnClickListener { switchTo(Mode.COLLECTION) }
         binding.tabSummon.setOnClickListener { switchTo(Mode.SUMMON) }
         binding.tabMaxed.setOnClickListener { switchTo(Mode.MAXED) }
+        binding.tabItems.setOnClickListener { switchTo(Mode.ITEMS) }
 
         rebuildRows()
         restoreCursor()
@@ -242,6 +243,18 @@ class SkylanderPortalFragment : Fragment() {
                     state = null
                 )
             }
+
+            Mode.ITEMS -> allFigures
+                .filter { passesFilter(it) && it.type in ITEM_TYPES }
+                .sortedBy { it.gameLabel + " " + it.name }
+                .map { figure ->
+                    FigureRow(
+                        figure = figure,
+                        file = null,
+                        owned = ownedKeys.contains(figure.id to figure.variant),
+                        state = ITEM_LABELS[figure.type]
+                    )
+                }
 
             Mode.MAXED -> allFigures
                 .filter { passesFilter(it) && it.type in MAXABLE_TYPES }
@@ -402,6 +415,7 @@ class SkylanderPortalFragment : Fragment() {
                         Mode.COLLECTION -> "Auf Platz "
                         Mode.SUMMON -> "Beschwören auf Platz "
                         Mode.MAXED -> "Ultimativ auf Platz "
+                        Mode.ITEMS -> "Gegenstand auf Platz "
                     } + (activeSlot + 1)
                 )
                 hint(null, "L2", "Menü ausblenden")
@@ -415,6 +429,7 @@ class SkylanderPortalFragment : Fragment() {
             mode == Mode.COLLECTION -> "Options: Löschmodus"
             mode == Mode.MAXED ->
                 "Options: Pfad " + (if (upperPath) "oben" else "unten")
+            mode == Mode.ITEMS -> "R2 filtert nach Spiel"
             else -> "Beschwören erschafft neue Figuren"
         }
     }
@@ -427,6 +442,7 @@ class SkylanderPortalFragment : Fragment() {
     private fun updateTitle() {
         val total = when (mode) {
             Mode.COLLECTION -> collection.size
+            Mode.ITEMS -> allFigures.count { it.type in ITEM_TYPES }
             else -> allFigures.size
         }
         binding.textTitle.text = rows.size.toString() + " von " + total +
@@ -448,6 +464,7 @@ class SkylanderPortalFragment : Fragment() {
         tab(binding.tabCollection, mode == Mode.COLLECTION, true)
         tab(binding.tabSummon, mode == Mode.SUMMON, true)
         tab(binding.tabMaxed, mode == Mode.MAXED, true)
+        tab(binding.tabItems, mode == Mode.ITEMS, true)
     }
 
     private fun setStatus(text: String) {
@@ -476,6 +493,7 @@ class SkylanderPortalFragment : Fragment() {
             Mode.COLLECTION -> row.file?.let { placeFile(row.figure, it) }
             Mode.SUMMON -> summon(row.figure)
             Mode.MAXED -> placeMaxed(row.figure)
+            Mode.ITEMS -> summon(row.figure)
         }
     }
 
@@ -739,7 +757,8 @@ class SkylanderPortalFragment : Fragment() {
             when (mode) {
                 Mode.COLLECTION -> Mode.SUMMON
                 Mode.SUMMON -> Mode.MAXED
-                Mode.MAXED -> Mode.COLLECTION
+                Mode.MAXED -> Mode.ITEMS
+                Mode.ITEMS -> Mode.COLLECTION
             }
         )
     }
@@ -769,6 +788,7 @@ class SkylanderPortalFragment : Fragment() {
             when (mode) {
                 Mode.COLLECTION -> "Eigene Sammlung."
                 Mode.SUMMON -> "Alle Figuren. Kreuz erschafft eine neue Datei."
+                Mode.ITEMS -> "Gegenstände, Fahrzeuge, Fallen und Trophäen."
                 Mode.MAXED -> "Ultimative Figuren, " +
                     (if (upperPath) "oberer Pfad" else "unterer Pfad") +
                     ". Options wechselt den Pfad."
@@ -1014,6 +1034,16 @@ class SkylanderPortalFragment : Fragment() {
 
         /** Fallen, Fahrzeuge und Gegenstaende lassen sich nicht ausbauen. */
         private val MAXABLE_TYPES = setOf("Skylander", "Giant", "Swapper", "TrapMaster", "Mini")
+
+        /** Alles, was keine spielbare Figur ist: eigener Reiter. */
+        private val ITEM_TYPES = setOf("Item", "Vehicle", "Trap", "Trophy")
+
+        private val ITEM_LABELS = mapOf(
+            "Item" to "Gegenstand",
+            "Vehicle" to "Fahrzeug",
+            "Trap" to "Falle",
+            "Trophy" to "Trophäe"
+        )
 
         private const val PLACE_HIDE_MS = 4500L
         private const val REMOVE_HIDE_MS = 1200L

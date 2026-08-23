@@ -17,3 +17,12 @@
 -keep class androidx.core.util.Pair {
     <init>(java.lang.Object, java.lang.Object);
 }
+
+# Vom C++-Kern ueber ihren Namen gesucht und dort erzeugt, aus Java nie:
+# SkylanderConfig.cpp ruft FindClass und GetMethodID darauf. Ohne diese Regel
+# entfernt R8 den Konstruktor als ungenutzt, GetMethodID liefert null, und die
+# App bricht beim ersten Auflegen mit
+# "JNI DETECTED ERROR IN APPLICATION: mid == null" ab.
+-keep class org.dolphinemu.dolphinemu.features.skylanders.model.SkylanderPair {
+    <init>(int, int);
+}

@@ -67,12 +67,12 @@ class SkylanderFigureAdapter(
 
         holder.binding.textFigureName.text = row.figure.name
         holder.binding.textFigureGame.text = row.state ?: row.figure.gameLabel
-        holder.binding.imageFigure.setImageBitmap(
-            SkylanderCatalog.getArtwork(context, row.figure)
-        )
-        holder.binding.imageElement.setImageBitmap(
-            SkylanderCatalog.getElementIcon(context, row.figure.element)
-        )
+        // Fallen haben kein Artwork. Statt einer leeren Karte tritt dann das
+        // Elementsymbol an seine Stelle.
+        val artwork = SkylanderCatalog.getArtwork(context, row.figure)
+        val element = SkylanderCatalog.getElementIcon(context, row.figure.element)
+        holder.binding.imageFigure.setImageBitmap(artwork ?: element)
+        holder.binding.imageElement.setImageBitmap(if (artwork != null) element else null)
 
         val chosen = position == selected && selectionVisible
         holder.itemView.setBackgroundResource(
