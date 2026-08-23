@@ -18,6 +18,26 @@ object SkylanderConfig {
     @JvmStatic
     external fun loadSkylander(slot: Int, fileName: String?): Pair<Int?, String?>?
 
+    /**
+     * Erschafft eine fertig ausgebaute Figur aus einer Vorlage.
+     *
+     * @param plaintext Klartext der 22 Spielstandsbloecke, 352 Byte
+     * @param upgradesWord Ausbauwort fuer beide Bereiche, oder -1 unveraendert
+     * @param money Gold, oder -1 fuer den Wert der Vorlage
+     * @param heroLevel Heldenstufe, oder -1 fuer den Wert der Vorlage
+     */
+    @JvmStatic
+    external fun createMaxedSkylander(
+        id: Int,
+        variant: Int,
+        fileName: String,
+        slot: Int,
+        plaintext: ByteArray,
+        upgradesWord: Int,
+        money: Int,
+        heroLevel: Int
+    ): Pair<Int, String>?
+
     @JvmStatic
     external fun createSkylander(
         id: Int,

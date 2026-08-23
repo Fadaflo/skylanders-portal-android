@@ -49,7 +49,7 @@ import org.dolphinemu.dolphinemu.features.settings.model.StringSetting
 import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity
 import org.dolphinemu.dolphinemu.features.skylanders.SkylanderConfig
-import org.dolphinemu.dolphinemu.features.skylanders.catalog.SkylanderPortalActivity
+import org.dolphinemu.dolphinemu.features.skylanders.catalog.SkylanderPortalFragment
 import org.dolphinemu.dolphinemu.features.skylanders.model.Skylander
 import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlot
 import org.dolphinemu.dolphinemu.features.skylanders.ui.SkylanderSlotAdapter
@@ -76,6 +76,10 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     override var themeId = 0
 
     private var menuVisible = false
+
+    private var skylanderOverlay: SkylanderPortalFragment? = null
+    private var skylanderShortcutLeft = false
+    private var skylanderShortcutRight = false
 
     var isActivityRecreated = false
     private var paths: Array<String>? = null
@@ -543,12 +547,72 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
     // Gets button presses
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        // Lautstaerke gehoert dem Telefon. Ohne diese Ausnahme beansprucht der
+        // Emulatorkern die Tasten -- er sieht das Telefon selbst als
+        // Eingabegeraet -- und man kann waehrend des Spiels nicht lauter oder
+        // leiser stellen.
+        if (event.keyCode == KeyEvent.KEYCODE_VOLUME_UP ||
+            event.keyCode == KeyEvent.KEYCODE_VOLUME_DOWN ||
+            event.keyCode == KeyEvent.KEYCODE_VOLUME_MUTE
+        ) {
+            return super.dispatchKeyEvent(event)
+        }
+
+        // Vor ControllerInterface, sonst beansprucht der Emulatorkern die Taste
+        // und die Oberflaeche sieht sie nie.
+        if (handleSkylanderShortcut(event)) {
+            return true
+        }
+
+        // Solange das Menue offen ist, bekommt es alle Tasten. Sonst wuerde man
+        // das Spiel steuern statt das Menue.
+        skylanderOverlay?.let { return it.onControllerKey(event) }
+
         if (!menuVisible) {
             if (ControllerInterface.dispatchKeyEvent(event)) {
                 return true
             }
         }
         return super.dispatchKeyEvent(event)
+    }
+
+    /**
+     * Oeffnet und schliesst das Skylanders-Menue.
+     *
+     * Hauptweg ist die **PS-Taste** (KEYCODE_BUTTON_MODE). Sie kommt laut
+     * Androids Tastendatei fuer diesen Controller als gewoehnliche Taste an und
+     * wird von keinem Wii-Spiel gebraucht.
+     *
+     * **L3+R3** bleibt als zweiter Weg, falls Android die PS-Taste doch selbst
+     * abfaengt. Ein einzelner Stickdruck passiert beim Spielen leicht
+     * versehentlich, beide zusammen nie.
+     *
+     * Das Touchpad waere die naheliegende Taste gewesen, faellt aber aus: es
+     * ist auf Android ein eigenes Eingabegeraet und meldet keinen Tastendruck.
+     */
+    private fun handleSkylanderShortcut(event: KeyEvent): Boolean {
+        if (!BooleanSetting.MAIN_EMULATE_SKYLANDER_PORTAL.boolean) {
+            return false
+        }
+
+        val pressed = event.action == KeyEvent.ACTION_DOWN
+        when (event.keyCode) {
+            KeyEvent.KEYCODE_BUTTON_MODE -> {
+                if (pressed) toggleSkylanderPortal()
+                return true
+            }
+
+            KeyEvent.KEYCODE_BUTTON_THUMBL -> skylanderShortcutLeft = pressed
+            KeyEvent.KEYCODE_BUTTON_THUMBR -> skylanderShortcutRight = pressed
+            else -> return false
+        }
+
+        if (skylanderShortcutLeft && skylanderShortcutRight) {
+            skylanderShortcutLeft = false
+            skylanderShortcutRight = false
+            toggleSkylanderPortal()
+        }
+        return true
     }
 
     private fun latchingControls() {
@@ -894,8 +958,27 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
      * aber nicht mehr aufgerufen — er stuerzt beim Laden vorhandener Dateien ab,
      * weil Androids Dateiauswahl nur Leserechte vergibt.
      */
-    private fun showSkylanderPortal() {
-        startActivity(Intent(this, SkylanderPortalActivity::class.java))
+    private fun showSkylanderPortal() = toggleSkylanderPortal()
+
+    /**
+     * Legt das Skylanders-Menue als Schicht ueber das laufende Spiel oder nimmt
+     * es wieder weg. Bewusst kein eigenes Fenster: das wuerde onPause ausloesen
+     * und die Emulation samt Ton anhalten.
+     */
+    private fun toggleSkylanderPortal() {
+        val open = supportFragmentManager.findFragmentByTag(SkylanderPortalFragment.TAG)
+        if (open != null) {
+            supportFragmentManager.beginTransaction().remove(open).commit()
+            skylanderOverlay = null
+            return
+        }
+
+        val fragment = SkylanderPortalFragment.newInstance()
+        fragment.onClose = { toggleSkylanderPortal() }
+        skylanderOverlay = fragment
+        supportFragmentManager.beginTransaction()
+            .add(R.id.frame_skylanders, fragment, SkylanderPortalFragment.TAG)
+            .commit()
     }
 
     private fun showSkylanderPortalSettings() {
@@ -990,6 +1073,8 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
+        skylanderOverlay?.let { return it.onControllerMotion(event) }
+
         if (!menuVisible) {
             if (ControllerInterface.dispatchGenericMotionEvent(event)) {
                 return true

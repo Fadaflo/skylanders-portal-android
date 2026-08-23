@@ -29,6 +29,7 @@ class SkylanderGalleryActivity : AppCompatActivity() {
             "${figures.size} Figuren, davon $withArtwork mit Bild\n$games"
 
         binding.gridFigures.layoutManager = GridLayoutManager(this, 4)
-        binding.gridFigures.adapter = SkylanderFigureAdapter(figures)
+        binding.gridFigures.adapter =
+            SkylanderFigureAdapter(figures.map { FigureRow(figure = it, owned = true) })
     }
 }

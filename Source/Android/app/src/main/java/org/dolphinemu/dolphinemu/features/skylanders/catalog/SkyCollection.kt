@@ -22,6 +22,12 @@ data class CollectedFigure(val id: Int, val variant: Int, val file: File)
  */
 object SkyCollection {
     const val FOLDER_NAME = "Skylanders"
+
+    /**
+     * Die ultimativen Figuren liegen in einem Unterordner. So bleiben sie von
+     * der eigenen Sammlung getrennt — scan() liest nicht in Unterordner.
+     */
+    const val MAXED_FOLDER_NAME = "Ultimativ"
     private const val FILE_SIZE = 0x40 * 0x10
 
     fun folder(userDirectory: String): File = File(userDirectory, FOLDER_NAME)
@@ -53,9 +59,42 @@ object SkyCollection {
     private fun readShort(data: ByteArray, offset: Int): Int =
         (data[offset].toInt() and 0xFF) or ((data[offset + 1].toInt() and 0xFF) shl 8)
 
+    fun maxedFolder(userDirectory: String): File =
+        File(folder(userDirectory), MAXED_FOLDER_NAME)
+
+    /** Alle bereits erschaffenen ultimativen Figuren, getrennt nach Pfad. */
+    fun scanMaxed(userDirectory: String, upperPath: Boolean): List<CollectedFigure> {
+        val dir = maxedFolder(userDirectory)
+        if (!dir.isDirectory) return emptyList()
+
+        val suffix = pathSuffix(upperPath)
+        return dir.listFiles().orEmpty().mapNotNull { file ->
+            if (!file.isFile || !file.name.endsWith(suffix, ignoreCase = true)) return@mapNotNull null
+            if (file.length() < FILE_SIZE) return@mapNotNull null
+
+            val head = ByteArray(0x20)
+            try {
+                file.inputStream().use { if (it.read(head) < head.size) return@use }
+            } catch (e: java.io.IOException) {
+                return@mapNotNull null
+            }
+            CollectedFigure(readShort(head, 0x10), readShort(head, 0x1C), file)
+        }
+    }
+
+    fun pathSuffix(upperPath: Boolean): String =
+        if (upperPath) " (oberer Pfad).sky" else " (unterer Pfad).sky"
+
+    /** Dateiname einer ultimativen Figur. Gleicher Name heisst gleiche Datei. */
+    fun maxedFileFor(userDirectory: String, figure: CatalogFigure, upperPath: Boolean): File =
+        File(maxedFolder(userDirectory), safeName(figure) + pathSuffix(upperPath))
+
+    private fun safeName(figure: CatalogFigure): String =
+        figure.name.replace(Regex("[^A-Za-z0-9 ()._-]"), "_")
+
     /** Dateiname fuer eine neu erschaffene Figur, ohne vorhandene zu ueberschreiben. */
     fun newFileFor(userDirectory: String, figure: CatalogFigure): File {
-        val safe = figure.name.replace(Regex("[^A-Za-z0-9 ()._-]"), "_")
+        val safe = safeName(figure)
         var candidate = File(folder(userDirectory), "$safe.sky")
         var n = 2
         while (candidate.exists()) {

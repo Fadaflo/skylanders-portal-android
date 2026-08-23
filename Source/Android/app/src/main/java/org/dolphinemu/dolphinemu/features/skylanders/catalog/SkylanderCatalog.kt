@@ -45,8 +45,21 @@ object SkylanderCatalog {
 
     private var figures: List<CatalogFigure>? = null
 
-    private val bitmaps = object : LruCache<String, Bitmap>(24 * 1024 * 1024) {
+    /**
+     * Zwischenspeicher fuer Artwork, ein Achtel des Speichers, den die App
+     * bekommen darf, hoechstens 32 MB und mindestens 8.
+     *
+     * Nicht fest verdrahtet, weil sich die Geraete stark unterscheiden: auf
+     * einem Tablet mit 6 GB und wenig freiem Speicher ist ein fester Block von
+     * 24 MB spuerbar, auf einem neuen Telefon faellt er nicht auf.
+     */
+    private val bitmaps = object : LruCache<String, Bitmap>(cacheSize()) {
         override fun sizeOf(key: String, value: Bitmap): Int = value.byteCount
+    }
+
+    private fun cacheSize(): Int {
+        val available = Runtime.getRuntime().maxMemory()
+        return (available / 8).coerceIn(8L * 1024 * 1024, 32L * 1024 * 1024).toInt()
     }
 
     @Synchronized
@@ -79,6 +92,23 @@ object SkylanderCatalog {
     fun getArtwork(context: Context, figure: CatalogFigure): Bitmap? {
         val name = figure.image ?: return null
         return loadAsset(context, "$ASSET_DIR/images/$name")
+    }
+
+    /**
+     * Klartext-Vorlage fuer die ultimativen Figuren, 352 Byte.
+     *
+     * Es ist der Spielstand einer frisch in Giants erzeugten Figur: kein Hut,
+     * kein Spitzname, keine Altlasten. Ausbau, Erfahrung und Gold werden beim
+     * Erschaffen hineingeschrieben.
+     *
+     * Frueher standen hier zwei Vorlagen aus dem PS3-Projekt, Abzuege voll
+     * ausgebauter Figuren. Die brachten den Hut ihrer Herkunftsfigur mit, und
+     * wo der Hut in der Datei steht, ist bis heute nicht gemessen.
+     */
+    fun getTemplate(context: Context): ByteArray? = try {
+        context.assets.open("$ASSET_DIR/templates/neutral.bin").use { it.readBytes() }
+    } catch (e: java.io.IOException) {
+        null
     }
 
     /** Symbol eines Elements, oder null bei "Other". */

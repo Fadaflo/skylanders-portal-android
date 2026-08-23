@@ -412,6 +412,14 @@ void SkylanderFigure::Close()
 {
   m_sky_file.Close();
 }
+void SkylanderFigure::SetDecrypted(std::span<const u8, FIGURE_SIZE> decrypted)
+{
+  std::array<u8, FIGURE_SIZE> buffer{};
+  std::copy(decrypted.begin(), decrypted.end(), buffer.begin());
+  Encrypt(buffer);
+  Save();
+}
+
 void SkylanderFigure::SetBlock(u8 block, const u8* buf)
 {
   memcpy(m_data.data() + (block * BLOCK_SIZE), buf, BLOCK_SIZE);

@@ -5,24 +5,34 @@ package org.dolphinemu.dolphinemu.features.skylanders.catalog
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
+import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.databinding.ListItemSkylanderFigureBinding
 
 /**
- * Raster aller Figuren mit Artwork, Elementsymbol und Spiel.
+ * Eine Karte im Raster.
  *
- * Figuren, von denen keine .sky-Datei in der Sammlung liegt, werden blasser
- * gezeichnet — dieselbe Idee wie die rote Schrift im Desktop-Fenster.
+ * In der Sammlung steht eine Karte fuer eine .sky-Datei — zwei Kopien
+ * derselben Figur sind zwei Karten, weil es zwei Spielstaende sind. Beim
+ * Beschwoeren steht eine Karte fuer einen Eintrag aus Dolphins Datenbank.
  */
+data class FigureRow(
+    val figure: CatalogFigure,
+    val file: CollectedFigure? = null,
+    val owned: Boolean = file != null,
+    val state: String? = null,
+    val marked: Boolean = false
+)
+
+/** Das Figurenraster: Artwork, Elementsymbol und eine Zeile Zustand. */
 class SkylanderFigureAdapter(
-    private var figures: List<CatalogFigure>,
-    private val isOwned: (CatalogFigure) -> Boolean = { false },
-    private val onClick: ((CatalogFigure) -> Unit)? = null
+    private var rows: List<FigureRow>,
+    private val onClick: ((Int) -> Unit)? = null
 ) : RecyclerView.Adapter<SkylanderFigureAdapter.ViewHolder>() {
 
     /**
-     * Die markierte Figur. Eigene Auswahl statt Androids Fokus, weil das
+     * Die markierte Karte. Eigene Auswahl statt Androids Fokus, weil das
      * Steuerkreuz des DualShock 4 als Achse ankommt und Androids Navigation
-     * davon nichts mitbekommt. -1 heisst: nichts markiert (Touch-Bedienung).
+     * davon nichts mitbekommt. -1 heisst: nichts markiert.
      */
     var selected: Int = -1
         set(value) {
@@ -30,6 +40,13 @@ class SkylanderFigureAdapter(
             field = value
             if (old >= 0) notifyItemChanged(old)
             if (value >= 0) notifyItemChanged(value)
+        }
+
+    /** Zeichnet den Auswahlrahmen nur, wenn das Raster am Zug ist. */
+    var selectionVisible: Boolean = true
+        set(value) {
+            field = value
+            if (selected >= 0) notifyItemChanged(selected)
         }
 
     class ViewHolder(val binding: ListItemSkylanderFigureBinding) :
@@ -45,40 +62,37 @@ class SkylanderFigureAdapter(
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val figure = figures[position]
+        val row = rows[position]
         val context = holder.itemView.context
 
-        holder.binding.textFigureName.text = figure.name
-        holder.binding.textFigureGame.text = figure.gameLabel
-        holder.binding.imageFigure.setImageBitmap(SkylanderCatalog.getArtwork(context, figure))
+        holder.binding.textFigureName.text = row.figure.name
+        holder.binding.textFigureGame.text = row.state ?: row.figure.gameLabel
+        holder.binding.imageFigure.setImageBitmap(
+            SkylanderCatalog.getArtwork(context, row.figure)
+        )
         holder.binding.imageElement.setImageBitmap(
-            SkylanderCatalog.getElementIcon(context, figure.element)
+            SkylanderCatalog.getElementIcon(context, row.figure.element)
         )
 
-        val marked = position == selected
-        holder.itemView.alpha = when {
-            marked -> 1.0f
-            isOwned(figure) -> 1.0f
-            else -> 0.45f
-        }
-        holder.itemView.setBackgroundColor(if (marked) HIGHLIGHT else 0)
-        holder.binding.textFigureName.isSelected = marked
-        onClick?.let { listener ->
-            holder.itemView.setOnClickListener { listener(figure) }
-        }
+        val chosen = position == selected && selectionVisible
+        holder.itemView.setBackgroundResource(
+            when {
+                row.marked -> R.drawable.sky_card_marked
+                chosen -> R.drawable.sky_card_selected
+                else -> 0
+            }
+        )
+        holder.itemView.alpha = if (chosen || row.marked || row.owned) 1.0f else 0.45f
+
+        onClick?.let { listener -> holder.itemView.setOnClickListener { listener(position) } }
     }
 
-    override fun getItemCount(): Int = figures.size
+    override fun getItemCount(): Int = rows.size
 
-    fun submit(newFigures: List<CatalogFigure>) {
-        figures = newFigures
+    fun submit(newRows: List<FigureRow>) {
+        rows = newRows
         notifyDataSetChanged()
     }
 
-    fun figureAt(position: Int): CatalogFigure? = figures.getOrNull(position)
-
-    companion object {
-        /** Halbdurchsichtiges Weiss als Markierung; faellt in beiden Themen auf. */
-        private const val HIGHLIGHT = 0x40FFFFFF
-    }
+    fun rowAt(position: Int): FigureRow? = rows.getOrNull(position)
 }

@@ -73,6 +73,20 @@ public:
   FigureData GetData() const;
   void SetData(FigureData* data);
 
+  // Die Bloecke, in denen der Spielstand liegt: zwei Bereiche zu elf Bloecken.
+  // Sektorschluessel und Kopf gehoeren nicht dazu.
+  static constexpr std::array<u8, 22> SAVE_BLOCKS = {8,  9,  10, 12, 13, 14, 16, 17,
+                                                     18, 20, 21, 36, 37, 38, 40, 41,
+                                                     42, 44, 45, 46, 48, 49};
+  static constexpr u32 SAVE_BLOCKS_SIZE = 22 * BLOCK_SIZE;
+
+  // Verschluesselt ein komplettes Klartextabbild und speichert es.
+  //
+  // Das Gegenstueck zu DecryptFigure. Zusammen erlauben die beiden, einen
+  // Spielstand ausserhalb dieser Klasse zu bearbeiten -- gebraucht fuer die
+  // "ultimativen" Figuren, deren Spielstand aus einer Vorlage stammt.
+  void SetDecrypted(std::span<const u8, FIGURE_SIZE> decrypted);
+
 private:
   void PopulateSectorTrailers();
   void PopulateKeys();
