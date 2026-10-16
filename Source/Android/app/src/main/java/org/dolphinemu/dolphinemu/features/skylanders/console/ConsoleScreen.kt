@@ -733,37 +733,7 @@ private fun FiguresPage(state: ConsoleState, onRefresh: () -> Unit, onGames: () 
         containerColor = Color.White.copy(alpha = 0.04f), labelColor = Muted,
         iconColor = Muted, selectedContainerColor = Color.White.copy(alpha = 0.18f),
         selectedLabelColor = Color.White, selectedLeadingIconColor = Color.White)
-    var selectedPath by rememberSaveable { mutableStateOf<String?>(null) }
-    val selectedFigure = state.figures.firstOrNull { it.path == selectedPath }
     val sound = LocalMenuSound.current
-    if (selectedFigure != null) AlertDialog(onDismissRequest = { selectedPath = null },
-        title = { Text(selectedFigure.name, fontWeight = FontWeight.Black) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(Modifier.fillMaxWidth().height(180.dp), contentAlignment = Alignment.Center) {
-                    PortalHalo(Ice, Modifier.fillMaxSize())
-                    AsyncImage(selectedFigure.image?.let { "file:///android_asset/skylanders/images/$it" },
-                        selectedFigure.name, Modifier.fillMaxSize().padding(20.dp), contentScale = ContentScale.Fit)
-                }
-                Text("${figureElementLabels[selectedFigure.element] ?: selectedFigure.element} · ${if (selectedFigure.ultimate) "Ultimative Sammlung" else "Deine Sammlung"}", color = Ice)
-                Spacer(Modifier.height(12.dp))
-                val stats = selectedFigure.stats
-                if (stats != null) {
-                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        FigureStat("Gold", java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(stats.gold), Icons.Outlined.Toll, Modifier.weight(1f))
-                        FigureStat("Level", stats.level?.toString() ?: "—", Icons.Outlined.StarOutline, Modifier.weight(1f))
-                    }
-                    Spacer(Modifier.height(8.dp))
-                    FigureStat("Spielzeit", figurePlayTime(stats.seconds), Icons.Outlined.Schedule, Modifier.fillMaxWidth())
-                    Spacer(Modifier.height(12.dp))
-                    Text("Gespeicherter Fortschritt dieser Figur. Das angezeigte Level kann im jeweiligen Spiel durch dessen Levelgrenze begrenzt sein.", color = Muted, fontSize = 12.sp)
-                } else {
-                    Text(if (ConsoleFigureStatsReader.supports(selectedFigure.type))
-                        "Der gespeicherte Fortschritt konnte nicht sicher gelesen werden. Deine Figur bleibt unverändert."
-                        else "Gegenstände und Fallen haben keine eigenen Werte für Gold, Heldenlevel und Spielzeit.", color = Muted)
-                }
-            }
-        }, confirmButton = { TextButton({ selectedPath = null }) { Text("Zurück zur Sammlung") } })
     val figures = remember(state.figures, query, ultimate, gameFilter, elementFilter, showVariants, showTraps, sort) {
         filterConsoleFigures(state.figures, ultimate, query, gameFilter, elementFilter, showVariants, showTraps, sort)
     }
@@ -826,8 +796,7 @@ private fun FiguresPage(state: ConsoleState, onRefresh: () -> Unit, onGames: () 
             }
         }
         items(figures, key = { it.path }) { figure ->
-            PortalSurface(Modifier.fillMaxWidth(), breathe = true,
-                onClick = { sound(ConsoleCue.CONFIRM); selectedPath = figure.path }) {
+            PortalSurface(Modifier.fillMaxWidth(), breathe = true) {
                 Column(Modifier.padding(16.dp)) {
                     Box(Modifier.fillMaxWidth().height(152.dp), contentAlignment = Alignment.Center) {
                         PortalHalo(Ice, Modifier.fillMaxSize())
@@ -841,16 +810,6 @@ private fun FiguresPage(state: ConsoleState, onRefresh: () -> Unit, onGames: () 
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun FigureStat(label: String, value: String, icon: ImageVector, modifier: Modifier) {
-    Column(modifier.clip(RoundedCornerShape(18.dp)).background(Color.White.copy(alpha = 0.06f)).padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Icon(icon, null, Modifier.size(22.dp), tint = Ice)
-        Text(value, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
-        Text(label, color = Muted, fontSize = 12.sp)
     }
 }
 
