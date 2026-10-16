@@ -739,15 +739,29 @@ private fun FiguresPage(state: ConsoleState, onRefresh: () -> Unit, onGames: () 
     if (selectedFigure != null) AlertDialog(onDismissRequest = { selectedPath = null },
         title = { Text(selectedFigure.name, fontWeight = FontWeight.Black) },
         text = {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Box(Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) {
+            Column(Modifier.verticalScroll(rememberScrollState()), horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(Modifier.fillMaxWidth().height(180.dp), contentAlignment = Alignment.Center) {
                     PortalHalo(Ice, Modifier.fillMaxSize())
                     AsyncImage(selectedFigure.image?.let { "file:///android_asset/skylanders/images/$it" },
                         selectedFigure.name, Modifier.fillMaxSize().padding(20.dp), contentScale = ContentScale.Fit)
                 }
-                Text("${selectedFigure.element} · ${if (selectedFigure.ultimate) "Ultimative Sammlung" else "Deine Sammlung"}", color = Ice)
+                Text("${figureElementLabels[selectedFigure.element] ?: selectedFigure.element} · ${if (selectedFigure.ultimate) "Ultimative Sammlung" else "Deine Sammlung"}", color = Ice)
                 Spacer(Modifier.height(12.dp))
-                Text("Diese Figur gehört zu deiner lokalen Sammlung. Auflegen kannst du sie im Figurenmenü während des Spiels.")
+                val stats = selectedFigure.stats
+                if (stats != null) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        FigureStat("Gold", java.text.NumberFormat.getIntegerInstance(java.util.Locale.GERMANY).format(stats.gold), Icons.Outlined.Toll, Modifier.weight(1f))
+                        FigureStat("Level", stats.level?.toString() ?: "—", Icons.Outlined.StarOutline, Modifier.weight(1f))
+                    }
+                    Spacer(Modifier.height(8.dp))
+                    FigureStat("Spielzeit", figurePlayTime(stats.seconds), Icons.Outlined.Schedule, Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(12.dp))
+                    Text("Gespeicherter Fortschritt dieser Figur. Das angezeigte Level kann im jeweiligen Spiel durch dessen Levelgrenze begrenzt sein.", color = Muted, fontSize = 12.sp)
+                } else {
+                    Text(if (ConsoleFigureStatsReader.supports(selectedFigure.type))
+                        "Der gespeicherte Fortschritt konnte nicht sicher gelesen werden. Deine Figur bleibt unverändert."
+                        else "Gegenstände und Fallen haben keine eigenen Werte für Gold, Heldenlevel und Spielzeit.", color = Muted)
+                }
             }
         }, confirmButton = { TextButton({ selectedPath = null }) { Text("Zurück zur Sammlung") } })
     val figures = remember(state.figures, query, ultimate, gameFilter, elementFilter, showVariants, showTraps, sort) {
@@ -827,6 +841,16 @@ private fun FiguresPage(state: ConsoleState, onRefresh: () -> Unit, onGames: () 
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun FigureStat(label: String, value: String, icon: ImageVector, modifier: Modifier) {
+    Column(modifier.clip(RoundedCornerShape(18.dp)).background(Color.White.copy(alpha = 0.06f)).padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        Icon(icon, null, Modifier.size(22.dp), tint = Ice)
+        Text(value, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
+        Text(label, color = Muted, fontSize = 12.sp)
     }
 }
 

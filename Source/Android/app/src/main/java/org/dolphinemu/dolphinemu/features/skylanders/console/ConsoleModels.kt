@@ -37,7 +37,8 @@ internal data class ConsoleFigure(
     val ultimate: Boolean,
     val game: String = "",
     val type: String = "",
-    val specialVariant: Boolean = false
+    val specialVariant: Boolean = false,
+    val stats: ConsoleFigureStats? = null
 )
 
 internal val figureGameLabels = linkedMapOf("SpyrosAdv" to "Spyro’s Adventure", "Giants" to "Giants",

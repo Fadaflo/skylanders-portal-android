@@ -351,12 +351,12 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                         collectionFigure(it.file.absolutePath, catalog[it.id to it.variant], false, standardIds)
                     }
                     // Read only: neither rename nor rewrite figure saves when browsing the collection.
-                    normal + ultimate.map { file ->
+                    (normal + ultimate.map { file ->
                         val head = file.inputStream().use { stream -> ByteArray(32).also { stream.readFully(it) } }
                         fun short(at: Int) = (head[at].toInt() and 255) or
                             ((head[at + 1].toInt() and 255) shl 8)
                         collectionFigure(file.absolutePath, catalog[short(16) to short(28)], true, standardIds)
-                    }
+                    }).map { figure -> figure.copy(stats = ConsoleFigureStatsReader.read(java.io.File(figure.path), figure.type)) }
                 }
             }
             state = result.fold(
