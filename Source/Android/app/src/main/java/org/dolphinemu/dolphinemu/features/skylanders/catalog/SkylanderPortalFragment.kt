@@ -548,6 +548,20 @@ class SkylanderPortalFragment : Fragment() {
         slot.filePath = file.absolutePath
         activeSlot = target
 
+        SkyCollection.pruneItemCopies(userDirectory(), figure, file) { oldFile ->
+            // The native portal saves and closes its file synchronously on removal.
+            // Never unlink a file while another portal slot can still write to it.
+            val oldSlots = slots.filter { it.filePath == oldFile.absolutePath }
+            oldSlots.all { oldSlot ->
+                if (oldSlot.portalSlot >= 0 && !SkylanderConfig.removeSkylander(oldSlot.portalSlot)) {
+                    false
+                } else {
+                    oldSlot.clear()
+                    true
+                }
+            }
+        }
+
         rescanCollection()
         rebuildRows()
         onClose?.invoke()

@@ -119,6 +119,7 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     baselineProfile(project(":benchmark"))
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 

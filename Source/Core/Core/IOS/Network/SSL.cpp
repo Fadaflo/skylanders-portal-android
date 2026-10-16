@@ -15,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Core/Config/MainSettings.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/Socket.h"
@@ -160,7 +161,18 @@ static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8
   if (!file.ReadBytes(bytes.data(), bytes.size()))
   {
     ERROR_LOG_FMT(IOS_SSL, "Failed to read {}", path);
-    if (!silent)
+    bool optional_offline_certificate = false;
+#ifdef ANDROID
+    // A fresh offline Portal installation has no Wii network certificates.
+    // Keep the SSL failure and verification intact, but do not block gameplay
+    // with a panic dialog for these optional files. Invalid existing files
+    // still use the normal warning below.
+    const std::string prefix = SConfig::GetInstance().GetGameID().substr(0, 3);
+    optional_offline_certificate =
+        !file.IsOpen() && Config::Get(Config::MAIN_EMULATE_SKYLANDER_PORTAL) &&
+        (prefix == "SSP" || prefix == "SKY" || prefix == "SVX" || prefix == "SK8");
+#endif
+    if (!silent && !optional_offline_certificate)
     {
       PanicAlertFmtT("IOS: Could not read a file required for SSL services ({0}). Please refer to "
                      "https://dolphin-emu.org/docs/guides/wii-network-guide/ for "

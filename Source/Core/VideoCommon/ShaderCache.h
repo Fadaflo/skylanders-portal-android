@@ -12,6 +12,7 @@
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 #include "Common/IOFile.h"
@@ -123,6 +124,7 @@ private:
   void LoadPipelineUIDCache();
   void ClosePipelineUIDCache();
   void CompileMissingPipelines();
+  bool DeferPipelineLoading() const;
   void QueueUberShaderPipelines();
   bool CompileSharedPipelines();
 
@@ -156,7 +158,8 @@ private:
   std::optional<AbstractPipelineConfig> GetGXPipelineConfig(const GXPipelineUid& uid);
   std::optional<AbstractPipelineConfig> GetGXPipelineConfig(const GXUberPipelineUid& uid);
   const AbstractPipeline* InsertGXPipeline(const GXPipelineUid& config,
-                                           std::unique_ptr<AbstractPipeline> pipeline);
+                                           std::unique_ptr<AbstractPipeline> pipeline,
+                                           bool from_cache = false);
   const AbstractPipeline* InsertGXUberPipeline(const GXUberPipelineUid& config,
                                                std::unique_ptr<AbstractPipeline> pipeline);
   void AddSerializedGXPipelineUID(const SerializedGXPipelineUid& uid);
@@ -226,6 +229,9 @@ private:
 
   // GX Pipeline Caches - .first - pipeline, .second - pending
   std::map<GXPipelineUid, std::pair<std::unique_ptr<AbstractPipeline>, bool>> m_gx_pipeline_cache;
+  // On Android OpenGL, restore binary programs on first use rather than linking
+  // every program from every previously visited level before the first frame.
+  std::map<GXPipelineUid, std::vector<u8>> m_deferred_pipeline_binaries;
   std::map<GXUberPipelineUid, std::pair<std::unique_ptr<AbstractPipeline>, bool>>
       m_gx_uber_pipeline_cache;
   File::IOFile m_gx_pipeline_uid_cache_file;

@@ -1,0 +1,1054 @@
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+package org.dolphinemu.dolphinemu.features.skylanders.console
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
+import androidx.compose.foundation.pager.VerticalPager
+import androidx.compose.foundation.pager.PageSize
+import androidx.compose.foundation.pager.PagerDefaults
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.ui.draw.blur
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalInputModeManager
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.input.InputMode
+import androidx.compose.foundation.focusGroup
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.contentDescription
+import coil.request.ImageRequest
+import coil.size.Precision
+import android.os.Build
+import androidx.compose.foundation.focusable
+import androidx.compose.ui.input.key.*
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextAlign
+import kotlinx.coroutines.launch
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.BlurEffect
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.boundsInRoot
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
+import coil.compose.AsyncImage
+import kotlin.math.roundToInt
+
+private val Ink = PortalPalette.Background
+private val Panel = PortalPalette.Surface
+private val Muted = PortalPalette.Muted
+private val Ice = PortalPalette.Focus
+private val Shape = PortalPalette.Shape
+private val LocalMenuSound = staticCompositionLocalOf<(ConsoleCue) -> Unit> { {} }
+
+@Stable
+private class HeroSwipeState {
+    var position by mutableFloatStateOf(0f)
+    var moving by mutableStateOf(false)
+    var ready by mutableStateOf(false)
+    var infoProgress by mutableFloatStateOf(0f)
+    var coverBounds by mutableStateOf<Rect?>(null)
+}
+
+@Composable
+internal fun ConsoleScreen(
+    state: ConsoleState,
+    controllerKeys: Flow<Int>,
+    dispatchMenuKey: (Int) -> Unit,
+    onAudioSettings: (ConsoleAudioSettings) -> Unit,
+    onMenuSound: (ConsoleCue) -> Unit,
+    onInfoAnimation: (Boolean) -> Unit,
+    onPage: (ConsolePage) -> Unit,
+    onSelect: (ConsoleGame) -> Unit,
+    onPlay: (ConsoleGame) -> Unit,
+    onAddGames: () -> Unit,
+    onRefresh: () -> Unit,
+    onBluetooth: () -> Unit,
+    onControllerSettings: () -> Unit,
+    onAutoController: (Boolean) -> Unit,
+    onAutoGraphics: (Boolean) -> Unit,
+    onSettings: () -> Unit,
+    onSetup: () -> Unit,
+    onCloseSetup: () -> Unit,
+    onImportFiles: () -> Unit,
+    onImportFolder: () -> Unit,
+    onCloseImport: () -> Unit,
+    onDismissImportMessage: () -> Unit,
+    onAdvanced: () -> Unit
+) {
+    val view = LocalView.current
+    val heroSwipe = remember { HeroSwipeState() }
+    val figurePageState = rememberSaveableStateHolder()
+    val motion = portalMotionEnabled(LocalContext.current)
+    val launchProgress by animateFloatAsState(if (state.launchingGameKey != null) 1f else 0f,
+        tween(if (motion) PortalPalette.LaunchDurationMs else 40, easing = PortalPalette.LaunchEasing), label = "enterPortal")
+    DisposableEffect(view) {
+        val original = view.isSoundEffectsEnabled
+        view.isSoundEffectsEnabled = false
+        onDispose { view.isSoundEffectsEnabled = original }
+    }
+    val inputMode = LocalInputModeManager.current
+    val dispatchKey by rememberUpdatedState(dispatchMenuKey)
+    val pageFocus = remember { FocusRequester() }
+    LaunchedEffect(state.controllers.isNotEmpty()) {
+        if (state.controllers.isNotEmpty()) inputMode.requestInputMode(InputMode.Keyboard)
+    }
+    LaunchedEffect(controllerKeys) {
+        controllerKeys.collect { key ->
+            inputMode.requestInputMode(InputMode.Keyboard)
+            // Let the focus targets update before delivering the first controller action.
+            withFrameNanos { }
+            withFrameNanos { }
+            dispatchKey(key)
+        }
+    }
+    LaunchedEffect(state.page) {
+        if (state.page != ConsolePage.GAMES && inputMode.inputMode == InputMode.Keyboard) {
+            withFrameNanos { }
+            pageFocus.requestFocus()
+        }
+    }
+    BackHandler(state.page != ConsolePage.GAMES) { onPage(ConsolePage.GAMES) }
+    BackHandler(state.launchingGameKey != null) { dispatchMenuKey(android.view.KeyEvent.KEYCODE_BACK) }
+    CompositionLocalProvider(LocalMenuSound provides onMenuSound, LocalPortalMotion provides motion) {
+    MaterialTheme(colorScheme = darkColorScheme(primary = Ice, background = Ink,
+        surface = Panel, onSurface = Color.White, onBackground = Color.White), typography = ConsoleTypography) {
+        val selectedGame = state.games.firstOrNull { it.key == state.selectedKey } ?: consoleCatalog.first()
+        Box(Modifier.fillMaxSize().background(Ink).focusRequester(pageFocus).focusGroup()) {
+            ConsoleBackdrop(selectedGame, state.games, state.page != ConsolePage.GAMES, heroSwipe)
+            Box(Modifier.fillMaxSize().graphicsLayer {
+                alpha = if (state.page == ConsolePage.GAMES) heroSwipe.infoProgress else 0f
+            }.background(Color.Black.copy(alpha = 0.48f)))
+            Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
+                ConsoleHeader(state, onPage)
+                if (state.refreshing || !state.ready) {
+                    LinearProgressIndicator(Modifier.fillMaxWidth(), color = Ice, trackColor = Panel)
+                }
+                Box(Modifier.weight(1f)) {
+                    when (state.page) {
+                        ConsolePage.GAMES -> GamesPage(state, onSelect, onPlay, onAddGames, onRefresh, heroSwipe)
+                        ConsolePage.FIGURES -> figurePageState.SaveableStateProvider("figures") {
+                            FiguresPage(state, onRefresh, { onPage(ConsolePage.GAMES) })
+                        }
+                        ConsolePage.CONTROLLERS -> ControllersPage(state, onBluetooth, onControllerSettings, onAutoController)
+                        ConsolePage.SETTINGS -> SettingsPage(state, onAudioSettings, onInfoAnimation, onAutoGraphics, onSettings, onAdvanced, onSetup, onAddGames)
+                    }
+                }
+            }
+            if (state.launchingGameKey != null) PortalLaunchOverlay(
+                state.games.firstOrNull { it.key == state.launchingGameKey } ?: selectedGame,
+                launchProgress, heroSwipe.coverBounds)
+            if (state.setupOpen) ConsoleSetup(state, onImportFiles, onImportFolder, onBluetooth, onCloseSetup)
+            if (state.importOpen) AlertDialog(onDismissRequest = onCloseImport,
+                title = { Text("Eigene Spiele einbinden", fontWeight = FontWeight.Black) },
+                text = { Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    Text("Wähle einzelne Wii-Spieldateien oder einen Ordner mit deinen Spielen. Die Dateien bleiben an ihrem Speicherort.")
+                    Text("RVZ · ISO · WBFS · WIA · GCZ · CISO\nZIP und 7z vorher entpacken.", color = Muted)
+                    ConsoleButton("Dateien auswählen", Icons.Outlined.InsertDriveFile, onImportFiles, primary = true, enabled = state.ready && !state.importing)
+                    ConsoleButton("Spieleordner verbinden", Icons.Outlined.FolderOpen, onImportFolder, enabled = state.ready && !state.importing)
+                } }, confirmButton = { TextButton(onCloseImport) { Text("Schließen") } })
+            if (state.importMessage != null && !state.setupOpen && !state.importOpen) AlertDialog(
+                onDismissRequest = onDismissImportMessage,
+                title = { Text("Spieleimport") }, text = { Text(state.importMessage) },
+                confirmButton = { TextButton(onDismissImportMessage) { Text("OK") } })
+        }
+    }
+    }
+}
+
+@Composable
+private fun ConsoleBackdrop(game: ConsoleGame, games: List<ConsoleGame>, dimmed: Boolean, swipe: HeroSwipeState) {
+    val lowerIndex by remember(games, game.key, dimmed) {
+        derivedStateOf {
+            if (!dimmed && swipe.ready) kotlin.math.floor(swipe.position).toInt().coerceIn(games.indices)
+            else games.indexOfFirst { it.key == game.key }.coerceAtLeast(0)
+        }
+    }
+    val upperIndex = (lowerIndex + 1).coerceAtMost(games.lastIndex)
+    val blend = {
+        if (dimmed || !swipe.ready) 0f else (swipe.position - lowerIndex).coerceIn(0f, 1f)
+    }
+    BackdropLayer(games[lowerIndex], incoming = false, blend = blend)
+    if (upperIndex != lowerIndex) BackdropLayer(games[upperIndex], incoming = true, blend = blend)
+    Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = if (dimmed) 0.64f else 0.26f)))
+    Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+        Color.Black.copy(alpha = 0.48f), Color.Transparent, Color.Black.copy(alpha = 0.64f)))))
+}
+
+@Composable
+private fun BackdropLayer(game: ConsoleGame, incoming: Boolean, blend: () -> Float) {
+    val context = LocalContext.current
+    val motion = LocalPortalMotion.current
+    val artwork: Any = game.sceneArtwork ?: "file:///android_asset/skylanders/images/${game.artwork}"
+        val request = remember(artwork) {
+            ImageRequest.Builder(context).data(artwork).apply {
+                // Compose blur uses RenderEffect on Android 12+. A small filtered image
+                // provides the soft backdrop on older devices without a new dependency.
+                if (Build.VERSION.SDK_INT < 31) size(48, 24).precision(Precision.EXACT)
+            }.build()
+        }
+        AsyncImage(request, null, modifier = Modifier.fillMaxSize().graphicsLayer {
+            val fraction = blend()
+            // Soft dissolving layers drift into each other instead of changing after release.
+            alpha = if (incoming) fraction * fraction * (3f - 2f * fraction) else 1f
+            val drift = if (incoming) 1f - fraction else -fraction
+            translationX = if (motion) drift * 12.dp.toPx() else 0f
+            scaleX = 1.18f + if (motion) kotlin.math.abs(drift) * 0.025f else 0f
+            scaleY = scaleX
+        }.blur(40.dp),
+            contentScale = ContentScale.Crop)
+}
+
+@Composable
+private fun ConsoleHeader(state: ConsoleState, onPage: (ConsolePage) -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp)) {
+        val compact = maxWidth < 600.dp
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically) {
+            ConsolePage.entries.forEach { page ->
+                val active = state.page == page
+                val icon = when (page) {
+                    ConsolePage.GAMES -> Icons.Outlined.SportsEsports
+                    ConsolePage.FIGURES -> Icons.Outlined.AutoAwesome
+                    ConsolePage.CONTROLLERS -> Icons.Outlined.Gamepad
+                    ConsolePage.SETTINGS -> Icons.Outlined.Settings
+                }
+                if (compact) {
+                    IconButton({ onPage(page) }, modifier = Modifier
+                        .background(if (active) Color.White.copy(alpha = 0.16f) else Color.Transparent, CircleShape)) {
+                        Icon(icon, page.title, tint = if (active) Color.White else Color.White.copy(alpha = 0.65f),
+                            modifier = Modifier.size(20.dp))
+                    }
+                } else {
+                    TextButton({ onPage(page) }, colors = ButtonDefaults.textButtonColors(contentColor =
+                        if (active) Color.White else Color.White.copy(alpha = 0.65f))) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            Text(page.title, fontSize = 12.sp)
+                            Spacer(Modifier.height(5.dp))
+                            Box(Modifier.width(18.dp).height(2.dp).background(
+                                if (active) Color.White else Color.Transparent))
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun GamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> Unit,
+    onPlay: (ConsoleGame) -> Unit, onAdd: () -> Unit, onRefresh: () -> Unit, heroSwipe: HeroSwipeState) {
+    // Keep selection above both info variants and their recyclable hero pages.
+    // The visible cover is the source of truth; persisted selection is only an output.
+    key(state.games.map { it.key }) {
+        val initialIndex = state.games.indexOfFirst { it.key == state.selectedKey }.coerceAtLeast(0)
+        val gamePager = rememberPagerState(initialPage = initialIndex, pageCount = { state.games.size })
+        val scope = rememberCoroutineScope()
+        val motion = LocalPortalMotion.current
+        val persistSelection by rememberUpdatedState(onSelect)
+        LaunchedEffect(gamePager, state.ready) {
+            if (state.ready) snapshotFlow { gamePager.settledPage to gamePager.isScrollInProgress }
+                .distinctUntilChanged().collect { (index, moving) ->
+                    if (!moving) state.games.getOrNull(index)?.let(persistSelection)
+                }
+        }
+        LaunchedEffect(gamePager, heroSwipe) {
+            snapshotFlow { (gamePager.currentPage + gamePager.currentPageOffsetFraction) to gamePager.isScrollInProgress }
+                .collect { (position, moving) ->
+                    heroSwipe.position = position
+                    heroSwipe.moving = moving
+                    heroSwipe.ready = true
+                }
+        }
+        val visibleGame = state.games[gamePager.currentPage.coerceIn(state.games.indices)]
+        val visibleState = state.copy(selectedKey = visibleGame.key)
+        val selectGame: (ConsoleGame) -> Unit = { game ->
+            val index = state.games.indexOfFirst { it.key == game.key }
+            if (index >= 0) scope.launch {
+                gamePager.animateScrollToPage(index,
+                    animationSpec = tween(if (motion) PortalPalette.GlideDurationMs else 0,
+                        easing = PortalPalette.GlideEasing))
+            }
+        }
+        if (state.immersiveInfo) {
+            ImmersiveGamesPage(visibleState, selectGame, onPlay, onAdd, onRefresh, heroSwipe, gamePager)
+        } else {
+            SideEffect { heroSwipe.infoProgress = 0f }
+            ClassicGamesPage(visibleState, selectGame, onPlay, onAdd, onRefresh, heroSwipe, gamePager)
+        }
+    }
+}
+
+@Composable
+private fun ImmersiveGamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> Unit,
+    onPlay: (ConsoleGame) -> Unit, onAdd: () -> Unit, onRefresh: () -> Unit, heroSwipe: HeroSwipeState,
+    gamePager: PagerState) {
+    val selectedIndex = state.games.indexOfFirst { it.key == state.selectedKey }.coerceAtLeast(0)
+    var detailsOpen by rememberSaveable { mutableStateOf(false) }
+    val pager = rememberPagerState(initialPage = if (detailsOpen) 1 else 0, pageCount = { 2 })
+    val motion = LocalPortalMotion.current
+    val scope = rememberCoroutineScope()
+    val sound = LocalMenuSound.current
+    val focus = LocalFocusManager.current
+    val inputMode = LocalInputModeManager.current
+    val heroFocus = remember { FocusRequester() }
+    val detailsFocus = remember { FocusRequester() }
+    val lifecycle = LocalLifecycleOwner.current
+    val restoreFocus by rememberUpdatedState<() -> Unit> {
+        if (state.ready && inputMode.inputMode == InputMode.Keyboard && !pager.isScrollInProgress) {
+            if (pager.settledPage == 1) detailsFocus.requestFocus() else heroFocus.requestFocus()
+        }
+    }
+    DisposableEffect(lifecycle) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) scope.launch { withFrameNanos { }; restoreFocus() }
+        }
+        lifecycle.lifecycle.addObserver(observer)
+        onDispose { lifecycle.lifecycle.removeObserver(observer); heroSwipe.infoProgress = 0f }
+    }
+    LaunchedEffect(pager) {
+        snapshotFlow { (pager.currentPage + pager.currentPageOffsetFraction).coerceIn(0f, 1f) }
+            .collect { heroSwipe.infoProgress = it }
+    }
+    LaunchedEffect(pager) {
+        snapshotFlow { pager.settledPage }.distinctUntilChanged().collect { page ->
+            val open = page == 1
+            if (detailsOpen != open) sound(if (open) ConsoleCue.NAVIGATE else ConsoleCue.BACK)
+            detailsOpen = open
+        }
+    }
+    LaunchedEffect(state.ready, pager.settledPage, inputMode.inputMode) {
+        withFrameNanos { }
+        restoreFocus()
+    }
+    fun goTo(page: Int) {
+        focus.clearFocus(force = true)
+        scope.launch {
+            pager.animateScrollToPage(page, animationSpec = tween(
+                if (motion) PortalPalette.GlideDurationMs else 0, easing = PortalPalette.GlideEasing))
+            withFrameNanos { }
+            restoreFocus()
+        }
+    }
+    BackHandler(detailsOpen || pager.currentPage != 0 || pager.currentPageOffsetFraction != 0f) { goTo(0) }
+    VerticalPager(state = pager, beyondViewportPageCount = 1,
+        overscrollEffect = null,
+        userScrollEnabled = state.ready && state.launchingGameKey == null,
+        flingBehavior = PagerDefaults.flingBehavior(pager,
+            snapPositionalThreshold = 0.22f,
+            snapAnimationSpec = tween(if (motion) PortalPalette.GlideDurationMs else 0,
+                easing = PortalPalette.GlideEasing)), modifier = Modifier.fillMaxSize()) { page ->
+        if (page == 0) {
+            GameStage(state, selectedIndex,
+                { if (!detailsOpen && !pager.isScrollInProgress) onSelect(it) },
+                { if (!detailsOpen && !pager.isScrollInProgress) onPlay(it) },
+                { if (!detailsOpen && !pager.isScrollInProgress) onAdd() }, onRefresh,
+                { goTo(1) }, heroFocus, heroSwipe, gamePager, Modifier.fillMaxSize().graphicsLayer {
+                    val progress = (pager.currentPage + pager.currentPageOffsetFraction).coerceIn(0f, 1f)
+                    // Counter the pager displacement: the menu stays behind the rising info layer.
+                    translationY = progress * size.height
+                    alpha = 1f - progress
+                    scaleX = 1f - progress * 0.02f
+                    scaleY = scaleX
+                    renderEffect = if (Build.VERSION.SDK_INT >= 31 && progress > 0.001f) {
+                        val radius = 24.dp.toPx() * progress
+                        BlurEffect(radius, radius, TileMode.Clamp)
+                    } else null
+                })
+        } else {
+            GameDetails(state.games[selectedIndex], { goTo(0) }, Modifier.fillMaxSize()
+                .focusRequester(detailsFocus).onPreviewKeyEvent {
+                    if (it.type == KeyEventType.KeyDown && it.key == Key.DirectionUp) {
+                        goTo(0); true
+                    } else false
+                }.focusable(), panel = false)
+        }
+    }
+}
+
+@Composable
+private fun ClassicGamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> Unit,
+    onPlay: (ConsoleGame) -> Unit, onAdd: () -> Unit, onRefresh: () -> Unit, heroSwipe: HeroSwipeState,
+    gamePager: PagerState) {
+    val selectedIndex = state.games.indexOfFirst { it.key == state.selectedKey }.coerceAtLeast(0)
+    val game = state.games[selectedIndex]
+    val scroll = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val menuSound = LocalMenuSound.current
+    val focusManager = LocalFocusManager.current
+    val inputMode = LocalInputModeManager.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val heroFocus = remember { FocusRequester() }
+    val detailsFocus = remember { FocusRequester() }
+    var detailsOpen by rememberSaveable { mutableStateOf(false) }
+    val restoreSectionFocus by rememberUpdatedState<() -> Unit> {
+        if (state.ready) {
+            if (state.controllers.isNotEmpty()) inputMode.requestInputMode(InputMode.Keyboard)
+            if (detailsOpen) detailsFocus.requestFocus() else heroFocus.requestFocus()
+        }
+    }
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) scope.launch {
+                withFrameNanos { }
+                restoreSectionFocus()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    LaunchedEffect(inputMode.inputMode) {
+        if (inputMode.inputMode == InputMode.Keyboard) {
+            withFrameNanos { }
+            restoreSectionFocus()
+        }
+    }
+    val openDetails: () -> Unit = {
+        menuSound(ConsoleCue.NAVIGATE)
+        detailsOpen = true
+        focusManager.clearFocus(force = true)
+        scope.launch { scroll.animateScrollToItem(1); detailsFocus.requestFocus() }
+    }
+    val closeDetails: () -> Unit = {
+        menuSound(ConsoleCue.BACK)
+        detailsOpen = false
+        // Release the old section before scrolling; its focused child can otherwise
+        // bring itself back into view and interrupt the return animation on devices.
+        focusManager.clearFocus(force = true)
+        scope.launch { scroll.animateScrollToItem(0); heroFocus.requestFocus() }
+    }
+    BackHandler(detailsOpen || scroll.firstVisibleItemIndex > 0 || scroll.firstVisibleItemScrollOffset > 0) { closeDetails() }
+    BoxWithConstraints(Modifier.fillMaxSize()) {
+        val viewport = maxHeight
+        // Restore the section, not an old pixel offset from a different orientation/density.
+        // Request focus here once; requesting it inside a recycled hero item would pull
+        // the user back up while they are scrolling through the game information.
+        LaunchedEffect(viewport, maxWidth, state.ready) {
+            if (state.ready) {
+                scroll.scrollToItem(if (detailsOpen) 1 else 0)
+                withFrameNanos { }
+                if (detailsOpen) detailsFocus.requestFocus() else heroFocus.requestFocus()
+            }
+        }
+        LazyColumn(state = scroll, modifier = Modifier.fillMaxSize()) {
+            item(key = "hero") {
+                GameStage(state, selectedIndex, onSelect, onPlay, onAdd, onRefresh,
+                    openDetails, heroFocus, heroSwipe, gamePager, Modifier.fillMaxWidth().height(viewport))
+            }
+            item(key = "details") {
+                GameDetails(game, closeDetails, Modifier.fillMaxWidth().heightIn(min = viewport)
+                    .focusRequester(detailsFocus).onPreviewKeyEvent {
+                        if (it.type == KeyEventType.KeyDown && it.key == Key.DirectionUp) {
+                            closeDetails(); true
+                        } else false
+                    }.focusable())
+            }
+        }
+    }
+}
+
+@Composable
+private fun GameStage(state: ConsoleState, selectedIndex: Int, onSelect: (ConsoleGame) -> Unit,
+    onPlay: (ConsoleGame) -> Unit, onAdd: () -> Unit, onRefresh: () -> Unit,
+    onDetails: () -> Unit, heroFocus: FocusRequester, heroSwipe: HeroSwipeState, pager: PagerState, modifier: Modifier) {
+    val game = state.games[selectedIndex]
+    val motion = LocalPortalMotion.current
+    val titlePosition = animateFloatAsState(
+        if (heroSwipe.ready) heroSwipe.position else selectedIndex.toFloat(),
+        if (motion) spring(dampingRatio = 1f, stiffness = 170f) else tween(0), label = "stickyTitle")
+    val actionsAlpha = animateFloatAsState(if (heroSwipe.moving) 0f else 1f,
+        tween(if (motion) { if (heroSwipe.moving) 160 else 340 } else 40,
+            easing = PortalPalette.GlideEasing), label = "swipeActions")
+    BoxWithConstraints(modifier.onPreviewKeyEvent {
+        if (it.type != KeyEventType.KeyDown) false
+        else when (it.key) {
+            Key.DirectionDown -> { onDetails(); true }
+            Key.DirectionLeft -> { onSelect(state.games[(selectedIndex - 1).coerceAtLeast(0)]); true }
+            Key.DirectionRight -> { onSelect(state.games[(selectedIndex + 1).coerceAtMost(state.games.lastIndex)]); true }
+            else -> false
+        }
+    }) {
+        val wide = maxWidth >= 650.dp
+        val short = maxHeight < 350.dp
+        val gutter = if (wide) 32.dp else 20.dp
+        val cardSize = if (short) (maxHeight * 0.62f).coerceIn(140.dp, 220.dp)
+            else if (wide) (maxWidth * 0.34f).coerceIn(320.dp, 440.dp)
+            else (maxWidth * 0.82f).coerceIn(220.dp, 360.dp)
+        val cardHeight = cardSize / 1.6f
+        val stripTop = if (short) 4.dp else maxHeight * 0.40f - cardHeight / 2
+        val centerPadding = ((maxWidth - cardSize) / 2).coerceAtLeast(0.dp)
+        val titleSize = if (short) 26f else if (wide) 54f else 32f
+        HorizontalPager(state = pager, pageSize = PageSize.Fixed(cardSize),
+            overscrollEffect = null,
+            flingBehavior = PagerDefaults.flingBehavior(pager,
+                snapAnimationSpec = tween(if (motion) PortalPalette.GlideDurationMs else 0,
+                    easing = PortalPalette.GlideEasing)),
+            userScrollEnabled = state.ready && state.launchingGameKey == null,
+            beyondViewportPageCount = 1,
+            contentPadding = PaddingValues(horizontal = centerPadding),
+            pageSpacing = if (wide) 14.dp else 10.dp,
+            verticalAlignment = Alignment.CenterVertically,
+            key = { state.games[it].key },
+            modifier = Modifier.offset(y = stripTop).fillMaxWidth().height(cardHeight + 24.dp)) { index ->
+                val item = state.games[index]
+                SceneTile(item, index == pager.currentPage, cardSize, state.ready, Modifier,
+                    prominence = {
+                        (1f - kotlin.math.abs(pager.currentPage - index + pager.currentPageOffsetFraction))
+                            .coerceIn(0f, 1f)
+                    },
+                    launching = state.launchingGameKey == item.key,
+                    onBounds = { heroSwipe.coverBounds = it },
+                    onClick = {
+                        if (!heroSwipe.moving) {
+                            if (item.key == game.key && item.path != null) onPlay(item) else onSelect(item)
+                        }
+                    })
+        }
+        Column(Modifier.offset(y = stripTop + cardHeight + if (short) 18.dp else 30.dp)
+            .fillMaxWidth().padding(horizontal = gutter), horizontalAlignment = Alignment.CenterHorizontally) {
+            Box(Modifier.fillMaxWidth()) {
+                state.games.forEachIndexed { index, item ->
+                    Text(item.displayTitle, color = Color.White, fontWeight = FontWeight.Black,
+                        fontSize = titleSize.sp, lineHeight = (titleSize * 1.08f).sp, letterSpacing = (-0.8).sp,
+                        textAlign = TextAlign.Center, maxLines = if (short) 1 else 2, overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.fillMaxWidth().graphicsLayer {
+                            val distance = index - titlePosition.value
+                            translationX = if (motion) distance * size.width * 0.22f else 0f
+                            // Keep long game names from overlapping halfway through a swipe.
+                            val visibility = (1f - kotlin.math.abs(distance) * 2f).coerceIn(0f, 1f)
+                            alpha = visibility * visibility * (3f - 2f * visibility) * actionsAlpha.value
+                        })
+                }
+            }
+            Spacer(Modifier.height(if (short) 6.dp else 12.dp))
+            Box(Modifier.graphicsLayer {
+                alpha = actionsAlpha.value
+                translationY = if (motion) (1f - actionsAlpha.value) * 4.dp.toPx() else 0f
+            }) {
+                ScenePlayButton(game, state.ready,
+                    { if (!heroSwipe.moving && actionsAlpha.value > 0.95f) onPlay(game) },
+                    { if (!heroSwipe.moving && actionsAlpha.value > 0.95f) onAdd() },
+                    short, Modifier.focusRequester(heroFocus))
+            }
+        }
+        Row(Modifier.align(Alignment.BottomCenter).fillMaxWidth()
+            .padding(start = gutter, end = gutter, top = 10.dp, bottom = if (wide) 10.dp else 58.dp),
+            verticalAlignment = Alignment.CenterVertically) {
+            Crossfade(selectedIndex + 1, modifier = Modifier.width(52.dp),
+                animationSpec = tween(if (motion) 240 else 0), label = "gameNumber") { number ->
+                Text("${number.toString().padStart(2, '0')} / ${state.games.size.toString().padStart(2, '0')}",
+                    color = Color.White.copy(alpha = 0.8f), fontSize = 11.sp, fontWeight = FontWeight.Bold)
+            }
+            if (wide) {
+                Spacer(Modifier.width(18.dp))
+                LinearProgressIndicator(progress = {
+                    ((if (heroSwipe.ready) heroSwipe.position else selectedIndex.toFloat()) + 1f)
+                        .div(state.games.size).coerceIn(0f, 1f)
+                },
+                    modifier = Modifier.width(120.dp).height(1.dp),
+                    color = Color.White, trackColor = Color.White.copy(alpha = 0.2f))
+            }
+            Spacer(Modifier.weight(1f))
+            IconButton(onAdd, enabled = state.ready) { Icon(Icons.Outlined.FolderOpen, "Spieleordner hinzufügen", tint = Color.White) }
+            if (wide) IconButton(onRefresh, enabled = state.ready && !state.refreshing) { Icon(Icons.Outlined.Refresh, "Spiele aktualisieren", tint = Color.White) }
+        }
+        TextButton(onDetails, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 6.dp)
+            .semantics { contentDescription = "Nach oben wischen für Spielinfos" },
+            colors = ButtonDefaults.textButtonColors(contentColor = Color.White.copy(alpha = 0.85f))) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(Icons.Outlined.KeyboardDoubleArrowUp, null, modifier = Modifier.size(24.dp))
+                Text("Spielinfos", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ScenePlayButton(game: ConsoleGame, ready: Boolean, onPlay: () -> Unit, onAdd: () -> Unit,
+    compact: Boolean, modifier: Modifier = Modifier) {
+    var downloadOpen by remember(game.key) { mutableStateOf(false) }
+    if (downloadOpen) AlertDialog(onDismissRequest = { downloadOpen = false },
+        title = { Text("${game.displayTitle} herunterladen", fontWeight = FontWeight.Black) },
+        text = { Text("Für dieses Spiel gibt es in der App noch keine Downloadquelle. Du kannst deine eigene Wii-Spieldatei auswählen oder einen Spieleordner verbinden. Die App erkennt das Spiel automatisch.") },
+        confirmButton = { TextButton({ downloadOpen = false; onAdd() }) { Text("Eigene Datei einbinden") } },
+        dismissButton = { TextButton({ downloadOpen = false }) { Text("Schließen") } })
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Button(if (game.path != null) onPlay else { { downloadOpen = true } }, enabled = ready, modifier = modifier.heightIn(min = 44.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.White, contentColor = Color(0xFF15100B)),
+            shape = CircleShape, contentPadding = PaddingValues(horizontal = 32.dp, vertical = if (compact) 6.dp else 10.dp)) {
+            Icon(if (game.path == null) Icons.Outlined.Download else Icons.Outlined.PlayArrow, null, modifier = Modifier.size(20.dp))
+            Spacer(Modifier.width(8.dp))
+            Text(if (game.path == null) "Spiel herunterladen" else "Starten", fontSize = 15.sp, fontWeight = FontWeight.Bold)
+        }
+        if (!compact) Text(if (game.path != null) "Wii · Auf diesem Gerät" else
+            game.downloadBytes?.let { "${String.format(java.util.Locale.GERMANY, "%.2f", it / 1_000_000_000.0)} GB · Downloadquelle folgt" }
+                ?: "Dateigröße und Downloadquelle folgen",
+            color = Color.White.copy(alpha = 0.7f), fontSize = 10.sp,
+            modifier = Modifier.padding(top = 6.dp))
+    }
+}
+
+@Composable
+private fun GameDetails(game: ConsoleGame, onBack: () -> Unit, modifier: Modifier = Modifier, panel: Boolean = true) {
+    val info = consoleGameInfo[game.title]
+    val uriHandler = LocalUriHandler.current
+    val menuSound = LocalMenuSound.current
+    val infoScroll = rememberScrollState()
+    Box(modifier.then(if (panel) Modifier.background(Color(0xFF100E13).copy(alpha = 0.88f)) else Modifier),
+        contentAlignment = Alignment.TopCenter) {
+        Column(Modifier.widthIn(max = 1000.dp).fillMaxWidth()
+            .then(if (panel) Modifier else Modifier.verticalScroll(infoScroll, overscrollEffect = null))
+            .padding(horizontal = 28.dp, vertical = 32.dp),
+            verticalArrangement = Arrangement.spacedBy(22.dp)) {
+            TextButton(onBack, colors = ButtonDefaults.textButtonColors(contentColor = Color.White)) {
+                Icon(Icons.Outlined.KeyboardArrowUp, null)
+                Text("Zur Spieleauswahl", fontWeight = FontWeight.Bold)
+            }
+            Text(game.displayTitle, color = Color.White, fontWeight = FontWeight.Black, fontSize = 36.sp, lineHeight = 40.sp)
+            BoxWithConstraints(Modifier.fillMaxWidth()) {
+                if (maxWidth > 600.dp) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(32.dp)) {
+                        GameFact("Deine Spielzeit", playTimeLabel(game), "Von Dolphin · auf diesem Gerät", Modifier.weight(1f))
+                        GameFact("Veröffentlicht", info?.releaseDate ?: "Nicht bekannt", info?.releaseScope ?: "Keine geprüfte Angabe", Modifier.weight(1f))
+                        GameFact("Publisher", if (info != null) "Activision" else "Nicht bekannt", "", Modifier.weight(1f))
+                    }
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(22.dp)) {
+                        GameFact("Deine Spielzeit", playTimeLabel(game), "Von Dolphin · auf diesem Gerät")
+                        GameFact("Veröffentlicht", info?.releaseDate ?: "Nicht bekannt", info?.releaseScope ?: "Keine geprüfte Angabe")
+                    }
+                }
+            }
+            HorizontalDivider(color = Color.White.copy(alpha = 0.14f))
+            if (info != null) {
+                Text("Über das Spiel", color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+                Text(info.summary, color = Color.White.copy(alpha = 0.85f), fontSize = 16.sp, lineHeight = 26.sp)
+                Text("„${info.excerpt}“", color = Color.White, fontSize = 18.sp, lineHeight = 28.sp, fontWeight = FontWeight.Bold)
+                Text(info.excerptCredit, color = Muted, fontSize = 12.sp)
+                TextButton({ menuSound(ConsoleCue.CONFIRM); uriHandler.openUri(info.sourceUrl) }) {
+                    Text("Vollständige offizielle Beschreibung", color = Color.White, fontWeight = FontWeight.Bold)
+                    Spacer(Modifier.width(8.dp))
+                    Icon(Icons.Outlined.OpenInNew, null, tint = Color.White, modifier = Modifier.size(16.dp))
+                }
+            } else Text("Für dieses Spiel ist noch keine geprüfte Beschreibung hinterlegt.", color = Muted)
+        }
+    }
+}
+
+@Composable
+private fun GameFact(label: String, value: String, caption: String, modifier: Modifier = Modifier) {
+    Column(modifier, verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(label, color = Muted, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+        Text(value, color = Color.White, fontSize = 24.sp, fontWeight = FontWeight.Black)
+        if (caption.isNotEmpty()) Text(caption, color = Muted, fontSize = 11.sp)
+    }
+}
+
+@Composable
+private fun SceneTile(game: ConsoleGame, active: Boolean, size: androidx.compose.ui.unit.Dp,
+    ready: Boolean, modifier: Modifier, prominence: () -> Float, launching: Boolean,
+    onBounds: (Rect) -> Unit, onClick: () -> Unit) {
+    val art: Any = game.sceneArtwork ?: "file:///android_asset/skylanders/images/${game.artwork}"
+    Box(modifier.width(size).height(size / 1.6f + 20.dp).padding(12.dp).zIndex(if (active) 1f else 0f)
+        .graphicsLayer {
+            scaleX = 0.84f + 0.16f * prominence()
+            scaleY = scaleX
+        }) {
+        PortalSurface(Modifier.fillMaxSize().semantics { selected = active }
+            .onGloballyPositioned { if (active && !launching) onBounds(it.boundsInRoot()) },
+            accent = Color.White, selected = active, enabled = ready && !launching,
+            breathe = true, prominentMotion = true, shape = RoundedCornerShape(2.dp), onClick = onClick) {
+            Box(Modifier.fillMaxSize().background(Color(game.color).copy(alpha = 0.07f)))
+            AsyncImage(art, game.title, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
+            if (!active) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.12f)))
+        }
+    }
+}
+
+@Composable
+private fun FiguresPage(state: ConsoleState, onRefresh: () -> Unit, onGames: () -> Unit) {
+    var query by rememberSaveable { mutableStateOf("") }
+    var ultimate by rememberSaveable { mutableStateOf(false) }
+    var gameFilter by rememberSaveable { mutableStateOf("") }
+    var elementFilter by rememberSaveable { mutableStateOf("") }
+    var showVariants by rememberSaveable { mutableStateOf(true) }
+    var showTraps by rememberSaveable { mutableStateOf(true) }
+    var sort by rememberSaveable { mutableStateOf("game") }
+    val filterColors = FilterChipDefaults.filterChipColors(
+        containerColor = Color.White.copy(alpha = 0.04f), labelColor = Muted,
+        iconColor = Muted, selectedContainerColor = Color.White.copy(alpha = 0.18f),
+        selectedLabelColor = Color.White, selectedLeadingIconColor = Color.White)
+    var selectedPath by rememberSaveable { mutableStateOf<String?>(null) }
+    val selectedFigure = state.figures.firstOrNull { it.path == selectedPath }
+    val sound = LocalMenuSound.current
+    if (selectedFigure != null) AlertDialog(onDismissRequest = { selectedPath = null },
+        title = { Text(selectedFigure.name, fontWeight = FontWeight.Black) },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Box(Modifier.fillMaxWidth().height(220.dp), contentAlignment = Alignment.Center) {
+                    PortalHalo(Ice, Modifier.fillMaxSize())
+                    AsyncImage(selectedFigure.image?.let { "file:///android_asset/skylanders/images/$it" },
+                        selectedFigure.name, Modifier.fillMaxSize().padding(20.dp), contentScale = ContentScale.Fit)
+                }
+                Text("${selectedFigure.element} · ${if (selectedFigure.ultimate) "Ultimative Sammlung" else "Deine Sammlung"}", color = Ice)
+                Spacer(Modifier.height(12.dp))
+                Text("Diese Figur gehört zu deiner lokalen Sammlung. Auflegen kannst du sie im Figurenmenü während des Spiels.")
+            }
+        }, confirmButton = { TextButton({ selectedPath = null }) { Text("Zurück zur Sammlung") } })
+    val figures = remember(state.figures, query, ultimate, gameFilter, elementFilter, showVariants, showTraps, sort) {
+        filterConsoleFigures(state.figures, ultimate, query, gameFilter, elementFilter, showVariants, showTraps, sort)
+    }
+    LazyVerticalGrid(columns = GridCells.Adaptive(164.dp), contentPadding = PaddingValues(28.dp),
+        horizontalArrangement = Arrangement.spacedBy(18.dp), verticalArrangement = Arrangement.spacedBy(18.dp)) {
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                PortalIntro("Deine Sammlung", "Dein Portal. Deine Helden.", "${state.figures.size} Figuren · Bereit für dein nächstes Abenteuer.")
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    ConsoleButton("Sammlung (${state.figures.count { !it.ultimate }})", Icons.Outlined.AutoAwesome,
+                        { ultimate = false }, primary = !ultimate)
+                    ConsoleButton("Ultimative (${state.figures.count { it.ultimate }})", Icons.Outlined.StarOutline,
+                        { ultimate = true }, primary = ultimate)
+                }
+                OutlinedTextField(query, { query = it }, label = { Text("Figur suchen") },
+                    singleLine = true, modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp))
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    FigureFilterMenu("Spiel", gameFilter, listOf("" to "Alle Spiele") + figureGameLabels.toList()) { gameFilter = it }
+                    FigureFilterMenu("Element", elementFilter, listOf("" to "Alle Elemente") + figureElementLabels.toList()) { elementFilter = it }
+                    FigureFilterMenu("Sortieren", sort, listOf("game" to "Spiel", "element" to "Element", "name" to "Name")) { sort = it }
+                }
+                Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalAlignment = Alignment.CenterVertically) {
+                    FilterChip(showVariants, { sound(ConsoleCue.CONFIRM); showVariants = !showVariants },
+                        colors = filterColors,
+                        label = { Text("Varianten") }, leadingIcon = {
+                            Icon(if (showVariants) Icons.Outlined.Check else Icons.Outlined.Add, null, Modifier.size(18.dp))
+                        })
+                    FilterChip(showTraps, { sound(ConsoleCue.CONFIRM); showTraps = !showTraps },
+                        colors = filterColors,
+                        label = { Text("Fallen") }, leadingIcon = {
+                            Icon(if (showTraps) Icons.Outlined.Check else Icons.Outlined.Add, null, Modifier.size(18.dp))
+                        })
+                    Text("${figures.size} angezeigt", color = Muted, fontSize = 12.sp)
+                    if (query.isNotBlank() || gameFilter.isNotEmpty() || elementFilter.isNotEmpty() || !showVariants || !showTraps) {
+                        TextButton({
+                            query = ""; gameFilter = ""; elementFilter = ""; showVariants = true; showTraps = true
+                            sound(ConsoleCue.BACK)
+                        }) { Text("Zurücksetzen") }
+                    }
+                }
+                Text("Figuren auflegen und neue beschwören kannst du im Figurenmenü während des Spiels.",
+                    color = Muted, fontSize = 13.sp)
+            }
+        }
+        if (state.figureError != null) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                InfoCard("Sammlung nicht verfügbar", state.figureError) {
+                    ConsoleButton("Erneut versuchen", Icons.Outlined.Refresh, onRefresh, enabled = state.ready)
+                }
+            }
+        } else if (figures.isEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                val hasFigures = state.figures.any { it.ultimate == ultimate }
+                InfoCard(if (hasFigures) "Keine passende Figur" else "Dein Abenteuer beginnt hier",
+                    if (hasFigures) "Passe die Suche oder deine Filter an."
+                    else "Starte ein Spiel und öffne das Figurenmenü. Dort kannst du deine erste Figur beschwören.") {
+                    ConsoleButton("Zu den Spielen", Icons.Outlined.SportsEsports, onGames)
+                }
+            }
+        }
+        items(figures, key = { it.path }) { figure ->
+            PortalSurface(Modifier.fillMaxWidth(), breathe = true,
+                onClick = { sound(ConsoleCue.CONFIRM); selectedPath = figure.path }) {
+                Column(Modifier.padding(16.dp)) {
+                    Box(Modifier.fillMaxWidth().height(152.dp), contentAlignment = Alignment.Center) {
+                        PortalHalo(Ice, Modifier.fillMaxSize())
+                        AsyncImage(figure.image?.let { "file:///android_asset/skylanders/images/$it" }, null,
+                            modifier = Modifier.fillMaxSize().padding(bottom = 12.dp), contentScale = ContentScale.Fit)
+                    }
+                    Text(figure.name, color = Color.White, fontWeight = FontWeight.Black, fontSize = 17.sp,
+                        minLines = 2, maxLines = 2, overflow = TextOverflow.Ellipsis)
+                    Text(figureElementLabels[figure.element] ?: figure.element, color = Muted, fontSize = 12.sp)
+                    Text(figureGameLabels[figure.game] ?: "Spiel unbekannt", color = Muted, fontSize = 11.sp)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun FigureFilterMenu(label: String, value: String, options: List<Pair<String, String>>, onSelect: (String) -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    val sound = LocalMenuSound.current
+    Box {
+        OutlinedButton({ open = true; sound(ConsoleCue.NAVIGATE) },
+            colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White),
+            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.32f))) {
+            Text("$label: ${options.firstOrNull { it.first == value }?.second ?: value}")
+            Icon(Icons.Outlined.ExpandMore, null, Modifier.size(20.dp))
+        }
+        DropdownMenu(open, { open = false }) {
+            options.forEach { (key, title) ->
+                DropdownMenuItem(text = { Text(title) }, onClick = {
+                    onSelect(key); open = false; sound(ConsoleCue.CONFIRM)
+                }, trailingIcon = { if (key == value) Icon(Icons.Outlined.Check, null) })
+            }
+        }
+    }
+}
+
+@Composable
+private fun ControllersPage(state: ConsoleState, onBluetooth: () -> Unit, onMapping: () -> Unit,
+    onAutoController: (Boolean) -> Unit) {
+    LazyColumn(contentPadding = PaddingValues(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        item { PortalIntro("Controller", "Alles unter Kontrolle.", "Verbinden. Testen. Losspielen.") }
+        item {
+            InfoCard(if (state.controllers.isEmpty()) "Noch kein Controller verbunden" else "Verbunden mit deinem Gerät",
+                state.controllers.joinToString("\n").ifEmpty { "Verbinde deinen Controller über Bluetooth oder USB." }) {
+                ConsoleButton("Bluetooth öffnen", Icons.Outlined.Bluetooth, onBluetooth, primary = true)
+            }
+        }
+        item { InfoCard("Tastentest", state.lastInput) }
+        item {
+            InfoCard("Automatische Belegung", state.controllerSetup) {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Controller automatisch einrichten", color = Color.White, modifier = Modifier.weight(1f))
+                    Switch(state.autoController, onAutoController,
+                        modifier = Modifier.semantics { contentDescription = "Controller automatisch einrichten" })
+                }
+                Text("Ein eigenes Profil pro Controller. Bereits angepasste Profile werden wiederverwendet.",
+                    color = Muted, fontSize = 12.sp)
+            }
+        }
+        item {
+            InfoCard("Deine Tastenbelegung", "Die vorhandene Spielsteuerung bleibt erhalten. Hier kannst du sie prüfen und anpassen.") {
+                ConsoleButton("Belegung einstellen", Icons.Outlined.Gamepad, onMapping, enabled = state.ready)
+            }
+        }
+        item { Text("Menü: Steuerkreuz oder linker Stick · A / ✕ bestätigen · B / ○ zurück · L1 / R1 Bereiche wechseln", color = Muted, fontSize = 12.sp) }
+    }
+}
+
+@Composable
+private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSettings) -> Unit,
+    onInfoAnimation: (Boolean) -> Unit,
+    onAutoGraphics: (Boolean) -> Unit,
+    onSettings: () -> Unit, onAdvanced: () -> Unit, onSetup: () -> Unit, onAddGames: () -> Unit) {
+    val sound = LocalMenuSound.current
+    LazyColumn(contentPadding = PaddingValues(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        item { PortalIntro("Einstellungen", "Deine Konsole.", "Dein Klang. Deine Steuerung. Dein Abenteuer.") }
+        item {
+            InfoCard("Bibliothek und Einrichtung", "${state.games.count { it.path != null }} Spiele auf diesem Gerät · Figuren und Spielstände bleiben lokal gespeichert.") {
+                ConsoleButton("Eigene Spiele einbinden", Icons.Outlined.FolderOpen, onAddGames, primary = true, enabled = state.ready && !state.importing)
+                ConsoleButton("Einrichtung öffnen", Icons.Outlined.CheckCircle, onSetup)
+            }
+        }
+        item {
+            InfoCard("Grafik", if (state.autoGraphics) state.graphicsSetup else "Deine eigenen Grafikeinstellungen sind aktiv.") {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Grafik automatisch optimieren", color = Color.White, modifier = Modifier.weight(1f))
+                    Switch(state.autoGraphics, onAutoGraphics,
+                        modifier = Modifier.semantics { contentDescription = "Grafik automatisch optimieren" })
+                }
+                Text("Passende Auflösung und Einstellungen werden beim Spielstart für dein Gerät gewählt.",
+                    color = Muted, fontSize = 12.sp)
+            }
+        }
+        item {
+            InfoCard("Spielinfos", if (state.immersiveInfo)
+                "Immersiv: zwei einrastende Ansichten mit Unschärfe und weichem Übergang."
+                else "Klassisch: frei zwischen Spielemenü und Spielinfos scrollen.") {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                    Text("Immersive Spielinfos", color = Color.White, modifier = Modifier.weight(1f))
+                    Switch(state.immersiveInfo, onInfoAnimation,
+                        modifier = Modifier.semantics { contentDescription = "Immersive Spielinfos" })
+                }
+            }
+        }
+        item {
+            AudioControl("Menümusik", "Skylanders Main Theme · Hans Zimmer & Lorne Balfe",
+                state.audio.musicEnabled, state.audio.musicVolume,
+                { onAudioSettings(state.audio.copy(musicEnabled = it)); sound(ConsoleCue.CONFIRM) },
+                { onAudioSettings(state.audio.copy(musicVolume = it)) })
+        }
+        item {
+            AudioControl("Menüklänge", "Ein kurzes, weiches Wischen beim Navigieren und Bestätigen.",
+                state.audio.effectsEnabled, state.audio.effectsVolume,
+                { onAudioSettings(state.audio.copy(effectsEnabled = it)); sound(ConsoleCue.CONFIRM) },
+                { onAudioSettings(state.audio.copy(effectsVolume = it)) }) {
+                ConsoleButton("Klang testen", Icons.Outlined.VolumeUp, {},
+                    enabled = state.audio.effectsEnabled && state.audio.effectsVolume > 0f)
+            }
+        }
+        if (state.audioError != null) item { Text(state.audioError, color = MaterialTheme.colorScheme.error) }
+        item { InfoCard("Lokales Profil", "Deine Figuren und Spielstände werden auf diesem Gerät gespeichert. Anmeldung und Cloud-Abgleich kommen in einem späteren Schritt.") }
+        item {
+            InfoCard("Bild, Ton und Spielsteuerung", "Öffne die vorhandenen Einstellungen des Emulators.") {
+                ConsoleButton("Einstellungen öffnen", Icons.Outlined.Settings, onSettings, primary = true)
+            }
+        }
+        item {
+            InfoCard("Erweiterte Verwaltung", "Die bisherige Dolphin-Oberfläche bleibt für zusätzliche Werkzeuge erreichbar.") {
+                ConsoleButton("Dolphin-Werkzeuge", Icons.Outlined.Tune, onAdvanced)
+            }
+        }
+    }
+}
+
+@Composable
+private fun AudioControl(title: String, description: String, enabled: Boolean, volume: Float,
+    onEnabled: (Boolean) -> Unit, onVolume: (Float) -> Unit, extra: @Composable () -> Unit = {}) {
+    PortalSurface(Modifier.fillMaxWidth()) {
+    Column(Modifier.fillMaxWidth().padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 19.sp,
+                modifier = Modifier.weight(1f))
+            Switch(enabled, onEnabled, modifier = Modifier.semantics { contentDescription = title })
+        }
+        Text(description, color = Muted, fontSize = 13.sp, lineHeight = 20.sp)
+        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+            Slider(volume, onVolume, enabled = enabled, steps = 19,
+                modifier = Modifier.weight(1f).semantics { contentDescription = "Lautstärke $title" })
+            Text(if (enabled) "${(volume * 100).roundToInt()} %" else "Aus", color = Color.White,
+                fontWeight = FontWeight.Bold, modifier = Modifier.width(48.dp))
+        }
+        extra()
+    }
+    }
+}
+
+@Composable
+private fun PageTitle(title: String, subtitle: String) {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Text(title, color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Bold)
+        Text(subtitle, color = Muted, fontSize = 14.sp)
+    }
+}
+
+@Composable
+private fun InfoCard(title: String, text: String, action: @Composable () -> Unit = {}) {
+    PortalSurface(Modifier.fillMaxWidth()) {
+    Column(Modifier.fillMaxWidth().padding(24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(title, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
+        Text(text, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
+        action()
+    }
+    }
+}
+
+@Composable
+private fun ConsoleButton(label: String, icon: ImageVector, onClick: () -> Unit,
+    primary: Boolean = false, enabled: Boolean = true, modifier: Modifier = Modifier) {
+    var focused by remember { mutableStateOf(false) }
+    val menuSound = LocalMenuSound.current
+    Button({ menuSound(ConsoleCue.CONFIRM); onClick() }, modifier.onFocusChanged { focused = it.isFocused }.heightIn(min = 48.dp),
+        enabled = enabled, shape = CircleShape,
+        border = BorderStroke(if (focused) 2.dp else 1.dp,
+            if (focused) Color.White else Color.White.copy(alpha = 0.1f)),
+        colors = ButtonDefaults.buttonColors(containerColor = if (primary) Color.White else Color.White.copy(alpha = 0.08f),
+            contentColor = if (primary) Ink else Color.White), contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp)) {
+        Icon(icon, null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
+        Text(label, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+    }
+}
+
+@Composable
+private fun ConsoleSetup(state: ConsoleState, onFiles: () -> Unit, onFolder: () -> Unit,
+    onBluetooth: () -> Unit, onDone: () -> Unit) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDone,
+        properties = androidx.compose.ui.window.DialogProperties(usePlatformDefaultWidth = false)) {
+        Surface(Modifier.padding(16.dp).widthIn(max = 760.dp).fillMaxWidth().fillMaxHeight(0.94f),
+            shape = Shape, color = Ink, border = BorderStroke(1.dp, Color.White.copy(alpha = 0.24f))) {
+            Column(Modifier.padding(22.dp)) {
+                Text("Dein Portal. Dein Abenteuer.", color = Color.White, fontSize = 28.sp, fontWeight = FontWeight.Black)
+                Text("Alles für deinen ersten Start an einem Ort.", color = Muted, modifier = Modifier.padding(top = 6.dp, bottom = 16.dp))
+                LazyColumn(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+                    item { InfoCard("01 · Deine Spiele", if (!state.ready || state.refreshing || state.importing)
+                        "Deine Bibliothek wird vorbereitet …" else "${state.games.count { it.path != null }} Spiel(e) bereit. Wähle weitere Dateien oder einen Spieleordner.") {
+                        ConsoleButton("Dateien auswählen", Icons.Outlined.InsertDriveFile, onFiles, primary = true,
+                            enabled = state.ready && !state.importing)
+                        ConsoleButton("Spieleordner verbinden", Icons.Outlined.FolderOpen, onFolder,
+                            enabled = state.ready && !state.importing)
+                        Text("Eigene Wii-Spiele als RVZ, ISO oder WBFS; außerdem WIA, GCZ und CISO. ZIP/7z vorher entpacken. Es wird keine zweite Kopie angelegt.", color = Muted, fontSize = 12.sp)
+                        if (state.importMessage != null) Text(state.importMessage, color = Color.White)
+                        state.games.filter { it.path != null }.forEach {
+                            Text("✓ ${it.displayTitle}", color = Ice, fontSize = 13.sp)
+                        }
+                    } }
+                    item { InfoCard("02 · Dein Controller", state.controllers.joinToString("\n").ifEmpty {
+                        "Verbinde deinen PS4- oder PS5-Controller über Bluetooth oder USB. Du kannst das auch später erledigen."
+                    }) {
+                        Text(state.controllerSetup, color = Muted, fontSize = 12.sp)
+                        ConsoleButton("Bluetooth öffnen", Icons.Outlined.Bluetooth, onBluetooth)
+                    } }
+                    item { InfoCard("03 · Dein Fortschritt", "Figuren und Spielstände bleiben auf diesem Gerät erhalten. Vorhandene Daten werden weiterverwendet.") {
+                        Text("Das Figurenmenü im Spiel öffnest du mit der PS-Taste. Grafik und Controllerbelegung werden automatisch eingerichtet. Zum Spielen ist kein Konto nötig.", color = Muted, fontSize = 13.sp)
+                        Text("Offline spielen ist direkt möglich. Optionale Wii-Internetfunktionen benötigen eine separate Wii-Netzwerkeinrichtung.", color = Muted, fontSize = 12.sp)
+                        Text("L1 / R1: Bereiche wechseln · ✕: bestätigen · ○: zurück", color = Ice, fontSize = 12.sp)
+                    } }
+                }
+                Spacer(Modifier.height(14.dp))
+                ConsoleButton("Zum Menü", Icons.Outlined.ArrowForward, onDone, primary = true,
+                    modifier = Modifier.align(Alignment.End))
+            }
+        }
+    }
+}

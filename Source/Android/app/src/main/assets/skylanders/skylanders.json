@@ -1,0 +1,4655 @@
+[
+ {
+  "id": 0,
+  "variant": 0,
+  "name": "Whirlwind",
+  "game": "SpyrosAdv",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "0-0.png"
+ },
+ {
+  "id": 0,
+  "variant": 6145,
+  "name": "Whirlwind (S2)",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "0-6145.png"
+ },
+ {
+  "id": 0,
+  "variant": 6162,
+  "name": "Whirlwind (Stone)",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "0-0.png"
+ },
+ {
+  "id": 0,
+  "variant": 7170,
+  "name": "Whirlwind (Polar)",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "0-7170.png"
+ },
+ {
+  "id": 0,
+  "variant": 10245,
+  "name": "Whirlwind (Horn Blast)",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "0-10245.png"
+ },
+ {
+  "id": 0,
+  "variant": 14352,
+  "name": "Whirlwind (Eon's Elite)",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "0-14352.png"
+ },
+ {
+  "id": 1,
+  "variant": 0,
+  "name": "Sonic Boom",
+  "game": "SpyrosAdv",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "1-0.png"
+ },
+ {
+  "id": 1,
+  "variant": 6145,
+  "name": "Sonic Boom (S2)",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "1-6145.png"
+ },
+ {
+  "id": 1,
+  "variant": 6161,
+  "name": "Sonic Boom (Glow in the Dark)",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "1-0.png"
+ },
+ {
+  "id": 1,
+  "variant": 6163,
+  "name": "Sonic Boom (Sparkle)",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "1-0.png"
+ },
+ {
+  "id": 2,
+  "variant": 0,
+  "name": "Warnado",
+  "game": "SpyrosAdv",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "2-0.png"
+ },
+ {
+  "id": 2,
+  "variant": 8710,
+  "name": "Warnado (LightCore)",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "2-8710.png"
+ },
+ {
+  "id": 3,
+  "variant": 0,
+  "name": "Lightning Rod",
+  "game": "SpyrosAdv",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "3-0.png"
+ },
+ {
+  "id": 3,
+  "variant": 6145,
+  "name": "Lightning Rod (S2)",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "3-6145.png"
+ },
+ {
+  "id": 3,
+  "variant": 6164,
+  "name": "Lightning Rod (Metallic Purple)",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "3-0.png"
+ },
+ {
+  "id": 4,
+  "variant": 0,
+  "name": "Bash",
+  "game": "SpyrosAdv",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "4-0.png"
+ },
+ {
+  "id": 4,
+  "variant": 6145,
+  "name": "Bash (S2)",
+  "game": "Giants",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "4-6145.png"
+ },
+ {
+  "id": 5,
+  "variant": 0,
+  "name": "Terrafin",
+  "game": "SpyrosAdv",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "5-0.png"
+ },
+ {
+  "id": 5,
+  "variant": 6145,
+  "name": "Terrafin (S2)",
+  "game": "Giants",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "5-6145.png"
+ },
+ {
+  "id": 5,
+  "variant": 10245,
+  "name": "Terrafin (Knockout)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "5-10245.png"
+ },
+ {
+  "id": 5,
+  "variant": 14352,
+  "name": "Terrafin (Eon's Elite)",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "5-14352.png"
+ },
+ {
+  "id": 6,
+  "variant": 0,
+  "name": "Dino-Rang",
+  "game": "SpyrosAdv",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "6-0.png"
+ },
+ {
+  "id": 6,
+  "variant": 18448,
+  "name": "Dino-Rang (Eon's Elite)",
+  "game": "Superchargers",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "6-18448.png"
+ },
+ {
+  "id": 7,
+  "variant": 0,
+  "name": "Prism Break",
+  "game": "SpyrosAdv",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "7-0.png"
+ },
+ {
+  "id": 7,
+  "variant": 4614,
+  "name": "Prism Break (LightCore)",
+  "game": "Giants",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "7-4614.png"
+ },
+ {
+  "id": 7,
+  "variant": 4628,
+  "name": "Prism Break (White Flocked LightCore)",
+  "game": "Giants",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "7-0.png"
+ },
+ {
+  "id": 7,
+  "variant": 6145,
+  "name": "Prism Break (S2)",
+  "game": "Giants",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "7-6145.png"
+ },
+ {
+  "id": 7,
+  "variant": 10245,
+  "name": "Prism Break (Hyper Beam)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "7-10245.png"
+ },
+ {
+  "id": 8,
+  "variant": 0,
+  "name": "Sunburn",
+  "game": "SpyrosAdv",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "8-0.png"
+ },
+ {
+  "id": 9,
+  "variant": 0,
+  "name": "Eruptor",
+  "game": "SpyrosAdv",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "9-0.png"
+ },
+ {
+  "id": 9,
+  "variant": 4614,
+  "name": "Eruptor (LightCore)",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "9-4614.png"
+ },
+ {
+  "id": 9,
+  "variant": 6145,
+  "name": "Eruptor (S2)",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "9-6145.png"
+ },
+ {
+  "id": 9,
+  "variant": 6164,
+  "name": "Eruptor (White Flocked)",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "9-0.png"
+ },
+ {
+  "id": 9,
+  "variant": 10245,
+  "name": "Eruptor (Lava Barf)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "9-10245.png"
+ },
+ {
+  "id": 9,
+  "variant": 11266,
+  "name": "Eruptor (Volcanic Lava Barf)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "9-11266.png"
+ },
+ {
+  "id": 9,
+  "variant": 14352,
+  "name": "Eruptor (Eon's Elite)",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "9-14352.png"
+ },
+ {
+  "id": 10,
+  "variant": 0,
+  "name": "Ignitor",
+  "game": "SpyrosAdv",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "10-0.png"
+ },
+ {
+  "id": 10,
+  "variant": 6145,
+  "name": "Ignitor (S2)",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "10-6145.png"
+ },
+ {
+  "id": 10,
+  "variant": 7171,
+  "name": "Ignitor (Legendary)",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "10-7171.png"
+ },
+ {
+  "id": 11,
+  "variant": 0,
+  "name": "Flameslinger",
+  "game": "SpyrosAdv",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "11-0.png"
+ },
+ {
+  "id": 11,
+  "variant": 6145,
+  "name": "Flameslinger (S2)",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "11-6145.png"
+ },
+ {
+  "id": 11,
+  "variant": 6146,
+  "name": "Flameslinger (Golden)",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "11-0.png"
+ },
+ {
+  "id": 12,
+  "variant": 0,
+  "name": "Zap",
+  "game": "SpyrosAdv",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "12-0.png"
+ },
+ {
+  "id": 12,
+  "variant": 6145,
+  "name": "Zap (S2)",
+  "game": "Giants",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "12-6145.png"
+ },
+ {
+  "id": 13,
+  "variant": 0,
+  "name": "Wham-Shell",
+  "game": "SpyrosAdv",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "13-0.png"
+ },
+ {
+  "id": 13,
+  "variant": 8710,
+  "name": "Wham-Shell (LightCore)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "13-8710.png"
+ },
+ {
+  "id": 14,
+  "variant": 0,
+  "name": "Gill Grunt",
+  "game": "SpyrosAdv",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "14-0.png"
+ },
+ {
+  "id": 14,
+  "variant": 6145,
+  "name": "Gill Grunt (S2)",
+  "game": "Giants",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "14-6145.png"
+ },
+ {
+  "id": 14,
+  "variant": 6167,
+  "name": "Gill Grunt (Metallic Green)",
+  "game": "Giants",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "14-0.png"
+ },
+ {
+  "id": 14,
+  "variant": 10245,
+  "name": "Gill Grunt (Anchors Away)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "14-10245.png"
+ },
+ {
+  "id": 14,
+  "variant": 14345,
+  "name": "Gill Grunt (Tidal Wave)",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "14-0.png"
+ },
+ {
+  "id": 14,
+  "variant": 14352,
+  "name": "Gill Grunt (Eon's Elite)",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "14-14352.png"
+ },
+ {
+  "id": 15,
+  "variant": 0,
+  "name": "Slam Bam",
+  "game": "SpyrosAdv",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "15-0.png"
+ },
+ {
+  "id": 15,
+  "variant": 6145,
+  "name": "Slam Bam (S2)",
+  "game": "Giants",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "15-6145.png"
+ },
+ {
+  "id": 15,
+  "variant": 7171,
+  "name": "Slam Bam (Legendary)",
+  "game": "Giants",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "15-7171.png"
+ },
+ {
+  "id": 15,
+  "variant": 14352,
+  "name": "Slam Bam (Eon's Elite)",
+  "game": "Superchargers",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "15-0.png"
+ },
+ {
+  "id": 16,
+  "variant": 0,
+  "name": "Spyro",
+  "game": "SpyrosAdv",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "16-0.png"
+ },
+ {
+  "id": 16,
+  "variant": 6145,
+  "name": "Spyro (S2)",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "16-6145.png"
+ },
+ {
+  "id": 16,
+  "variant": 10245,
+  "name": "Spyro (Mega Ram)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "16-10245.png"
+ },
+ {
+  "id": 16,
+  "variant": 11266,
+  "name": "Spyro (Dark Mega Ram)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "16-11266.png"
+ },
+ {
+  "id": 16,
+  "variant": 14352,
+  "name": "Spyro (Eon's Elite)",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "16-14352.png"
+ },
+ {
+  "id": 17,
+  "variant": 0,
+  "name": "Voodood",
+  "game": "SpyrosAdv",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "17-0.png"
+ },
+ {
+  "id": 17,
+  "variant": 14352,
+  "name": "Voodood (Eon's Elite)",
+  "game": "Superchargers",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "17-0.png"
+ },
+ {
+  "id": 18,
+  "variant": 0,
+  "name": "Double Trouble",
+  "game": "SpyrosAdv",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "18-0.png"
+ },
+ {
+  "id": 18,
+  "variant": 6145,
+  "name": "Double Trouble (S2)",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "18-6145.png"
+ },
+ {
+  "id": 18,
+  "variant": 7170,
+  "name": "Double Trouble (Royal)",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "18-7170.png"
+ },
+ {
+  "id": 19,
+  "variant": 0,
+  "name": "Trigger Happy",
+  "game": "SpyrosAdv",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "19-0.png"
+ },
+ {
+  "id": 19,
+  "variant": 6145,
+  "name": "Trigger Happy (S2)",
+  "game": "Giants",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "19-6145.png"
+ },
+ {
+  "id": 19,
+  "variant": 10245,
+  "name": "Trigger Happy (Big Bang)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "19-10245.png"
+ },
+ {
+  "id": 19,
+  "variant": 11266,
+  "name": "Trigger Happy (Springtime Big Bang)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "19-11266.png"
+ },
+ {
+  "id": 19,
+  "variant": 14352,
+  "name": "Trigger Happy (Eon's Elite)",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "19-14352.png"
+ },
+ {
+  "id": 20,
+  "variant": 0,
+  "name": "Drobot",
+  "game": "SpyrosAdv",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "20-0.png"
+ },
+ {
+  "id": 20,
+  "variant": 4614,
+  "name": "Drobot (LightCore)",
+  "game": "Giants",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "20-4614.png"
+ },
+ {
+  "id": 20,
+  "variant": 6145,
+  "name": "Drobot (S2)",
+  "game": "Giants",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "20-6145.png"
+ },
+ {
+  "id": 21,
+  "variant": 0,
+  "name": "Drill Sergeant",
+  "game": "SpyrosAdv",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "21-0.png"
+ },
+ {
+  "id": 21,
+  "variant": 6145,
+  "name": "Drill Sergeant (S2)",
+  "game": "Giants",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "21-6145.png"
+ },
+ {
+  "id": 22,
+  "variant": 0,
+  "name": "Boomer",
+  "game": "SpyrosAdv",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "22-0.png"
+ },
+ {
+  "id": 22,
+  "variant": 18448,
+  "name": "Boomer (Eon's Elite)",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "22-18448.png"
+ },
+ {
+  "id": 23,
+  "variant": 0,
+  "name": "Wrecking Ball",
+  "game": "SpyrosAdv",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "23-0.png"
+ },
+ {
+  "id": 23,
+  "variant": 6145,
+  "name": "Wrecking Ball (S2)",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "23-6145.png"
+ },
+ {
+  "id": 23,
+  "variant": 6164,
+  "name": "Wrecking Ball (Metallic Purple)",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "23-0.png"
+ },
+ {
+  "id": 24,
+  "variant": 0,
+  "name": "Camo",
+  "game": "SpyrosAdv",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "24-0.png"
+ },
+ {
+  "id": 24,
+  "variant": 10245,
+  "name": "Camo (Thorn Horn)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "24-10245.png"
+ },
+ {
+  "id": 25,
+  "variant": 0,
+  "name": "Zook",
+  "game": "SpyrosAdv",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "25-0.png"
+ },
+ {
+  "id": 25,
+  "variant": 6145,
+  "name": "Zook (S2)",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "25-6145.png"
+ },
+ {
+  "id": 25,
+  "variant": 6162,
+  "name": "Zook (Stone)",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "25-0.png"
+ },
+ {
+  "id": 25,
+  "variant": 14352,
+  "name": "Zook (Eon's Elite)",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "25-0.png"
+ },
+ {
+  "id": 26,
+  "variant": 0,
+  "name": "Stealth Elf",
+  "game": "SpyrosAdv",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "26-0.png"
+ },
+ {
+  "id": 26,
+  "variant": 6145,
+  "name": "Stealth Elf (S2)",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "26-6145.png"
+ },
+ {
+  "id": 26,
+  "variant": 7171,
+  "name": "Stealth Elf (Legendary)",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "26-7171.png"
+ },
+ {
+  "id": 26,
+  "variant": 10245,
+  "name": "Stealth Elf (Ninja)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "26-10245.png"
+ },
+ {
+  "id": 26,
+  "variant": 11266,
+  "name": "Stealth Elf (Dark Ninja)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "26-11266.png"
+ },
+ {
+  "id": 26,
+  "variant": 14352,
+  "name": "Stealth Elf (Eon's Elite)",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "26-14352.png"
+ },
+ {
+  "id": 27,
+  "variant": 0,
+  "name": "Stump Smash",
+  "game": "SpyrosAdv",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "27-0.png"
+ },
+ {
+  "id": 27,
+  "variant": 6145,
+  "name": "Stump Smash (S2)",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "27-6145.png"
+ },
+ {
+  "id": 27,
+  "variant": 6164,
+  "name": "Stump Smash (White Flocked)",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "27-0.png"
+ },
+ {
+  "id": 28,
+  "variant": 0,
+  "name": "Spyro (Dark)",
+  "game": "SpyrosAdv",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "28-0.png"
+ },
+ {
+  "id": 29,
+  "variant": 0,
+  "name": "Hex",
+  "game": "SpyrosAdv",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "29-0.png"
+ },
+ {
+  "id": 29,
+  "variant": 4614,
+  "name": "Hex (LightCore)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "29-4614.png"
+ },
+ {
+  "id": 29,
+  "variant": 6145,
+  "name": "Hex (S2)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "29-6145.png"
+ },
+ {
+  "id": 30,
+  "variant": 0,
+  "name": "Chop Chop",
+  "game": "SpyrosAdv",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "30-0.png"
+ },
+ {
+  "id": 30,
+  "variant": 6145,
+  "name": "Chop Chop (S2)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "30-6145.png"
+ },
+ {
+  "id": 30,
+  "variant": 6148,
+  "name": "Chop Chop (Metallic Blue)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "30-0.png"
+ },
+ {
+  "id": 30,
+  "variant": 10245,
+  "name": "Chop Chop (Twin Blade)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "30-10245.png"
+ },
+ {
+  "id": 30,
+  "variant": 10262,
+  "name": "Chop Chop (Green Twin Blade)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "30-0.png"
+ },
+ {
+  "id": 30,
+  "variant": 14352,
+  "name": "Chop Chop (Eon's Elite)",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "30-14352.png"
+ },
+ {
+  "id": 31,
+  "variant": 0,
+  "name": "Ghost Roaster",
+  "game": "SpyrosAdv",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "31-0.png"
+ },
+ {
+  "id": 31,
+  "variant": 18448,
+  "name": "Ghost Roaster (Eon's Elite)",
+  "game": "Superchargers",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "31-18448.png"
+ },
+ {
+  "id": 32,
+  "variant": 0,
+  "name": "Cynder",
+  "game": "SpyrosAdv",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "32-0.png"
+ },
+ {
+  "id": 32,
+  "variant": 6145,
+  "name": "Cynder (S2)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "32-6145.png"
+ },
+ {
+  "id": 32,
+  "variant": 6161,
+  "name": "Cynder (Glow in the Dark)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "32-0.png"
+ },
+ {
+  "id": 32,
+  "variant": 10245,
+  "name": "Cynder (Phantom)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "32-10245.png"
+ },
+ {
+  "id": 100,
+  "variant": 4096,
+  "name": "Jet-Vac",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "100-0.png"
+ },
+ {
+  "id": 100,
+  "variant": 4614,
+  "name": "Jet-Vac (LightCore)",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "100-4614.png"
+ },
+ {
+  "id": 100,
+  "variant": 5123,
+  "name": "Jet-Vac (Legendary)",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "100-5123.png"
+ },
+ {
+  "id": 100,
+  "variant": 10245,
+  "name": "Jet-Vac (Turbo)",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "100-10245.png"
+ },
+ {
+  "id": 100,
+  "variant": 14341,
+  "name": "Jet-Vac (Full Blast)",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "100-14341.png"
+ },
+ {
+  "id": 101,
+  "variant": 4614,
+  "name": "Swarm",
+  "game": "Giants",
+  "element": "Air",
+  "type": "Giant",
+  "image": "101-0.png"
+ },
+ {
+  "id": 102,
+  "variant": 4614,
+  "name": "Crusher",
+  "game": "Giants",
+  "element": "Earth",
+  "type": "Giant",
+  "image": "102-0.png"
+ },
+ {
+  "id": 102,
+  "variant": 5634,
+  "name": "Crusher (Granite)",
+  "game": "Giants",
+  "element": "Earth",
+  "type": "Giant",
+  "image": "102-5634.png"
+ },
+ {
+  "id": 103,
+  "variant": 4096,
+  "name": "Flashwing",
+  "game": "Giants",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "103-0.png"
+ },
+ {
+  "id": 103,
+  "variant": 5122,
+  "name": "Flashwing (Jade)",
+  "game": "Giants",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "103-5122.png"
+ },
+ {
+  "id": 103,
+  "variant": 8710,
+  "name": "Flashwing (LightCore)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "103-8710.png"
+ },
+ {
+  "id": 104,
+  "variant": 4614,
+  "name": "Hot Head",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Giant",
+  "image": "104-0.png"
+ },
+ {
+  "id": 104,
+  "variant": 4627,
+  "name": "Hot Head (Sparkle)",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Giant",
+  "image": "104-0.png"
+ },
+ {
+  "id": 105,
+  "variant": 4096,
+  "name": "Hot Dog",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "105-0.png"
+ },
+ {
+  "id": 105,
+  "variant": 4117,
+  "name": "Hot Dog (Bronze)",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "105-0.png"
+ },
+ {
+  "id": 105,
+  "variant": 5122,
+  "name": "Hot Dog (Molten)",
+  "game": "Giants",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "105-5122.png"
+ },
+ {
+  "id": 105,
+  "variant": 10245,
+  "name": "Hot Dog (Fire Bone)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "105-10245.png"
+ },
+ {
+  "id": 105,
+  "variant": 10266,
+  "name": "Hot Dog (Red Flame Frito-Lay Fire Bone)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "105-0.png"
+ },
+ {
+  "id": 105,
+  "variant": 10267,
+  "name": "Hot Dog (Green Flame Frito-Lay Fire Bone)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "105-0.png"
+ },
+ {
+  "id": 105,
+  "variant": 10268,
+  "name": "Hot Dog (Purple Flame Frito-Lay Fire Bone)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "105-0.png"
+ },
+ {
+  "id": 106,
+  "variant": 4096,
+  "name": "Chill",
+  "game": "Giants",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "106-0.png"
+ },
+ {
+  "id": 106,
+  "variant": 4614,
+  "name": "Chill (LightCore)",
+  "game": "Giants",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "106-4614.png"
+ },
+ {
+  "id": 106,
+  "variant": 5635,
+  "name": "Chill (Legendary LightCore)",
+  "game": "Giants",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "106-5635.png"
+ },
+ {
+  "id": 106,
+  "variant": 10245,
+  "name": "Chill (Blizzard)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "106-10245.png"
+ },
+ {
+  "id": 107,
+  "variant": 4614,
+  "name": "Thumpback",
+  "game": "Giants",
+  "element": "Water",
+  "type": "Giant",
+  "image": "107-0.png"
+ },
+ {
+  "id": 108,
+  "variant": 4096,
+  "name": "Pop Fizz",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "108-0.png"
+ },
+ {
+  "id": 108,
+  "variant": 4614,
+  "name": "Pop Fizz (LightCore)",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "108-4614.png"
+ },
+ {
+  "id": 108,
+  "variant": 5122,
+  "name": "Pop Fizz (Punch)",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "108-5122.png"
+ },
+ {
+  "id": 108,
+  "variant": 10245,
+  "name": "Pop Fizz (Super Gulp)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "108-10245.png"
+ },
+ {
+  "id": 108,
+  "variant": 14341,
+  "name": "Pop Fizz (Fizzy Frenzy)",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "108-14341.png"
+ },
+ {
+  "id": 108,
+  "variant": 15362,
+  "name": "Pop Fizz (Love Potion Fizzy Frenzy)",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "108-15362.png"
+ },
+ {
+  "id": 109,
+  "variant": 4614,
+  "name": "Ninjini",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Giant",
+  "image": "109-0.png"
+ },
+ {
+  "id": 109,
+  "variant": 5634,
+  "name": "Ninjini (Scarlet)",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Giant",
+  "image": "109-5634.png"
+ },
+ {
+  "id": 110,
+  "variant": 4614,
+  "name": "Bouncer",
+  "game": "Giants",
+  "element": "Tech",
+  "type": "Giant",
+  "image": "110-0.png"
+ },
+ {
+  "id": 110,
+  "variant": 5635,
+  "name": "Bouncer (Legendary)",
+  "game": "Giants",
+  "element": "Tech",
+  "type": "Giant",
+  "image": "110-5635.png"
+ },
+ {
+  "id": 111,
+  "variant": 4096,
+  "name": "Sprocket",
+  "game": "Giants",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "111-0.png"
+ },
+ {
+  "id": 111,
+  "variant": 4115,
+  "name": "Sprocket (Sparkle)",
+  "game": "Giants",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "111-0.png"
+ },
+ {
+  "id": 111,
+  "variant": 10245,
+  "name": "Sprocket (Heavy Duty)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "111-10245.png"
+ },
+ {
+  "id": 111,
+  "variant": 10265,
+  "name": "Sprocket (Heavy Metal Heavy Duty)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "111-0.png"
+ },
+ {
+  "id": 112,
+  "variant": 4614,
+  "name": "Tree Rex",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Giant",
+  "image": "112-0.png"
+ },
+ {
+  "id": 112,
+  "variant": 5634,
+  "name": "Tree Rex (Gnarly)",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Giant",
+  "image": "112-5634.png"
+ },
+ {
+  "id": 113,
+  "variant": 4096,
+  "name": "Shroomboom",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "113-0.png"
+ },
+ {
+  "id": 113,
+  "variant": 4119,
+  "name": "Shroomboom (Metallic Green)",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "113-0.png"
+ },
+ {
+  "id": 113,
+  "variant": 4614,
+  "name": "Shroomboom (LightCore)",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "113-4614.png"
+ },
+ {
+  "id": 113,
+  "variant": 14337,
+  "name": "Shroomboom (Sure Shot)",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "113-0.png"
+ },
+ {
+  "id": 114,
+  "variant": 4614,
+  "name": "Eye-Brawl",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Giant",
+  "image": "114-0.png"
+ },
+ {
+  "id": 114,
+  "variant": 4628,
+  "name": "Eye-Brawl (Metallic Purple)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Giant",
+  "image": "114-0.png"
+ },
+ {
+  "id": 114,
+  "variant": 4629,
+  "name": "Eye-Brawl (Pumpkin)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Giant",
+  "image": "114-0.png"
+ },
+ {
+  "id": 115,
+  "variant": 4096,
+  "name": "Fright Rider",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "115-0.png"
+ },
+ {
+  "id": 115,
+  "variant": 4113,
+  "name": "Fright Rider (Glow in the Dark)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "115-0.png"
+ },
+ {
+  "id": 115,
+  "variant": 4117,
+  "name": "Fright Rider (Halloween)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "115-0.png"
+ },
+ {
+  "id": 200,
+  "variant": 0,
+  "name": "Anvil Rain",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "200-0.png"
+ },
+ {
+  "id": 201,
+  "variant": 0,
+  "name": "Hidden Treasure",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "201-0.png"
+ },
+ {
+  "id": 201,
+  "variant": 2,
+  "name": "Hidden Treasure (Platinum)",
+  "game": "Giants",
+  "element": "Other",
+  "type": "Item",
+  "image": "201-0.png"
+ },
+ {
+  "id": 202,
+  "variant": 0,
+  "name": "Healing Elixir",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "202-0.png"
+ },
+ {
+  "id": 203,
+  "variant": 0,
+  "name": "Ghost Pirate Swords",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "203-0.png"
+ },
+ {
+  "id": 204,
+  "variant": 0,
+  "name": "Time Twister Hourglass",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "204-0.jpg"
+ },
+ {
+  "id": 205,
+  "variant": 0,
+  "name": "Sky-Iron Shield",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "205-0.jpg"
+ },
+ {
+  "id": 206,
+  "variant": 0,
+  "name": "Winged Boots",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "206-0.png"
+ },
+ {
+  "id": 207,
+  "variant": 0,
+  "name": "Sparx Dragonfly",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "207-0.png"
+ },
+ {
+  "id": 208,
+  "variant": 4614,
+  "name": "Dragonfire Cannon",
+  "game": "Giants",
+  "element": "Other",
+  "type": "Item",
+  "image": "208-4614.png"
+ },
+ {
+  "id": 208,
+  "variant": 5634,
+  "name": "Golden Dragonfire Cannon",
+  "game": "Giants",
+  "element": "Other",
+  "type": "Item",
+  "image": "208-5634.png"
+ },
+ {
+  "id": 209,
+  "variant": 4614,
+  "name": "Scorpion Striker Catapult",
+  "game": "Giants",
+  "element": "Other",
+  "type": "Item",
+  "image": "209-4614.png"
+ },
+ {
+  "id": 210,
+  "variant": 12290,
+  "name": "Magic Log Holder",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Trap",
+  "image": "210-12290.jpg"
+ },
+ {
+  "id": 210,
+  "variant": 12296,
+  "name": "Magic Skull",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Trap",
+  "image": "210-12296.jpg"
+ },
+ {
+  "id": 210,
+  "variant": 12299,
+  "name": "Magic Axe",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Trap",
+  "image": "210-12299.jpg"
+ },
+ {
+  "id": 210,
+  "variant": 12302,
+  "name": "Magic Hourglass",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Trap",
+  "image": "210-12302.jpg"
+ },
+ {
+  "id": 210,
+  "variant": 12306,
+  "name": "Magic Totem",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Trap",
+  "image": "210-12306.jpg"
+ },
+ {
+  "id": 210,
+  "variant": 12309,
+  "name": "Magic Rocket",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Trap",
+  "image": "210-12309.jpg"
+ },
+ {
+  "id": 211,
+  "variant": 12289,
+  "name": "Water Tiki",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Trap",
+  "image": "211-12289.jpg"
+ },
+ {
+  "id": 211,
+  "variant": 12290,
+  "name": "Water Log Holder",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Trap",
+  "image": "211-12290.jpg"
+ },
+ {
+  "id": 211,
+  "variant": 12294,
+  "name": "Water Jughead",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Trap",
+  "image": "211-12294.jpg"
+ },
+ {
+  "id": 211,
+  "variant": 12295,
+  "name": "Water Angel",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Trap",
+  "image": "211-12295.jpg"
+ },
+ {
+  "id": 211,
+  "variant": 12299,
+  "name": "Water Axe",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Trap",
+  "image": "211-12299.jpg"
+ },
+ {
+  "id": 211,
+  "variant": 12310,
+  "name": "Water Flying Helmet",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Trap",
+  "image": "211-12310.jpg"
+ },
+ {
+  "id": 211,
+  "variant": 13318,
+  "name": "Water Jughead (Legendary)",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Trap",
+  "image": "211-13318.png"
+ },
+ {
+  "id": 212,
+  "variant": 12291,
+  "name": "Air Toucan",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Trap",
+  "image": "212-12291.jpg"
+ },
+ {
+  "id": 212,
+  "variant": 12294,
+  "name": "Air Jughead",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Trap",
+  "image": "212-12294.jpg"
+ },
+ {
+  "id": 212,
+  "variant": 12302,
+  "name": "Air Hourglass",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Trap",
+  "image": "212-12302.jpg"
+ },
+ {
+  "id": 212,
+  "variant": 12304,
+  "name": "Air Snake",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Trap",
+  "image": "212-12304.jpg"
+ },
+ {
+  "id": 212,
+  "variant": 12305,
+  "name": "Air Screamer",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Trap",
+  "image": "212-12305.jpg"
+ },
+ {
+  "id": 212,
+  "variant": 12312,
+  "name": "Air Sword",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Trap",
+  "image": "212-12312.jpg"
+ },
+ {
+  "id": 213,
+  "variant": 12292,
+  "name": "Undead Orb",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Trap",
+  "image": "213-12292.jpg"
+ },
+ {
+  "id": 213,
+  "variant": 12296,
+  "name": "Undead Skull",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Trap",
+  "image": "213-12296.jpg"
+ },
+ {
+  "id": 213,
+  "variant": 12299,
+  "name": "Undead Axe",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Trap",
+  "image": "213-12299.jpg"
+ },
+ {
+  "id": 213,
+  "variant": 12300,
+  "name": "Undead Hand",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Trap",
+  "image": "213-12300.jpg"
+ },
+ {
+  "id": 213,
+  "variant": 12304,
+  "name": "Undead Snake",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Trap",
+  "image": "213-12304.jpg"
+ },
+ {
+  "id": 213,
+  "variant": 12311,
+  "name": "Undead Captain's Hat",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Trap",
+  "image": "213-12311.jpg"
+ },
+ {
+  "id": 213,
+  "variant": 13316,
+  "name": "Undead Orb (Legendary)",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Trap",
+  "image": "213-13316.jpg"
+ },
+ {
+  "id": 213,
+  "variant": 13320,
+  "name": "Undead Skull (Legendary)",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Trap",
+  "image": "213-13320.png"
+ },
+ {
+  "id": 214,
+  "variant": 12289,
+  "name": "Tech Tiki",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Trap",
+  "image": "214-12289.jpg"
+ },
+ {
+  "id": 214,
+  "variant": 12295,
+  "name": "Tech Angel",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Trap",
+  "image": "214-12295.jpg"
+ },
+ {
+  "id": 214,
+  "variant": 12297,
+  "name": "Tech Scepter",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Trap",
+  "image": "214-12297.jpg"
+ },
+ {
+  "id": 214,
+  "variant": 12300,
+  "name": "Tech Hand",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Trap",
+  "image": "214-12300.jpg"
+ },
+ {
+  "id": 214,
+  "variant": 12310,
+  "name": "Tech Flying Helmet",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Trap",
+  "image": "214-12310.jpg"
+ },
+ {
+  "id": 214,
+  "variant": 12314,
+  "name": "Tech Handstand",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Trap",
+  "image": "214-12314.jpg"
+ },
+ {
+  "id": 215,
+  "variant": 12293,
+  "name": "Fire Torch",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Trap",
+  "image": "215-12293.jpg"
+ },
+ {
+  "id": 215,
+  "variant": 12297,
+  "name": "Fire Scepter",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Trap",
+  "image": "215-12297.jpg"
+ },
+ {
+  "id": 215,
+  "variant": 12305,
+  "name": "Fire Screamer",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Trap",
+  "image": "215-12305.jpg"
+ },
+ {
+  "id": 215,
+  "variant": 12306,
+  "name": "Fire Totem",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Trap",
+  "image": "215-12306.jpg"
+ },
+ {
+  "id": 215,
+  "variant": 12311,
+  "name": "Fire Captain's Hat",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Trap",
+  "image": "215-12311.jpg"
+ },
+ {
+  "id": 215,
+  "variant": 12315,
+  "name": "Fire Yawn",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Trap",
+  "image": "215-12315.jpg"
+ },
+ {
+  "id": 216,
+  "variant": 12291,
+  "name": "Earth Toucan",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Trap",
+  "image": "216-12291.jpg"
+ },
+ {
+  "id": 216,
+  "variant": 12292,
+  "name": "Earth Orb",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Trap",
+  "image": "216-12292.jpg"
+ },
+ {
+  "id": 216,
+  "variant": 12298,
+  "name": "Earth Hammer",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Trap",
+  "image": "216-12298.jpg"
+ },
+ {
+  "id": 216,
+  "variant": 12302,
+  "name": "Earth Hourglass",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Trap",
+  "image": "216-12302.jpg"
+ },
+ {
+  "id": 216,
+  "variant": 12306,
+  "name": "Earth Totem",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Trap",
+  "image": "216-12306.jpg"
+ },
+ {
+  "id": 216,
+  "variant": 12314,
+  "name": "Earth Handstand",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Trap",
+  "image": "216-12314.jpg"
+ },
+ {
+  "id": 217,
+  "variant": 12289,
+  "name": "Life Toucan",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Trap",
+  "image": "217-12289.jpg"
+ },
+ {
+  "id": 217,
+  "variant": 12293,
+  "name": "Life Torch",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Trap",
+  "image": "217-12293.jpg"
+ },
+ {
+  "id": 217,
+  "variant": 12298,
+  "name": "Life Hammer",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Trap",
+  "image": "217-12298.jpg"
+ },
+ {
+  "id": 217,
+  "variant": 12304,
+  "name": "Life Snake",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Trap",
+  "image": "217-12304.jpg"
+ },
+ {
+  "id": 217,
+  "variant": 12312,
+  "name": "Life Sword",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Trap",
+  "image": "217-12312.jpg"
+ },
+ {
+  "id": 217,
+  "variant": 12315,
+  "name": "Life Yawn",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Trap",
+  "image": "217-12315.jpg"
+ },
+ {
+  "id": 218,
+  "variant": 12308,
+  "name": "Dark Spider",
+  "game": "TrapTeam",
+  "element": "Dark",
+  "type": "Trap",
+  "image": "218-12308.jpg"
+ },
+ {
+  "id": 218,
+  "variant": 12312,
+  "name": "Dark Sword",
+  "game": "TrapTeam",
+  "element": "Dark",
+  "type": "Trap",
+  "image": "218-12312.jpg"
+ },
+ {
+  "id": 218,
+  "variant": 12314,
+  "name": "Dark Handstand",
+  "game": "TrapTeam",
+  "element": "Dark",
+  "type": "Trap",
+  "image": "218-12314.jpg"
+ },
+ {
+  "id": 219,
+  "variant": 12303,
+  "name": "Light Owl",
+  "game": "TrapTeam",
+  "element": "Light",
+  "type": "Trap",
+  "image": "219-12303.jpg"
+ },
+ {
+  "id": 219,
+  "variant": 12309,
+  "name": "Light Rocket",
+  "game": "TrapTeam",
+  "element": "Light",
+  "type": "Trap",
+  "image": "219-12309.jpg"
+ },
+ {
+  "id": 219,
+  "variant": 12315,
+  "name": "Light Yawn",
+  "game": "TrapTeam",
+  "element": "Light",
+  "type": "Trap",
+  "image": "219-12315.jpg"
+ },
+ {
+  "id": 220,
+  "variant": 12318,
+  "name": "Kaos",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Trap",
+  "image": "220-12318.jpg"
+ },
+ {
+  "id": 220,
+  "variant": 13599,
+  "name": "Kaos (Ultimate)",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Trap",
+  "image": "220-13599.jpg"
+ },
+ {
+  "id": 230,
+  "variant": 12288,
+  "name": "Hand of Fate",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Item",
+  "image": "230-0.png"
+ },
+ {
+  "id": 230,
+  "variant": 13315,
+  "name": "Hand of Fate (Legendary)",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Item",
+  "image": "230-13315.png"
+ },
+ {
+  "id": 231,
+  "variant": 12288,
+  "name": "Piggy Bank",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Item",
+  "image": "231-0.png"
+ },
+ {
+  "id": 232,
+  "variant": 12288,
+  "name": "Rocket Ram",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Item",
+  "image": "232-0.png"
+ },
+ {
+  "id": 233,
+  "variant": 12288,
+  "name": "Tiki Speaky",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Item",
+  "image": "233-0.png"
+ },
+ {
+  "id": 300,
+  "variant": 0,
+  "name": "Dragon's Peak",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "300-0.png"
+ },
+ {
+  "id": 301,
+  "variant": 0,
+  "name": "Empire of Ice",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "301-0.png"
+ },
+ {
+  "id": 302,
+  "variant": 0,
+  "name": "Pirate Seas",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "302-0.png"
+ },
+ {
+  "id": 303,
+  "variant": 0,
+  "name": "Darklight Crypt",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "303-0.png"
+ },
+ {
+  "id": 304,
+  "variant": 0,
+  "name": "Volcanic Vault",
+  "game": "SpyrosAdv",
+  "element": "Other",
+  "type": "Item",
+  "image": "304-0.png"
+ },
+ {
+  "id": 305,
+  "variant": 12288,
+  "name": "Mirror of Mystery",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Item",
+  "image": "305-0.png"
+ },
+ {
+  "id": 306,
+  "variant": 12288,
+  "name": "Nightmare Express",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Item",
+  "image": "306-0.png"
+ },
+ {
+  "id": 307,
+  "variant": 12806,
+  "name": "Sunscraper Spire",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Item",
+  "image": "307-0.png"
+ },
+ {
+  "id": 308,
+  "variant": 12806,
+  "name": "Midnight Museum",
+  "game": "TrapTeam",
+  "element": "Other",
+  "type": "Item",
+  "image": "308-0.png"
+ },
+ {
+  "id": 404,
+  "variant": 0,
+  "name": "Bash (Legendary)",
+  "game": "SpyrosAdv",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "404-0.png"
+ },
+ {
+  "id": 416,
+  "variant": 0,
+  "name": "Spyro (Legendary)",
+  "game": "SpyrosAdv",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "416-0.png"
+ },
+ {
+  "id": 419,
+  "variant": 0,
+  "name": "Trigger Happy (Legendary)",
+  "game": "SpyrosAdv",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "419-0.png"
+ },
+ {
+  "id": 430,
+  "variant": 0,
+  "name": "Chop Chop (Legendary)",
+  "game": "SpyrosAdv",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "430-0.png"
+ },
+ {
+  "id": 450,
+  "variant": 12288,
+  "name": "Gusto",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "TrapMaster",
+  "image": "450-0.png"
+ },
+ {
+  "id": 451,
+  "variant": 12288,
+  "name": "Thunderbolt",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "TrapMaster",
+  "image": "451-0.png"
+ },
+ {
+  "id": 451,
+  "variant": 12317,
+  "name": "Thunderbolt (Clear)",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "TrapMaster",
+  "image": "451-0.png"
+ },
+ {
+  "id": 452,
+  "variant": 12288,
+  "name": "Fling Kong",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "452-0.png"
+ },
+ {
+  "id": 453,
+  "variant": 12288,
+  "name": "Blades",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "453-0.png"
+ },
+ {
+  "id": 453,
+  "variant": 13315,
+  "name": "Blades (Legendary)",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "453-13315.png"
+ },
+ {
+  "id": 454,
+  "variant": 12288,
+  "name": "Wallop",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "TrapMaster",
+  "image": "454-0.png"
+ },
+ {
+  "id": 455,
+  "variant": 12288,
+  "name": "Head Rush",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "TrapMaster",
+  "image": "455-0.png"
+ },
+ {
+  "id": 455,
+  "variant": 13314,
+  "name": "Head Rush (Nitro)",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "TrapMaster",
+  "image": "455-13314.png"
+ },
+ {
+  "id": 456,
+  "variant": 12288,
+  "name": "Fist Bump",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "456-0.png"
+ },
+ {
+  "id": 457,
+  "variant": 12288,
+  "name": "Rocky Roll",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "457-0.png"
+ },
+ {
+  "id": 458,
+  "variant": 12288,
+  "name": "Wildfire",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "TrapMaster",
+  "image": "458-0.png"
+ },
+ {
+  "id": 458,
+  "variant": 13314,
+  "name": "Wildfire (Dark)",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "TrapMaster",
+  "image": "458-13314.png"
+ },
+ {
+  "id": 459,
+  "variant": 12288,
+  "name": "Ka-Boom",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "TrapMaster",
+  "image": "459-0.png"
+ },
+ {
+  "id": 460,
+  "variant": 12288,
+  "name": "Trail Blazer",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "460-0.png"
+ },
+ {
+  "id": 461,
+  "variant": 12288,
+  "name": "Torch",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "461-0.png"
+ },
+ {
+  "id": 462,
+  "variant": 12288,
+  "name": "Snap Shot",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "TrapMaster",
+  "image": "462-0.png"
+ },
+ {
+  "id": 462,
+  "variant": 13314,
+  "name": "Snap Shot (Dark)",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "TrapMaster",
+  "image": "462-13314.png"
+ },
+ {
+  "id": 462,
+  "variant": 17679,
+  "name": "Snap Shot (Virtual)",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "TrapMaster",
+  "image": "462-0.png"
+ },
+ {
+  "id": 463,
+  "variant": 12288,
+  "name": "Lob-Star",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "TrapMaster",
+  "image": "463-0.png"
+ },
+ {
+  "id": 463,
+  "variant": 13314,
+  "name": "Lob-Star (Winterfest)",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "TrapMaster",
+  "image": "463-13314.png"
+ },
+ {
+  "id": 464,
+  "variant": 12288,
+  "name": "Flip Wreck",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "464-0.png"
+ },
+ {
+  "id": 465,
+  "variant": 12288,
+  "name": "Echo",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "465-0.png"
+ },
+ {
+  "id": 466,
+  "variant": 12288,
+  "name": "Blastermind",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "TrapMaster",
+  "image": "466-0.png"
+ },
+ {
+  "id": 467,
+  "variant": 12288,
+  "name": "Enigma",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "TrapMaster",
+  "image": "467-0.png"
+ },
+ {
+  "id": 468,
+  "variant": 12288,
+  "name": "Deja Vu",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "468-0.png"
+ },
+ {
+  "id": 468,
+  "variant": 13315,
+  "name": "Deja Vu (Legendary)",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "468-13315.png"
+ },
+ {
+  "id": 469,
+  "variant": 12288,
+  "name": "Cobra Cadabra",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "469-0.png"
+ },
+ {
+  "id": 469,
+  "variant": 13314,
+  "name": "Cobra Cadabra (King)",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "469-13314.png"
+ },
+ {
+  "id": 470,
+  "variant": 12288,
+  "name": "Jawbreaker",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "TrapMaster",
+  "image": "470-0.png"
+ },
+ {
+  "id": 470,
+  "variant": 13315,
+  "name": "Jawbreaker (Legendary)",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "TrapMaster",
+  "image": "470-13315.png"
+ },
+ {
+  "id": 471,
+  "variant": 12288,
+  "name": "Gearshift",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "TrapMaster",
+  "image": "471-0.png"
+ },
+ {
+  "id": 472,
+  "variant": 12288,
+  "name": "Chopper",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "472-0.png"
+ },
+ {
+  "id": 473,
+  "variant": 12288,
+  "name": "Tread Head",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "473-0.png"
+ },
+ {
+  "id": 474,
+  "variant": 12288,
+  "name": "Bushwhack",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "TrapMaster",
+  "image": "474-0.png"
+ },
+ {
+  "id": 474,
+  "variant": 13315,
+  "name": "Bushwhack (Legendary)",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "TrapMaster",
+  "image": "474-13315.png"
+ },
+ {
+  "id": 475,
+  "variant": 12288,
+  "name": "Tuff Luck",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "TrapMaster",
+  "image": "475-0.png"
+ },
+ {
+  "id": 475,
+  "variant": 12317,
+  "name": "Tuff Luck (Clear)",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "TrapMaster",
+  "image": "475-0.png"
+ },
+ {
+  "id": 476,
+  "variant": 12288,
+  "name": "Food Fight",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "476-0.png"
+ },
+ {
+  "id": 476,
+  "variant": 13314,
+  "name": "Food Fight (Dark)",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "476-13314.png"
+ },
+ {
+  "id": 476,
+  "variant": 17679,
+  "name": "Food Fight (Virtual)",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "476-0.png"
+ },
+ {
+  "id": 477,
+  "variant": 12288,
+  "name": "High Five",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "477-0.png"
+ },
+ {
+  "id": 478,
+  "variant": 12288,
+  "name": "Krypt King",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "TrapMaster",
+  "image": "478-0.png"
+ },
+ {
+  "id": 478,
+  "variant": 13314,
+  "name": "Krypt King (Nitro)",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "TrapMaster",
+  "image": "478-13314.png"
+ },
+ {
+  "id": 479,
+  "variant": 12288,
+  "name": "Short Cut",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "TrapMaster",
+  "image": "479-0.png"
+ },
+ {
+  "id": 479,
+  "variant": 12317,
+  "name": "Short Cut (Clear)",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "TrapMaster",
+  "image": "479-0.png"
+ },
+ {
+  "id": 480,
+  "variant": 12288,
+  "name": "Bat Spin",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "480-0.png"
+ },
+ {
+  "id": 481,
+  "variant": 12288,
+  "name": "Funny Bone",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "481-0.png"
+ },
+ {
+  "id": 482,
+  "variant": 12288,
+  "name": "Knight Light",
+  "game": "TrapTeam",
+  "element": "Light",
+  "type": "TrapMaster",
+  "image": "482-0.png"
+ },
+ {
+  "id": 483,
+  "variant": 12288,
+  "name": "Spotlight",
+  "game": "TrapTeam",
+  "element": "Light",
+  "type": "Skylander",
+  "image": "483-0.png"
+ },
+ {
+  "id": 484,
+  "variant": 12288,
+  "name": "Knight Mare",
+  "game": "TrapTeam",
+  "element": "Dark",
+  "type": "TrapMaster",
+  "image": "484-0.png"
+ },
+ {
+  "id": 485,
+  "variant": 12288,
+  "name": "Blackout",
+  "game": "TrapTeam",
+  "element": "Dark",
+  "type": "Skylander",
+  "image": "485-0.png"
+ },
+ {
+  "id": 502,
+  "variant": 12288,
+  "name": "Bop",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Mini",
+  "image": "502-0.png"
+ },
+ {
+  "id": 503,
+  "variant": 12288,
+  "name": "Spry",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Mini",
+  "image": "503-0.png"
+ },
+ {
+  "id": 504,
+  "variant": 12288,
+  "name": "Hijinx",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Mini",
+  "image": "504-0.png"
+ },
+ {
+  "id": 505,
+  "variant": 0,
+  "name": "Terrabite (Sidekick)",
+  "game": "SpyrosAdv",
+  "element": "Earth",
+  "type": "Mini",
+  "image": "505-0.png"
+ },
+ {
+  "id": 505,
+  "variant": 12288,
+  "name": "Terrabite",
+  "game": "TrapTeam",
+  "element": "Earth",
+  "type": "Mini",
+  "image": "505-0.png"
+ },
+ {
+  "id": 506,
+  "variant": 12288,
+  "name": "Breeze",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Mini",
+  "image": "506-0.png"
+ },
+ {
+  "id": 507,
+  "variant": 12288,
+  "name": "Weeruptor",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Mini",
+  "image": "507-0.png"
+ },
+ {
+  "id": 507,
+  "variant": 13314,
+  "name": "Weeruptor (Eggsellent)",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Mini",
+  "image": "507-13314.png"
+ },
+ {
+  "id": 508,
+  "variant": 12288,
+  "name": "Pet Vac",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Mini",
+  "image": "508-0.png"
+ },
+ {
+  "id": 508,
+  "variant": 13314,
+  "name": "Pet Vac (Power Punch)",
+  "game": "TrapTeam",
+  "element": "Air",
+  "type": "Mini",
+  "image": "508-13314.png"
+ },
+ {
+  "id": 509,
+  "variant": 12288,
+  "name": "Small Fry",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Mini",
+  "image": "509-0.png"
+ },
+ {
+  "id": 510,
+  "variant": 12288,
+  "name": "Drobit",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Mini",
+  "image": "510-0.png"
+ },
+ {
+  "id": 514,
+  "variant": 0,
+  "name": "Gill Runt (Sidekick)",
+  "game": "SpyrosAdv",
+  "element": "Water",
+  "type": "Mini",
+  "image": "514-0.png"
+ },
+ {
+  "id": 514,
+  "variant": 12288,
+  "name": "Gill Runt",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Mini",
+  "image": "514-0.png"
+ },
+ {
+  "id": 519,
+  "variant": 0,
+  "name": "Trigger Snappy (Sidekick)",
+  "game": "SpyrosAdv",
+  "element": "Tech",
+  "type": "Mini",
+  "image": "519-0.png"
+ },
+ {
+  "id": 519,
+  "variant": 12288,
+  "name": "Trigger Snappy",
+  "game": "TrapTeam",
+  "element": "Tech",
+  "type": "Mini",
+  "image": "519-0.png"
+ },
+ {
+  "id": 526,
+  "variant": 0,
+  "name": "Whisper Elf (Sidekick)",
+  "game": "SpyrosAdv",
+  "element": "Life",
+  "type": "Mini",
+  "image": "526-12288.png"
+ },
+ {
+  "id": 526,
+  "variant": 12288,
+  "name": "Whisper Elf",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Mini",
+  "image": "526-12288.png"
+ },
+ {
+  "id": 540,
+  "variant": 4096,
+  "name": "Barkley (Sidekick)",
+  "game": "Giants",
+  "element": "Life",
+  "type": "Mini",
+  "image": "540-12288.png"
+ },
+ {
+  "id": 540,
+  "variant": 12288,
+  "name": "Barkley",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Mini",
+  "image": "540-12288.png"
+ },
+ {
+  "id": 540,
+  "variant": 13314,
+  "name": "Barkley (Gnarly)",
+  "game": "TrapTeam",
+  "element": "Life",
+  "type": "Mini",
+  "image": "540-13314.png"
+ },
+ {
+  "id": 541,
+  "variant": 4096,
+  "name": "Thumpling (Sidekick)",
+  "game": "Giants",
+  "element": "Water",
+  "type": "Mini",
+  "image": "541-12288.png"
+ },
+ {
+  "id": 541,
+  "variant": 12288,
+  "name": "Thumpling",
+  "game": "TrapTeam",
+  "element": "Water",
+  "type": "Mini",
+  "image": "541-12288.png"
+ },
+ {
+  "id": 542,
+  "variant": 4096,
+  "name": "Mini Jini (Sidekick)",
+  "game": "Giants",
+  "element": "Magic",
+  "type": "Mini",
+  "image": "542-12288.png"
+ },
+ {
+  "id": 542,
+  "variant": 12288,
+  "name": "Mini Jini",
+  "game": "TrapTeam",
+  "element": "Magic",
+  "type": "Mini",
+  "image": "542-12288.png"
+ },
+ {
+  "id": 543,
+  "variant": 4096,
+  "name": "Eye-Small (Sidekick)",
+  "game": "Giants",
+  "element": "Undead",
+  "type": "Mini",
+  "image": "543-4096.png"
+ },
+ {
+  "id": 543,
+  "variant": 12288,
+  "name": "Eye-Small",
+  "game": "TrapTeam",
+  "element": "Undead",
+  "type": "Mini",
+  "image": "543-4096.png"
+ },
+ {
+  "id": 1000,
+  "variant": 8192,
+  "name": "Boom Jet (Bottom)",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Swapper",
+  "image": "1000-0.png"
+ },
+ {
+  "id": 1001,
+  "variant": 8192,
+  "name": "Free Ranger (Bottom)",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Swapper",
+  "image": "1001-0.png"
+ },
+ {
+  "id": 1001,
+  "variant": 9219,
+  "name": "Free Ranger (Legendary) (Bottom)",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Swapper",
+  "image": "1001-9219.png"
+ },
+ {
+  "id": 1002,
+  "variant": 8192,
+  "name": "Rubble Rouser (Bottom)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Swapper",
+  "image": "1002-0.png"
+ },
+ {
+  "id": 1003,
+  "variant": 8192,
+  "name": "Doom Stone (Bottom)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Swapper",
+  "image": "1003-0.png"
+ },
+ {
+  "id": 1003,
+  "variant": 8214,
+  "name": "Doom Stone (Gold & Bronze) (Bottom)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Swapper",
+  "image": "1003-0.png"
+ },
+ {
+  "id": 1004,
+  "variant": 8192,
+  "name": "Blast Zone (Bottom)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Swapper",
+  "image": "1004-0.png"
+ },
+ {
+  "id": 1004,
+  "variant": 9218,
+  "name": "Blast Zone (Dark) (Bottom)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Swapper",
+  "image": "1004-9218.png"
+ },
+ {
+  "id": 1005,
+  "variant": 8192,
+  "name": "Fire Kraken (Bottom)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Swapper",
+  "image": "1005-0.png"
+ },
+ {
+  "id": 1005,
+  "variant": 8196,
+  "name": "Fire Kraken (Gold) (Bottom)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Swapper",
+  "image": "1005-0.png"
+ },
+ {
+  "id": 1005,
+  "variant": 9218,
+  "name": "Fire Kraken (Jade) (Bottom)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Swapper",
+  "image": "1005-9218.png"
+ },
+ {
+  "id": 1006,
+  "variant": 8192,
+  "name": "Stink Bomb (Bottom)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Swapper",
+  "image": "1006-0.png"
+ },
+ {
+  "id": 1006,
+  "variant": 8214,
+  "name": "Stink Bomb (Silver & Gold) (Bottom)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Swapper",
+  "image": "1006-0.png"
+ },
+ {
+  "id": 1007,
+  "variant": 8192,
+  "name": "Grilla Drilla (Bottom)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Swapper",
+  "image": "1007-0.png"
+ },
+ {
+  "id": 1008,
+  "variant": 8192,
+  "name": "Hoot Loop (Bottom)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Swapper",
+  "image": "1008-0.png"
+ },
+ {
+  "id": 1008,
+  "variant": 9218,
+  "name": "Hoot Loop (Enchanted) (Bottom)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Swapper",
+  "image": "1008-9218.png"
+ },
+ {
+  "id": 1009,
+  "variant": 8192,
+  "name": "Trap Shadow (Bottom)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Swapper",
+  "image": "1009-0.png"
+ },
+ {
+  "id": 1009,
+  "variant": 8214,
+  "name": "Trap Shadow (Bronze & Silver) (Bottom)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Swapper",
+  "image": "1009-0.png"
+ },
+ {
+  "id": 1010,
+  "variant": 8192,
+  "name": "Magna Charge (Bottom)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Swapper",
+  "image": "1010-0.png"
+ },
+ {
+  "id": 1010,
+  "variant": 9218,
+  "name": "Magna Charge (Nitro) (Bottom)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Swapper",
+  "image": "1010-9218.png"
+ },
+ {
+  "id": 1011,
+  "variant": 8192,
+  "name": "Spy Rise (Bottom)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Swapper",
+  "image": "1011-0.png"
+ },
+ {
+  "id": 1012,
+  "variant": 8192,
+  "name": "Night Shift (Bottom)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Swapper",
+  "image": "1012-0.png"
+ },
+ {
+  "id": 1012,
+  "variant": 9219,
+  "name": "Night Shift (Legendary) (Bottom)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Swapper",
+  "image": "1012-9219.png"
+ },
+ {
+  "id": 1013,
+  "variant": 8192,
+  "name": "Rattle Shake (Bottom)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Swapper",
+  "image": "1013-0.png"
+ },
+ {
+  "id": 1013,
+  "variant": 9218,
+  "name": "Rattle Shake (Quickdraw) (Bottom)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Swapper",
+  "image": "1013-9218.png"
+ },
+ {
+  "id": 1014,
+  "variant": 8192,
+  "name": "Freeze Blade (Bottom)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Swapper",
+  "image": "1014-0.png"
+ },
+ {
+  "id": 1014,
+  "variant": 9218,
+  "name": "Freeze Blade (Nitro) (Bottom)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Swapper",
+  "image": "1014-9218.png"
+ },
+ {
+  "id": 1015,
+  "variant": 8192,
+  "name": "Wash Buckler (Bottom)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Swapper",
+  "image": "1015-0.png"
+ },
+ {
+  "id": 1015,
+  "variant": 8216,
+  "name": "Wash Buckler (Gold) (Bottom)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Swapper",
+  "image": "1015-0.png"
+ },
+ {
+  "id": 1015,
+  "variant": 9218,
+  "name": "Wash Buckler (Dark) (Bottom)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Swapper",
+  "image": "1015-9218.png"
+ },
+ {
+  "id": 2000,
+  "variant": 8192,
+  "name": "Boom Jet (Top)",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Swapper",
+  "image": "2000-0.png"
+ },
+ {
+  "id": 2001,
+  "variant": 8192,
+  "name": "Free Ranger (Top)",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Swapper",
+  "image": "2001-0.png"
+ },
+ {
+  "id": 2001,
+  "variant": 9219,
+  "name": "Free Ranger (Legendary) (Top)",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Swapper",
+  "image": "2001-9219.png"
+ },
+ {
+  "id": 2002,
+  "variant": 8192,
+  "name": "Rubble Rouser (Top)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Swapper",
+  "image": "2002-0.png"
+ },
+ {
+  "id": 2003,
+  "variant": 8192,
+  "name": "Doom Stone (Top)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Swapper",
+  "image": "2003-0.png"
+ },
+ {
+  "id": 2003,
+  "variant": 8214,
+  "name": "Doom Stone (Gold & Bronze) (Top)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Swapper",
+  "image": "2003-0.png"
+ },
+ {
+  "id": 2004,
+  "variant": 8192,
+  "name": "Blast Zone (Top)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Swapper",
+  "image": "2004-0.png"
+ },
+ {
+  "id": 2004,
+  "variant": 9218,
+  "name": "Blast Zone (Dark) (Top)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Swapper",
+  "image": "2004-9218.png"
+ },
+ {
+  "id": 2005,
+  "variant": 8192,
+  "name": "Fire Kraken (Top)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Swapper",
+  "image": "2005-0.png"
+ },
+ {
+  "id": 2005,
+  "variant": 8196,
+  "name": "Fire Kraken (Gold) (Top)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Swapper",
+  "image": "2005-0.png"
+ },
+ {
+  "id": 2005,
+  "variant": 9218,
+  "name": "Fire Kraken (Jade) (Top)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Swapper",
+  "image": "2005-9218.png"
+ },
+ {
+  "id": 2006,
+  "variant": 8192,
+  "name": "Stink Bomb (Top)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Swapper",
+  "image": "2006-0.png"
+ },
+ {
+  "id": 2006,
+  "variant": 8214,
+  "name": "Stink Bomb (Silver & Gold) (Top)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Swapper",
+  "image": "2006-0.png"
+ },
+ {
+  "id": 2007,
+  "variant": 8192,
+  "name": "Grilla Drilla (Top)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Swapper",
+  "image": "2007-0.png"
+ },
+ {
+  "id": 2008,
+  "variant": 8192,
+  "name": "Hoot Loop (Top)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Swapper",
+  "image": "2008-0.png"
+ },
+ {
+  "id": 2008,
+  "variant": 9218,
+  "name": "Hoot Loop (Enchanted) (Top)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Swapper",
+  "image": "2008-9218.png"
+ },
+ {
+  "id": 2009,
+  "variant": 8192,
+  "name": "Trap Shadow (Top)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Swapper",
+  "image": "2009-0.png"
+ },
+ {
+  "id": 2009,
+  "variant": 8214,
+  "name": "Trap Shadow (Bronze & Silver) (Top)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Swapper",
+  "image": "2009-0.png"
+ },
+ {
+  "id": 2010,
+  "variant": 8192,
+  "name": "Magna Charge (Top)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Swapper",
+  "image": "2010-0.png"
+ },
+ {
+  "id": 2010,
+  "variant": 9218,
+  "name": "Magna Charge (Nitro) (Top)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Swapper",
+  "image": "2010-9218.png"
+ },
+ {
+  "id": 2011,
+  "variant": 8192,
+  "name": "Spy Rise (Top)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Swapper",
+  "image": "2011-0.png"
+ },
+ {
+  "id": 2012,
+  "variant": 8192,
+  "name": "Night Shift (Top)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Swapper",
+  "image": "2012-0.png"
+ },
+ {
+  "id": 2012,
+  "variant": 9219,
+  "name": "Night Shift (Legendary) (Top)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Swapper",
+  "image": "2012-9219.png"
+ },
+ {
+  "id": 2013,
+  "variant": 8192,
+  "name": "Rattle Shake (Top)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Swapper",
+  "image": "2013-0.png"
+ },
+ {
+  "id": 2013,
+  "variant": 9218,
+  "name": "Rattle Shake (Quickdraw) (Top)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Swapper",
+  "image": "2013-9218.png"
+ },
+ {
+  "id": 2014,
+  "variant": 8192,
+  "name": "Freeze Blade (Top)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Swapper",
+  "image": "2014-0.png"
+ },
+ {
+  "id": 2014,
+  "variant": 9218,
+  "name": "Freeze Blade (Nitro) (Top)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Swapper",
+  "image": "2014-9218.png"
+ },
+ {
+  "id": 2015,
+  "variant": 8192,
+  "name": "Wash Buckler (Top)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Swapper",
+  "image": "2015-0.png"
+ },
+ {
+  "id": 2015,
+  "variant": 8216,
+  "name": "Wash Buckler (Gold) (Top)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Swapper",
+  "image": "2015-0.png"
+ },
+ {
+  "id": 2015,
+  "variant": 9218,
+  "name": "Wash Buckler (Dark) (Top)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Swapper",
+  "image": "2015-9218.png"
+ },
+ {
+  "id": 3000,
+  "variant": 8192,
+  "name": "Scratch",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "3000-0.png"
+ },
+ {
+  "id": 3001,
+  "variant": 8192,
+  "name": "Pop Thorn",
+  "game": "SwapForce",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "3001-0.png"
+ },
+ {
+  "id": 3002,
+  "variant": 8192,
+  "name": "Slobber Tooth",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "3002-0.png"
+ },
+ {
+  "id": 3002,
+  "variant": 9218,
+  "name": "Slobber Tooth (Dark)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "3002-9218.png"
+ },
+ {
+  "id": 3003,
+  "variant": 8192,
+  "name": "Scorp",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "3003-0.png"
+ },
+ {
+  "id": 3003,
+  "variant": 8214,
+  "name": "Scorp (Green)",
+  "game": "SwapForce",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "3003-0.png"
+ },
+ {
+  "id": 3004,
+  "variant": 8192,
+  "name": "Fryno",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3004-0.png"
+ },
+ {
+  "id": 3004,
+  "variant": 14337,
+  "name": "Fryno (Hog Wild)",
+  "game": "TrapTeam",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3004-0.png"
+ },
+ {
+  "id": 3005,
+  "variant": 8192,
+  "name": "Smolderdash",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3005-0.png"
+ },
+ {
+  "id": 3005,
+  "variant": 8710,
+  "name": "Smolderdash (LightCore)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3005-8710.png"
+ },
+ {
+  "id": 3005,
+  "variant": 8729,
+  "name": "Snowderdash (LightCore)",
+  "game": "SwapForce",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3005-0.png"
+ },
+ {
+  "id": 3006,
+  "variant": 8192,
+  "name": "Bumble Blast",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3006-0.png"
+ },
+ {
+  "id": 3006,
+  "variant": 8710,
+  "name": "Bumble Blast (LightCore)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3006-8710.png"
+ },
+ {
+  "id": 3006,
+  "variant": 9218,
+  "name": "Bumble Blast (Jolly)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3006-9218.png"
+ },
+ {
+  "id": 3007,
+  "variant": 8192,
+  "name": "Zoo Lou",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3007-0.png"
+ },
+ {
+  "id": 3007,
+  "variant": 9219,
+  "name": "Zoo Lou (Legendary)",
+  "game": "SwapForce",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3007-9219.png"
+ },
+ {
+  "id": 3008,
+  "variant": 8192,
+  "name": "Dune Bug",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "3008-0.png"
+ },
+ {
+  "id": 3008,
+  "variant": 8196,
+  "name": "Dune Bug (Metallic Red)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "3008-0.png"
+ },
+ {
+  "id": 3009,
+  "variant": 8192,
+  "name": "Star Strike",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "3009-0.png"
+ },
+ {
+  "id": 3009,
+  "variant": 8710,
+  "name": "Star Strike (LightCore)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "3009-8710.png"
+ },
+ {
+  "id": 3009,
+  "variant": 9730,
+  "name": "Star Strike (Enchanted LightCore)",
+  "game": "SwapForce",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "3009-9730.png"
+ },
+ {
+  "id": 3010,
+  "variant": 8192,
+  "name": "Countdown",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "3010-0.png"
+ },
+ {
+  "id": 3010,
+  "variant": 8710,
+  "name": "Countdown (LightCore)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "3010-8710.png"
+ },
+ {
+  "id": 3010,
+  "variant": 9218,
+  "name": "Countdown (Kickoff)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "3010-9218.png"
+ },
+ {
+  "id": 3011,
+  "variant": 8192,
+  "name": "Wind Up",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "3011-0.png"
+ },
+ {
+  "id": 3011,
+  "variant": 9220,
+  "name": "Wind Up (Gear Head Vicarious Visions)",
+  "game": "SwapForce",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "3011-0.png"
+ },
+ {
+  "id": 3012,
+  "variant": 8192,
+  "name": "Roller Brawl",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "3012-0.png"
+ },
+ {
+  "id": 3013,
+  "variant": 8192,
+  "name": "Grim Creeper",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "3013-0.png"
+ },
+ {
+  "id": 3013,
+  "variant": 8710,
+  "name": "Grim Creeper (LightCore)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "3013-8710.png"
+ },
+ {
+  "id": 3013,
+  "variant": 9731,
+  "name": "Grim Creeper (Legendary LightCore)",
+  "game": "SwapForce",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "3013-9731.png"
+ },
+ {
+  "id": 3014,
+  "variant": 8192,
+  "name": "Rip Tide",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "3014-0.png"
+ },
+ {
+  "id": 3014,
+  "variant": 8214,
+  "name": "Rip Tide (Green)",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "3014-0.png"
+ },
+ {
+  "id": 3015,
+  "variant": 8192,
+  "name": "Punk Shock",
+  "game": "SwapForce",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "3015-0.png"
+ },
+ {
+  "id": 3200,
+  "variant": 8192,
+  "name": "Battle Hammer",
+  "game": "SwapForce",
+  "element": "Other",
+  "type": "Item",
+  "image": "3200-8192.png"
+ },
+ {
+  "id": 3201,
+  "variant": 8192,
+  "name": "Sky Diamond",
+  "game": "SwapForce",
+  "element": "Other",
+  "type": "Item",
+  "image": "3201-8192.png"
+ },
+ {
+  "id": 3202,
+  "variant": 8192,
+  "name": "Platinum Sheep",
+  "game": "SwapForce",
+  "element": "Other",
+  "type": "Item",
+  "image": "3202-8192.png"
+ },
+ {
+  "id": 3203,
+  "variant": 8192,
+  "name": "Groove Machine",
+  "game": "SwapForce",
+  "element": "Other",
+  "type": "Item",
+  "image": "3203-8192.png"
+ },
+ {
+  "id": 3204,
+  "variant": 8192,
+  "name": "UFO Hat",
+  "game": "SwapForce",
+  "element": "Other",
+  "type": "Item",
+  "image": "3204-0.png"
+ },
+ {
+  "id": 3220,
+  "variant": 16384,
+  "name": "Jet Stream",
+  "game": "Superchargers",
+  "element": "Air",
+  "type": "Vehicle",
+  "image": "3220-0.png"
+ },
+ {
+  "id": 3221,
+  "variant": 16384,
+  "name": "Tomb Buggy",
+  "game": "Superchargers",
+  "element": "Undead",
+  "type": "Vehicle",
+  "image": "3221-0.png"
+ },
+ {
+  "id": 3221,
+  "variant": 16414,
+  "name": "Tomb Buggy (Bronze)",
+  "game": "Superchargers",
+  "element": "Undead",
+  "type": "Vehicle",
+  "image": "3221-0.png"
+ },
+ {
+  "id": 3222,
+  "variant": 16384,
+  "name": "Reef Ripper",
+  "game": "Superchargers",
+  "element": "Water",
+  "type": "Vehicle",
+  "image": "3222-0.png"
+ },
+ {
+  "id": 3223,
+  "variant": 16384,
+  "name": "Burn-Cycle",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Vehicle",
+  "image": "3223-0.png"
+ },
+ {
+  "id": 3223,
+  "variant": 16414,
+  "name": "Burn-Cycle (Patina)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Vehicle",
+  "image": "3223-0.png"
+ },
+ {
+  "id": 3224,
+  "variant": 16384,
+  "name": "Hot Streak",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Vehicle",
+  "image": "3224-0.png"
+ },
+ {
+  "id": 3224,
+  "variant": 16388,
+  "name": "Hot Streak (Event Exclusive)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Vehicle",
+  "image": "3224-16388.png"
+ },
+ {
+  "id": 3224,
+  "variant": 16671,
+  "name": "Hot Streak (Mobile)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Vehicle",
+  "image": "3224-0.png"
+ },
+ {
+  "id": 3224,
+  "variant": 17410,
+  "name": "Hot Streak (Dark)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Vehicle",
+  "image": "3224-17410.png"
+ },
+ {
+  "id": 3224,
+  "variant": 17438,
+  "name": "Hot Streak (Golden)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Vehicle",
+  "image": "3224-17438.png"
+ },
+ {
+  "id": 3224,
+  "variant": 17679,
+  "name": "Hot Streak (Instant)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Vehicle",
+  "image": "3224-0.png"
+ },
+ {
+  "id": 3225,
+  "variant": 16384,
+  "name": "Shark Tank",
+  "game": "Superchargers",
+  "element": "Earth",
+  "type": "Vehicle",
+  "image": "3225-0.png"
+ },
+ {
+  "id": 3226,
+  "variant": 16384,
+  "name": "Thump Truck",
+  "game": "Superchargers",
+  "element": "Earth",
+  "type": "Vehicle",
+  "image": "3226-0.png"
+ },
+ {
+  "id": 3227,
+  "variant": 16384,
+  "name": "Crypt Crusher",
+  "game": "Superchargers",
+  "element": "Undead",
+  "type": "Vehicle",
+  "image": "3227-0.png"
+ },
+ {
+  "id": 3228,
+  "variant": 16384,
+  "name": "Stealth Stinger",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Vehicle",
+  "image": "3228-0.png"
+ },
+ {
+  "id": 3228,
+  "variant": 17410,
+  "name": "Stealth Stinger (Nitro)",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Vehicle",
+  "image": "3228-17410.png"
+ },
+ {
+  "id": 3228,
+  "variant": 17679,
+  "name": "Stealth Stinger (Instant)",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Vehicle",
+  "image": "3228-0.png"
+ },
+ {
+  "id": 3231,
+  "variant": 16384,
+  "name": "Dive Bomber",
+  "game": "Superchargers",
+  "element": "Water",
+  "type": "Vehicle",
+  "image": "3231-0.png"
+ },
+ {
+  "id": 3231,
+  "variant": 17410,
+  "name": "Dive Bomber (Spring Ahead)",
+  "game": "Superchargers",
+  "element": "Water",
+  "type": "Vehicle",
+  "image": "3231-17410.png"
+ },
+ {
+  "id": 3231,
+  "variant": 17679,
+  "name": "Dive Bomber (Instant)",
+  "game": "Superchargers",
+  "element": "Water",
+  "type": "Vehicle",
+  "image": "3231-0.png"
+ },
+ {
+  "id": 3232,
+  "variant": 16384,
+  "name": "Sky Slicer",
+  "game": "Superchargers",
+  "element": "Air",
+  "type": "Vehicle",
+  "image": "3232-0.png"
+ },
+ {
+  "id": 3233,
+  "variant": 16384,
+  "name": "Clown Cruiser",
+  "game": "Superchargers",
+  "element": "Air",
+  "type": "Vehicle",
+  "image": "3233-16384.jpg"
+ },
+ {
+  "id": 3233,
+  "variant": 17410,
+  "name": "Clown Cruiser (Dark)",
+  "game": "Superchargers",
+  "element": "Air",
+  "type": "Vehicle",
+  "image": "3233-17410.jpg"
+ },
+ {
+  "id": 3234,
+  "variant": 16384,
+  "name": "Gold Rusher",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Vehicle",
+  "image": "3234-0.png"
+ },
+ {
+  "id": 3234,
+  "variant": 17410,
+  "name": "Gold Rusher (Power Blue)",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Vehicle",
+  "image": "3234-17410.png"
+ },
+ {
+  "id": 3235,
+  "variant": 16384,
+  "name": "Shield Striker",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Vehicle",
+  "image": "3235-0.png"
+ },
+ {
+  "id": 3235,
+  "variant": 16414,
+  "name": "Shield Striker (Patina)",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Vehicle",
+  "image": "3235-0.png"
+ },
+ {
+  "id": 3236,
+  "variant": 16384,
+  "name": "Sun Runner",
+  "game": "Superchargers",
+  "element": "Light",
+  "type": "Vehicle",
+  "image": "3236-0.png"
+ },
+ {
+  "id": 3236,
+  "variant": 17411,
+  "name": "Sun Runner (Legendary)",
+  "game": "Superchargers",
+  "element": "Light",
+  "type": "Vehicle",
+  "image": "3236-17411.png"
+ },
+ {
+  "id": 3237,
+  "variant": 16384,
+  "name": "Sea Shadow",
+  "game": "Superchargers",
+  "element": "Dark",
+  "type": "Vehicle",
+  "image": "3237-0.png"
+ },
+ {
+  "id": 3237,
+  "variant": 17410,
+  "name": "Sea Shadow (Dark)",
+  "game": "Superchargers",
+  "element": "Dark",
+  "type": "Vehicle",
+  "image": "3237-17410.png"
+ },
+ {
+  "id": 3238,
+  "variant": 16384,
+  "name": "Splatter Splasher",
+  "game": "Superchargers",
+  "element": "Magic",
+  "type": "Vehicle",
+  "image": "3238-0.png"
+ },
+ {
+  "id": 3238,
+  "variant": 17410,
+  "name": "Splatter Splasher (Power Blue)",
+  "game": "Superchargers",
+  "element": "Magic",
+  "type": "Vehicle",
+  "image": "3238-17410.png"
+ },
+ {
+  "id": 3239,
+  "variant": 16384,
+  "name": "Soda Skimmer",
+  "game": "Superchargers",
+  "element": "Magic",
+  "type": "Vehicle",
+  "image": "3239-0.png"
+ },
+ {
+  "id": 3239,
+  "variant": 17410,
+  "name": "Soda Skimmer (Nitro)",
+  "game": "Superchargers",
+  "element": "Magic",
+  "type": "Vehicle",
+  "image": "3239-17410.png"
+ },
+ {
+  "id": 3240,
+  "variant": 16384,
+  "name": "Barrel Blaster",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Vehicle",
+  "image": "3240-16384.jpg"
+ },
+ {
+  "id": 3240,
+  "variant": 17410,
+  "name": "Barrel Blaster (Dark)",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Vehicle",
+  "image": "3240-17410.jpg"
+ },
+ {
+  "id": 3241,
+  "variant": 16384,
+  "name": "Buzz Wing",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Vehicle",
+  "image": "3241-0.png"
+ },
+ {
+  "id": 3300,
+  "variant": 8192,
+  "name": "Sheep Wreck Island",
+  "game": "SwapForce",
+  "element": "Other",
+  "type": "Item",
+  "image": "3300-8192.png"
+ },
+ {
+  "id": 3301,
+  "variant": 8192,
+  "name": "Tower of Time",
+  "game": "SwapForce",
+  "element": "Other",
+  "type": "Item",
+  "image": "3301-8192.png"
+ },
+ {
+  "id": 3302,
+  "variant": 8710,
+  "name": "Fiery Forge",
+  "game": "SwapForce",
+  "element": "Other",
+  "type": "Item",
+  "image": "3302-8710.png"
+ },
+ {
+  "id": 3303,
+  "variant": 8710,
+  "name": "Arkeyan Crossbow",
+  "game": "SwapForce",
+  "element": "Other",
+  "type": "Item",
+  "image": "3303-8710.png"
+ },
+ {
+  "id": 3400,
+  "variant": 16640,
+  "name": "Fiesta",
+  "game": "Superchargers",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "3400-0.png"
+ },
+ {
+  "id": 3400,
+  "variant": 17685,
+  "name": "Fiesta (Frightful)",
+  "game": "Superchargers",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "3400-17685.png"
+ },
+ {
+  "id": 3401,
+  "variant": 16640,
+  "name": "High Volt",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "3401-0.png"
+ },
+ {
+  "id": 3401,
+  "variant": 16670,
+  "name": "High Volt (Patina)",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "3401-0.png"
+ },
+ {
+  "id": 3402,
+  "variant": 16640,
+  "name": "Splat",
+  "game": "Superchargers",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "3402-0.png"
+ },
+ {
+  "id": 3402,
+  "variant": 17666,
+  "name": "Splat (Power Blue)",
+  "game": "Superchargers",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "3402-17666.png"
+ },
+ {
+  "id": 3406,
+  "variant": 16640,
+  "name": "Stormblade",
+  "game": "Superchargers",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "3406-0.png"
+ },
+ {
+  "id": 3406,
+  "variant": 16654,
+  "name": "Stormblade (Snow-Brite)",
+  "game": "Superchargers",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "3406-0.png"
+ },
+ {
+  "id": 3411,
+  "variant": 16640,
+  "name": "Smash Hit",
+  "game": "Superchargers",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "3411-0.png"
+ },
+ {
+  "id": 3411,
+  "variant": 17666,
+  "name": "Smash Hit (Steel Plated)",
+  "game": "Superchargers",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "3411-17666.png"
+ },
+ {
+  "id": 3412,
+  "variant": 16640,
+  "name": "Spitfire",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3412-0.png"
+ },
+ {
+  "id": 3412,
+  "variant": 17666,
+  "name": "Spitfire (Dark)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3412-17666.png"
+ },
+ {
+  "id": 3412,
+  "variant": 17679,
+  "name": "Spitfire (Instant)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3412-0.png"
+ },
+ {
+  "id": 3413,
+  "variant": 16640,
+  "name": "Jet-Vac (Hurricane)",
+  "game": "Superchargers",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "3413-0.png"
+ },
+ {
+  "id": 3413,
+  "variant": 17667,
+  "name": "Jet-Vac (Legendary Hurricane)",
+  "game": "Superchargers",
+  "element": "Air",
+  "type": "Skylander",
+  "image": "3413-17667.png"
+ },
+ {
+  "id": 3414,
+  "variant": 16640,
+  "name": "Trigger Happy (Double Dare)",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "3414-0.png"
+ },
+ {
+  "id": 3414,
+  "variant": 17666,
+  "name": "Trigger Happy (Power Blue Double Dare)",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "3414-17666.png"
+ },
+ {
+  "id": 3415,
+  "variant": 16640,
+  "name": "Stealth Elf (Super Shot)",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3415-0.png"
+ },
+ {
+  "id": 3415,
+  "variant": 17666,
+  "name": "Stealth Elf (Dark Super Shot)",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3415-17666.png"
+ },
+ {
+  "id": 3415,
+  "variant": 17679,
+  "name": "Stealth Elf (Instant Super Shot)",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3415-0.png"
+ },
+ {
+  "id": 3416,
+  "variant": 16640,
+  "name": "Terrafin (Shark Shooter)",
+  "game": "Superchargers",
+  "element": "Earth",
+  "type": "Skylander",
+  "image": "3416-0.png"
+ },
+ {
+  "id": 3417,
+  "variant": 16640,
+  "name": "Roller Brawl (Bone Bash)",
+  "game": "Superchargers",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "3417-0.png"
+ },
+ {
+  "id": 3417,
+  "variant": 16670,
+  "name": "Roller Brawl (Bronze Bone Bash)",
+  "game": "Superchargers",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "3417-0.png"
+ },
+ {
+  "id": 3417,
+  "variant": 17667,
+  "name": "Roller Brawl (Legendary Bone Bash)",
+  "game": "Superchargers",
+  "element": "Undead",
+  "type": "Skylander",
+  "image": "3417-17667.png"
+ },
+ {
+  "id": 3420,
+  "variant": 16640,
+  "name": "Pop Fizz (Big Bubble)",
+  "game": "Superchargers",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "3420-0.png"
+ },
+ {
+  "id": 3420,
+  "variant": 17678,
+  "name": "Pop Fizz (Birthday Bash Big Bubble)",
+  "game": "Superchargers",
+  "element": "Magic",
+  "type": "Skylander",
+  "image": "3420-17678.png"
+ },
+ {
+  "id": 3421,
+  "variant": 16640,
+  "name": "Eruptor (Lava Lance)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3421-0.png"
+ },
+ {
+  "id": 3421,
+  "variant": 16670,
+  "name": "Eruptor (Patina Lava Lance)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3421-0.png"
+ },
+ {
+  "id": 3422,
+  "variant": 16640,
+  "name": "Gill Grunt (Deep Dive)",
+  "game": "Superchargers",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "3422-0.png"
+ },
+ {
+  "id": 3423,
+  "variant": 16640,
+  "name": "Donkey Kong (Turbo Charge)",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3423-16640.jpg"
+ },
+ {
+  "id": 3423,
+  "variant": 17666,
+  "name": "Donkey Kong (Dark Turbo Charge)",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3423-17666.jpg"
+ },
+ {
+  "id": 3424,
+  "variant": 16640,
+  "name": "Bowser (Hammer Slam)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3424-16640.jpg"
+ },
+ {
+  "id": 3424,
+  "variant": 17666,
+  "name": "Bowser (Dark Hammer Slam)",
+  "game": "Superchargers",
+  "element": "Fire",
+  "type": "Skylander",
+  "image": "3424-17666.jpg"
+ },
+ {
+  "id": 3425,
+  "variant": 16640,
+  "name": "Dive-Clops",
+  "game": "Superchargers",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "3425-0.png"
+ },
+ {
+  "id": 3425,
+  "variant": 17678,
+  "name": "Dive-Clops (Missile-Tow)",
+  "game": "Superchargers",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "3425-17678.png"
+ },
+ {
+  "id": 3425,
+  "variant": 17679,
+  "name": "Dive-Clops (Instant)",
+  "game": "Superchargers",
+  "element": "Water",
+  "type": "Skylander",
+  "image": "3425-0.png"
+ },
+ {
+  "id": 3426,
+  "variant": 16640,
+  "name": "Astroblast",
+  "game": "Superchargers",
+  "element": "Tech",
+  "type": "Skylander",
+  "image": "3426-0.png"
+ },
+ {
+  "id": 3426,
+  "variant": 17667,
+  "name": "Astroblast (Legendary)",
+  "game": "Superchargers",
+  "element": "Light",
+  "type": "Skylander",
+  "image": "3426-17667.png"
+ },
+ {
+  "id": 3427,
+  "variant": 16640,
+  "name": "Nightfall",
+  "game": "Superchargers",
+  "element": "Dark",
+  "type": "Skylander",
+  "image": "3427-0.png"
+ },
+ {
+  "id": 3428,
+  "variant": 16640,
+  "name": "Thrillipede",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3428-0.png"
+ },
+ {
+  "id": 3428,
+  "variant": 17677,
+  "name": "Thrillipede (Eggcited)",
+  "game": "Superchargers",
+  "element": "Life",
+  "type": "Skylander",
+  "image": "3428-17677.png"
+ },
+ {
+  "id": 3500,
+  "variant": 16384,
+  "name": "Sky Trophy",
+  "game": "Superchargers",
+  "element": "Air",
+  "type": "Trophy",
+  "image": "3500-0.png"
+ },
+ {
+  "id": 3501,
+  "variant": 16384,
+  "name": "Land Trophy",
+  "game": "Superchargers",
+  "element": "Earth",
+  "type": "Trophy",
+  "image": "3501-0.png"
+ },
+ {
+  "id": 3502,
+  "variant": 16384,
+  "name": "Sea Trophy",
+  "game": "Superchargers",
+  "element": "Water",
+  "type": "Trophy",
+  "image": "3502-0.png"
+ },
+ {
+  "id": 3503,
+  "variant": 16384,
+  "name": "Kaos Trophy",
+  "game": "Superchargers",
+  "element": "Other",
+  "type": "Trophy",
+  "image": "3503-0.png"
+ }
+]
