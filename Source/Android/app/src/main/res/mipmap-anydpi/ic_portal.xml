@@ -7,7 +7,7 @@
         </shape>
     </item>
     <item android:width="48dp" android:height="48dp">
-        <inset android:inset="8%">
+        <inset android:inset="0%">
             <bitmap android:src="@drawable/portal_spyro_logo" android:gravity="fill" android:filter="true" />
         </inset>
     </item>
