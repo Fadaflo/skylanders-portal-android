@@ -57,14 +57,14 @@ internal class ConsoleHaptics(private var enabled: Boolean) {
         if (!test && now - lastPulseAt < 100) return
         val target = motor(device) ?: return
         val duration = when (cue) {
-            ConsoleCue.NAVIGATE, ConsoleCue.BACK -> 20L
+            ConsoleCue.NAVIGATE, ConsoleCue.BACK -> 28L
             ConsoleCue.CONFIRM -> 28L
             ConsoleCue.PORTAL -> 36L
         }
         runCatching {
             if (Build.VERSION.SDK_INT >= 26) {
                 val amplitude = if (target.hasAmplitudeControl()) {
-                    if (cue == ConsoleCue.NAVIGATE || cue == ConsoleCue.BACK) 40 else 56
+                    56
                 } else VibrationEffect.DEFAULT_AMPLITUDE
                 @Suppress("DEPRECATION")
                 target.vibrate(VibrationEffect.createOneShot(duration, amplitude), attributes)
@@ -75,7 +75,7 @@ internal class ConsoleHaptics(private var enabled: Boolean) {
             activeMotor = target
             lastPulseAt = now
             lastFailure = null
-            if (test) Log.i("PortalHaptics", "Controller test: ${device.name}, ${duration}ms")
+            Log.d("PortalHaptics", "${if (test) "Test" else cue.name}: ${device.name}, ${duration}ms, device=${device.id}")
         }.onFailure {
             lastFailure = "Der Controller meldet Vibration, der Impuls konnte aber nicht ausgelöst werden."
             Log.w("PortalHaptics", "Controller feedback unavailable", it)

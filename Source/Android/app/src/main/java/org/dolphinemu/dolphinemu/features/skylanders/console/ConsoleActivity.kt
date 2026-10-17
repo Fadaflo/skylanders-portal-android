@@ -491,7 +491,9 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             if (menuKey != null) {
                 if (event.action == KeyEvent.ACTION_DOWN &&
                     (event.repeatCount == 0 || menuKey in KeyEvent.KEYCODE_DPAD_UP..KeyEvent.KEYCODE_DPAD_RIGHT)) {
-                    navigationHaptics(menuKey)
+                    // Finish delivery of the physical input before sending a motor command.
+                    // This runs on the next main-loop turn, without waiting for the pager.
+                    window.decorView.post { navigationHaptics(menuKey) }
                     controllerKeys.trySend(menuKey)
                 }
                 return true
@@ -515,7 +517,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             val now = SystemClock.uptimeMillis()
             if (direction != 0 && (direction != lastStickDirection || now - lastStickTime > 240)) {
                 rememberController(event.device)
-                navigationHaptics(direction)
+                window.decorView.post { navigationHaptics(direction) }
                 if (state.page == ConsolePage.CONTROLLERS) {
                     val label = when (direction) {
                         KeyEvent.KEYCODE_DPAD_LEFT -> "← Links"

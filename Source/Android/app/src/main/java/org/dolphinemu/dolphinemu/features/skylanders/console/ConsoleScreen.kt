@@ -901,7 +901,7 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
         if (inputMode.inputMode == InputMode.Keyboard) {
             onNavigationChanged(true)
             withFrameNanos { }
-            list.scrollToItem(selectedCard + 1)
+            list.scrollToItem(if (selectedCard == 0) 0 else selectedCard + 1)
             withFrameNanos { }
             targets[selectedCard].requestFocus()
             onNavigationChanged(false)
@@ -916,7 +916,8 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
         if (step == 0) false else {
             if (event.type == KeyEventType.KeyDown) {
                 val next = (selectedCard + step).coerceIn(titles.indices)
-                if (next != selectedCard) {
+                if (next != selectedCard || (next == 0 &&
+                        (list.firstVisibleItemIndex != 0 || list.firstVisibleItemScrollOffset != 0))) {
                     selectedCard = next
                     navigationJob?.cancel()
                     onNavigationChanged(true)
@@ -924,7 +925,7 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
                         // Align the complete card before focusing a control inside it.
                         // The last card stays fully visible even when the list cannot align its top.
                         try {
-                            list.animateScrollToItem(next + 1)
+                            list.animateScrollToItem(if (next == 0) 0 else next + 1)
                             withFrameNanos { }
                             targets[next].requestFocus()
                         } finally {
@@ -1015,6 +1016,8 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
     }
 }
 
+private val LocalSettingsCardFocused = compositionLocalOf { false }
+
 @Composable
 private fun SettingsCardFrame(title: String, target: FocusRequester, onFocused: () -> Unit,
     passive: Boolean = false, content: @Composable () -> Unit) {
@@ -1026,7 +1029,9 @@ private fun SettingsCardFrame(title: String, target: FocusRequester, onFocused: 
     }.focusGroup().then(if (passive) Modifier.focusable() else Modifier)
         .semantics { contentDescription = "Einstellung: $title" }
         .border(if (highlighted) 2.dp else 0.dp,
-            if (highlighted) Ice else Color.Transparent, Shape)) { content() }
+            if (highlighted) Ice else Color.Transparent, Shape)) {
+        CompositionLocalProvider(LocalSettingsCardFocused provides highlighted) { content() }
+    }
 }
 
 @Composable
@@ -1034,10 +1039,15 @@ private fun SettingsSwitch(checked: Boolean, onChecked: (Boolean) -> Unit, label
     emphasized: Boolean = false, keyboardFocus: Boolean = true) {
     var focused by remember { mutableStateOf(false) }
     val keyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
-    Switch(checked, onChecked, modifier = Modifier.onFocusChanged { focused = it.isFocused }
-        .focusProperties { canFocus = keyboardFocus }
-        .border(2.dp, if (emphasized || (focused && keyboard)) Ice else Color.Transparent, CircleShape)
-        .padding(4.dp).semantics { contentDescription = label })
+    val highlighted = emphasized || (keyboard && (focused || LocalSettingsCardFocused.current))
+    Box(Modifier.heightIn(min = 48.dp), contentAlignment = Alignment.Center) {
+        CompositionLocalProvider(LocalMinimumInteractiveComponentSize provides 0.dp) {
+            Switch(checked, onChecked, modifier = Modifier.onFocusChanged { focused = it.isFocused }
+                .focusProperties { canFocus = keyboardFocus }
+                .border(2.dp, if (highlighted) Ice else Color.Transparent, RoundedCornerShape(50))
+                .padding(4.dp).semantics { contentDescription = label })
+        }
+    }
 }
 
 @Composable
