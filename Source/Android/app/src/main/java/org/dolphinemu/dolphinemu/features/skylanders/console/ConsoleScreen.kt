@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalInputModeManager
@@ -40,6 +41,7 @@ import androidx.compose.ui.semantics.contentDescription
 import coil.request.ImageRequest
 import coil.size.Precision
 import android.os.Build
+import android.content.res.Configuration
 import androidx.compose.foundation.focusable
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalUriHandler
@@ -348,7 +350,11 @@ private fun BackdropLayer(game: ConsoleGame, incoming: Boolean, blend: () -> Flo
 private fun ConsoleHeader(state: ConsoleState, onSelectPage: (ConsolePage) -> Unit,
     onOpenAccount: () -> Unit,
     accountFocus: FocusRequester) {
-    BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp)) {
+    val configuration = LocalConfiguration.current
+    val phonePortrait = configuration.smallestScreenWidthDp < 600 &&
+        configuration.orientation == Configuration.ORIENTATION_PORTRAIT
+    BoxWithConstraints(Modifier.fillMaxWidth().padding(
+        horizontal = if (phonePortrait) 12.dp else 24.dp, vertical = 8.dp)) {
         val compact = maxWidth < 600.dp
         val motion = LocalPortalMotion.current
         val density = LocalDensity.current
@@ -362,8 +368,10 @@ private fun ConsoleHeader(state: ConsoleState, onSelectPage: (ConsolePage) -> Un
             activeBounds?.second?.times(0.54f) ?: 0f,
             if (motion) spring(stiffness = 360f, dampingRatio = 0.84f) else tween(0),
             label = "tabLineWidth")
+        val tabRowWidth = if (phonePortrait) maxWidth - 48.dp else maxWidth
         Box(Modifier.fillMaxWidth()) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center,
+            Row(Modifier.width(tabRowWidth),
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically) {
                 ConsolePage.entries.forEach { page ->
                     val active = state.page == page
@@ -377,18 +385,19 @@ private fun ConsoleHeader(state: ConsoleState, onSelectPage: (ConsolePage) -> Un
                         .focusProperties { canFocus = false }
                         .clickable(interactionSource = remember { MutableInteractionSource() },
                             indication = null) { onSelectPage(page) }
-                        .padding(horizontal = if (compact) 9.dp else 20.dp),
+                        .padding(horizontal = if (phonePortrait) 4.dp else if (compact) 9.dp else 20.dp),
                         contentAlignment = Alignment.Center) {
-                        Text(page.title, fontSize = if (compact) 12.sp else 14.sp,
+                        Text(page.title, fontSize = if (phonePortrait) 11.sp else if (compact) 12.sp else 14.sp,
                             color = if (active) Color.White else Color.White.copy(alpha = 0.67f),
                             fontWeight = if (active) FontWeight.Bold else FontWeight.Medium,
                             modifier = Modifier.graphicsLayer { scaleX = zoom; scaleY = zoom })
                     }
                 }
             }
-            Box(Modifier.align(Alignment.CenterEnd).padding(end = 2.dp)) {
+            Box(Modifier.align(Alignment.CenterEnd).padding(end = if (phonePortrait) 0.dp else 2.dp)) {
                 ProfileAvatar(state.account.avatar, state.account.name ?: state.account.email,
-                    48.dp, selected = state.accountOpen, onClick = onOpenAccount,
+                    if (phonePortrait) 42.dp else 48.dp,
+                    selected = state.accountOpen, onClick = onOpenAccount,
                     modifier = Modifier.focusRequester(accountFocus))
             }
             if (activeBounds != null && !state.accountOpen) Box(Modifier.align(Alignment.BottomStart)
@@ -639,16 +648,22 @@ private fun GameStage(state: ConsoleState, selectedIndex: Int, onSelect: (Consol
             else -> false
         }
     }) {
+        val phone = LocalConfiguration.current.smallestScreenWidthDp < 600
+        val phoneLandscape = phone && maxWidth > maxHeight
+        val phonePortrait = phone && !phoneLandscape
         val wide = maxWidth >= 650.dp
         val short = maxHeight < 350.dp
         val gutter = if (wide) 32.dp else 20.dp
-        val cardSize = if (short) (maxHeight * 0.62f).coerceIn(140.dp, 220.dp)
+        val cardSize = if (phoneLandscape) (maxHeight * 0.72f).coerceIn(170.dp, 300.dp)
+            else if (phonePortrait) (maxWidth * 0.64f).coerceIn(190.dp, 300.dp)
+            else if (short) (maxHeight * 0.62f).coerceIn(140.dp, 220.dp)
             else if (wide) (maxWidth * 0.34f).coerceIn(320.dp, 440.dp)
             else (maxWidth * 0.82f).coerceIn(220.dp, 360.dp)
         val cardHeight = cardSize / 1.6f
-        val stripTop = if (short) 4.dp else maxHeight * 0.40f - cardHeight / 2
+        val stripTop = if (phoneLandscape) (maxHeight * 0.35f - cardHeight / 2).coerceAtLeast(0.dp)
+            else if (short) 4.dp else maxHeight * 0.40f - cardHeight / 2
         val centerPadding = ((maxWidth - cardSize) / 2).coerceAtLeast(0.dp)
-        val titleSize = if (short) 26f else if (wide) 54f else 32f
+        val titleSize = if (phoneLandscape) 30f else if (short) 26f else if (wide) 54f else 32f
         HorizontalPager(state = pager, pageSize = PageSize.Fixed(cardSize),
             overscrollEffect = null,
             flingBehavior = PagerDefaults.flingBehavior(pager,
@@ -657,7 +672,7 @@ private fun GameStage(state: ConsoleState, selectedIndex: Int, onSelect: (Consol
             userScrollEnabled = state.ready && state.launchingGameKey == null,
             beyondViewportPageCount = 1,
             contentPadding = PaddingValues(horizontal = centerPadding),
-            pageSpacing = if (wide) 14.dp else 10.dp,
+            pageSpacing = if (phonePortrait) 6.dp else if (wide) 14.dp else 10.dp,
             verticalAlignment = Alignment.CenterVertically,
             key = { state.games[it].key },
             modifier = Modifier.offset(y = stripTop).fillMaxWidth().height(cardHeight + 24.dp)) { index ->
@@ -675,7 +690,8 @@ private fun GameStage(state: ConsoleState, selectedIndex: Int, onSelect: (Consol
                         }
                     })
         }
-        Column(Modifier.offset(y = stripTop + cardHeight + if (short) 18.dp else 30.dp)
+        Column(Modifier.offset(y = stripTop + cardHeight +
+            if (phoneLandscape) 14.dp else if (short) 18.dp else 30.dp)
             .fillMaxWidth().padding(horizontal = gutter), horizontalAlignment = Alignment.CenterHorizontally) {
             Box(Modifier.fillMaxWidth()) {
                 state.games.forEachIndexed { index, item ->
