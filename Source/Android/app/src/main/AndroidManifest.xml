@@ -33,8 +33,9 @@
 
     <application
         android:name=".DolphinApplication"
-        android:label="@string/app_name_suffixed"
-        android:icon="@mipmap/ic_launcher"
+        android:label="@string/sky_console_name"
+        android:icon="@mipmap/ic_portal"
+        android:roundIcon="@mipmap/ic_portal"
         android:requestLegacyExternalStorage="true"
         android:preserveLegacyExternalStorage="true"
         android:enableOnBackInvokedCallback="false"
@@ -53,7 +54,7 @@
             tools:targetApi="29" />
 
         <activity
-            android:name=".ui.main.MainActivity"
+            android:name=".features.skylanders.console.ConsoleActivity"
             android:exported="true"
             android:theme="@style/Theme.Dolphin.Splash.Main">
 
@@ -64,6 +65,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".ui.main.MainActivity"
+            android:exported="true"
+            android:theme="@style/Theme.Dolphin.Splash.Main" />
 
         <activity
             android:name=".ui.main.TvMainActivity"

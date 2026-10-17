@@ -92,6 +92,25 @@ object SkyCollection {
     private fun safeName(figure: CatalogFigure): String =
         figure.name.replace(Regex("[^A-Za-z0-9 ()._-]"), "_")
 
+    /** Keep a fresh magic/adventure item, preserving other variants and all progress figures.
+     * Called only after creation succeeds. Release any portal handle before deleting its file.
+     */
+    fun pruneItemCopies(
+        userDirectory: String,
+        figure: CatalogFigure,
+        keep: File,
+        release: (File) -> Boolean = { true }
+    ): List<File> {
+        if (figure.type != "Item") return emptyList()
+        val copies = scan(userDirectory).filter { it.id == figure.id && it.variant == figure.variant }
+        val keepPath = keep.canonicalPath
+        // A failed/partial creation must never remove the existing usable item.
+        if (copies.none { it.file.canonicalPath == keepPath }) return emptyList()
+        return copies.filter { it.file.canonicalPath != keepPath }.mapNotNull { copy ->
+            if (release(copy.file) && copy.file.delete()) null else copy.file
+        }
+    }
+
     /** Dateiname fuer eine neu erschaffene Figur, ohne vorhandene zu ueberschreiben. */
     fun newFileFor(userDirectory: String, figure: CatalogFigure): File {
         val safe = safeName(figure)

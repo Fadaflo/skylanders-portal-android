@@ -4,6 +4,7 @@
 #include "VideoCommon/ShaderCache.h"
 
 #include <utility>
+#include <type_traits>
 
 #include <fmt/format.h>
 
@@ -123,14 +124,32 @@ void ShaderCache::Shutdown()
 const AbstractPipeline* ShaderCache::GetPipelineForUid(const GXPipelineUid& uid)
 {
   auto it = m_gx_pipeline_cache.find(uid);
-  if (it != m_gx_pipeline_cache.end() && !it->second.second)
+  if (it != m_gx_pipeline_cache.end() && !it->second.second &&
+      (it->second.first || !DeferPipelineLoading()))
     return it->second.first.get();
 
   const bool exists_in_cache = it != m_gx_pipeline_cache.end();
   std::unique_ptr<AbstractPipeline> pipeline;
   std::optional<AbstractPipelineConfig> pipeline_config = GetGXPipelineConfig(uid);
   if (pipeline_config)
+  {
+    auto binary = m_deferred_pipeline_binaries.find(uid);
+    if (binary != m_deferred_pipeline_binaries.end())
+    {
+      pipeline = g_gfx->CreatePipeline(*pipeline_config, binary->second.data(), binary->second.size());
+      m_deferred_pipeline_binaries.erase(binary);
+      if (pipeline)
+      {
+        // This exact binary is already on disk. Do not append another copy.
+        auto& entry = m_gx_pipeline_cache[uid];
+        entry.first = std::move(pipeline);
+        entry.second = false;
+        return entry.first.get();
+      }
+      WARN_LOG_FMT(VIDEO, "Cached pipeline rejected; rebuilding it on demand");
+    }
     pipeline = g_gfx->CreatePipeline(*pipeline_config);
+  }
   if (g_ActiveConfig.bShaderCache && !exists_in_cache)
     AppendGXPipelineUID(uid);
   return InsertGXPipeline(uid, std::move(pipeline));
@@ -141,6 +160,11 @@ std::optional<const AbstractPipeline*> ShaderCache::GetPipelineForUidAsync(const
   auto it = m_gx_pipeline_cache.find(uid);
   if (it != m_gx_pipeline_cache.end())
   {
+    if (DeferPipelineLoading() && !it->second.first && !it->second.second)
+    {
+      QueuePipelineCompile(uid, COMPILE_PRIORITY_ONDEMAND_PIPELINE);
+      return {};
+    }
     // .second is the pending flag, i.e. compiling in the background.
     if (!it->second.second)
       return it->second.first.get();
@@ -295,6 +319,17 @@ void ShaderCache::LoadPipelineCache(T& cache, Common::LinearDiskCache<DiskKeyTyp
       KeyType real_uid;
       UnserializePipelineUid(key, real_uid);
 
+      if constexpr (std::is_same_v<KeyType, GXPipelineUid>)
+      {
+        if (this_ptr->DeferPipelineLoading())
+        {
+          this_ptr->m_deferred_pipeline_binaries.insert_or_assign(
+              real_uid, std::vector<u8>(value, value + value_size));
+          cache.try_emplace(real_uid);
+          return;
+        }
+      }
+
       // Skip those which are already compiled.
       if (failed || cache.contains(real_uid))
         return;
@@ -389,6 +424,7 @@ void ShaderCache::LoadCaches()
 
 void ShaderCache::ClearCaches()
 {
+  m_deferred_pipeline_binaries.clear();
   ClearPipelineCache(m_gx_pipeline_cache, m_gx_pipeline_disk_cache);
   ClearShaderCache(m_vs_cache);
   ClearShaderCache(m_gs_cache);
@@ -421,8 +457,22 @@ void ShaderCache::ClearCaches()
   SETSTAT(g_stats.num_vertex_shaders_alive, 0);
 }
 
+bool ShaderCache::DeferPipelineLoading() const
+{
+#ifdef ANDROID
+  return m_api_type == APIType::OpenGL && g_ActiveConfig.bShaderCache &&
+         (g_ActiveConfig.iShaderCompilationMode == ShaderCompilationMode::Synchronous ||
+          g_ActiveConfig.iShaderCompilationMode == ShaderCompilationMode::AsynchronousUberShaders) &&
+         !g_ActiveConfig.bWaitForShadersBeforeStarting;
+#else
+  return false;
+#endif
+}
+
 void ShaderCache::CompileMissingPipelines()
 {
+  if (DeferPipelineLoading() && !m_async_shader_compiler->HasWorkerThreads())
+    return;
   // Queue all uids with a null pipeline for compilation.
   for (auto& it : m_gx_pipeline_cache)
   {
@@ -742,7 +792,8 @@ ShaderCache::GetGXPipelineConfig(const GXUberPipelineUid& config_in)
 }
 
 const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& config,
-                                                      std::unique_ptr<AbstractPipeline> pipeline)
+                                                      std::unique_ptr<AbstractPipeline> pipeline,
+                                                      bool from_cache)
 {
   auto& entry = m_gx_pipeline_cache[config];
   entry.second = false;
@@ -750,7 +801,7 @@ const AbstractPipeline* ShaderCache::InsertGXPipeline(const GXPipelineUid& confi
   {
     entry.first = std::move(pipeline);
 
-    if (g_ActiveConfig.bShaderCache)
+    if (g_ActiveConfig.bShaderCache && !from_cache)
     {
       auto cache_data = entry.first->GetCacheData();
       if (!cache_data.empty())
@@ -1027,6 +1078,9 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
       // If not, this work item becomes a no-op, and re-queues the pipeline for the next frame.
       if (SetStagesReady())
         config = shader_cache->GetGXPipelineConfig(uid);
+      auto binary = shader_cache->m_deferred_pipeline_binaries.find(uid);
+      if (binary != shader_cache->m_deferred_pipeline_binaries.end())
+        cache_data = binary->second;
     }
 
     bool SetStagesReady()
@@ -1054,7 +1108,15 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
     bool Compile() override
     {
       if (config)
-        pipeline = g_gfx->CreatePipeline(*config);
+      {
+        if (!cache_data.empty())
+        {
+          pipeline = g_gfx->CreatePipeline(*config, cache_data.data(), cache_data.size());
+          from_cache = pipeline != nullptr;
+        }
+        if (!pipeline)
+          pipeline = g_gfx->CreatePipeline(*config);
+      }
       return true;
     }
 
@@ -1062,7 +1124,8 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
     {
       if (stages_ready)
       {
-        shader_cache->InsertGXPipeline(uid, std::move(pipeline));
+        shader_cache->m_deferred_pipeline_binaries.erase(uid);
+        shader_cache->InsertGXPipeline(uid, std::move(pipeline), from_cache);
       }
       else
       {
@@ -1080,6 +1143,8 @@ void ShaderCache::QueuePipelineCompile(const GXPipelineUid& uid, u32 priority)
     u32 priority;
     std::optional<AbstractPipelineConfig> config;
     bool stages_ready;
+    std::vector<u8> cache_data;
+    bool from_cache = false;
   };
 
   auto wi = m_async_shader_compiler->CreateWorkItem<PipelineWorkItem>(this, uid, priority);

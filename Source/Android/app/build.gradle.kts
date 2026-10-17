@@ -46,6 +46,8 @@ android {
 
         buildConfigField("String", "GIT_HASH", "\"${getGitHash()}\"")
         buildConfigField("String", "BRANCH", "\"${getBranch()}\"")
+        buildConfigField("String", "SKY_AUTH_URL", "\"https://zggpgsxxmkowkuzabntp.supabase.co\"")
+        buildConfigField("String", "SKY_AUTH_KEY", "\"sb_publishable_T2RRtqtFRZH7EyCvNNBhcQ_5VgrBMWR\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -119,6 +121,7 @@ android {
 }
 
 dependencies {
+    testImplementation("junit:junit:4.13.2")
     baselineProfile(project(":benchmark"))
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
