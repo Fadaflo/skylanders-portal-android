@@ -468,7 +468,6 @@ private fun ImmersiveGamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> U
     onPlay: (ConsoleGame) -> Unit, onAdd: () -> Unit, onRefresh: () -> Unit, heroSwipe: HeroSwipeState,
     gamePager: PagerState, onFocusAccount: () -> Unit) {
     val selectedIndex = state.games.indexOfFirst { it.key == state.selectedKey }.coerceAtLeast(0)
-    val phone = LocalConfiguration.current.smallestScreenWidthDp < 600
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
     val pager = rememberPagerState(initialPage = if (detailsOpen) 1 else 0, pageCount = { 2 })
     val motion = LocalPortalMotion.current
@@ -516,7 +515,7 @@ private fun ImmersiveGamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> U
         }
     }
     BackHandler(detailsOpen || pager.currentPage != 0 || pager.currentPageOffsetFraction != 0f) { goTo(0) }
-    val phoneInfoSwipe = if (phone) Modifier.pointerInput(state.ready, state.launchingGameKey) {
+    val deliberateInfoSwipe = Modifier.pointerInput(state.ready, state.launchingGameKey) {
         awaitEachGesture {
             val down = awaitFirstDown(requireUnconsumed = false)
             var last = down.position
@@ -537,10 +536,10 @@ private fun ImmersiveGamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> U
                 goTo(1)
             }
         }
-    } else Modifier
+    }
     VerticalPager(state = pager, beyondViewportPageCount = 1,
         overscrollEffect = null,
-        userScrollEnabled = state.ready && state.launchingGameKey == null && (!phone || detailsOpen),
+        userScrollEnabled = state.ready && state.launchingGameKey == null && detailsOpen,
         flingBehavior = PagerDefaults.flingBehavior(pager,
             snapPositionalThreshold = 0.22f,
             snapAnimationSpec = tween(if (motion) PortalPalette.GlideDurationMs else 0,
@@ -551,7 +550,7 @@ private fun ImmersiveGamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> U
                 { if (!detailsOpen && !pager.isScrollInProgress) onPlay(it) },
                 { if (!detailsOpen && !pager.isScrollInProgress) onAdd() }, onRefresh,
                 { goTo(1) }, heroFocus, heroSwipe, gamePager, onFocusAccount,
-                Modifier.fillMaxSize().then(phoneInfoSwipe).graphicsLayer {
+                Modifier.fillMaxSize().then(deliberateInfoSwipe).graphicsLayer {
                     val progress = (pager.currentPage + pager.currentPageOffsetFraction).coerceIn(0f, 1f)
                     // Counter the pager displacement: the menu stays behind the rising info layer.
                     translationY = progress * size.height
