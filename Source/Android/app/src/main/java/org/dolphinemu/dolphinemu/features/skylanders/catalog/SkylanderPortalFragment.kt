@@ -73,8 +73,12 @@ class SkylanderPortalFragment : Fragment() {
         get() = savedAllVariants
         set(value) { savedAllVariants = value }
 
-    private var swapMode = false
-    private var swapTop = true
+    private var swapMode
+        get() = savedSwapMode
+        set(value) { savedSwapMode = value }
+    private var swapTop
+        get() = savedSwapTop
+        set(value) { savedSwapTop = value }
 
     private var focus = Focus.GRID
     var activePlayer = 1
@@ -399,15 +403,15 @@ class SkylanderPortalFragment : Fragment() {
     fun selectPlayer(player: Int) {
         activePlayer = player.coerceIn(1, 2)
         activeSlot = activePlayer - 1
-        if (swapMode && !swapTop) {
-            swapTop = true
-            rebuildRows(resetCursor = true)
-        }
         focus = Focus.GRID
         if (_binding != null) {
             updateSlots()
             updateButtonBar()
-            setStatus("Spieler $activePlayer · Figur auswählen und mit X auf das Portal stellen.")
+            setStatus(if (swapMode) {
+                "Swap-Modus · ${if (swapTop) "Oberteil" else "Unterteil"} für Spieler $activePlayer wählen."
+            } else {
+                "Spieler $activePlayer · Figur auswählen und mit X auf das Portal stellen."
+            })
         }
     }
 
@@ -1373,6 +1377,8 @@ class SkylanderPortalFragment : Fragment() {
         private var savedSlot = 0
         private var savedUpperPath = false
         private var savedAllVariants = false
+        private var savedSwapMode = false
+        private var savedSwapTop = true
         private val savedCursors = IntArray(Mode.entries.size) { -1 }
 
         fun newInstance(player: Int = 1): SkylanderPortalFragment =
