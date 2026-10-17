@@ -72,6 +72,8 @@ class SkylanderPortalFragment : Fragment() {
         set(value) { savedAllVariants = value }
 
     private var focus = Focus.GRID
+    var activePlayer = 1
+        private set
     private var deleteMode = false
     private var maxedFiles: Map<Pair<Int, Int>, CollectedFigure> = emptyMap()
     private var confirming = false
@@ -136,7 +138,7 @@ class SkylanderPortalFragment : Fragment() {
 
         rebuildRows()
         restoreCursor()
-        setStatus("Platz " + (activeSlot + 1) + " gewählt. Hoch zum Portal, um zu wechseln.")
+        selectPlayer(activePlayer)
     }
 
     override fun onDestroyView() {
@@ -298,6 +300,18 @@ class SkylanderPortalFragment : Fragment() {
         }
     }
 
+    /** A controller opens the grid directly for its own figure. */
+    fun selectPlayer(player: Int) {
+        activePlayer = player.coerceIn(1, 2)
+        activeSlot = activePlayer - 1
+        focus = Focus.GRID
+        if (_binding != null) {
+            updateSlots()
+            updateButtonBar()
+            setStatus("Spieler $activePlayer · Figur auswählen und mit X auf das Portal stellen.")
+        }
+    }
+
     private fun updateSlots() {
         for (index in 0 until SLOT_COUNT) {
             val view = slotViews[index]
@@ -305,8 +319,11 @@ class SkylanderPortalFragment : Fragment() {
             val here = focus == Focus.PORTAL && index == activeSlot
 
             val chosen = index == activeSlot
-            view.textSlotNumber.text =
-                (if (here) "▶ " else "") + "Platz " + (index + 1)
+            view.textSlotNumber.text = (if (here) "▶ " else "") + when (index) {
+                0 -> "SPIELER 1"
+                1 -> "SPIELER 2"
+                else -> "EXTRA " + (index - 1)
+            }
             view.textSlotLabel.text = slot.figure?.name ?: "leer"
             view.imageSlotFigure.setImageBitmap(
                 slot.figure?.let { SkylanderCatalog.getArtwork(requireContext(), it) }
@@ -412,11 +429,15 @@ class SkylanderPortalFragment : Fragment() {
                 hint(
                     R.drawable.ic_ps_cross, null,
                     when (mode) {
-                        Mode.COLLECTION -> "Auf Platz "
-                        Mode.SUMMON -> "Beschwören auf Platz "
-                        Mode.MAXED -> "Ultimativ auf Platz "
-                        Mode.ITEMS -> "Gegenstand auf Platz "
-                    } + (activeSlot + 1)
+                        Mode.COLLECTION -> "Für "
+                        Mode.SUMMON -> "Beschwören für "
+                        Mode.MAXED -> "Ultimativ für "
+                        Mode.ITEMS -> "Gegenstand für "
+                    } + when (activeSlot) {
+                        0 -> "Spieler 1"
+                        1 -> "Spieler 2"
+                        else -> "Extra " + (activeSlot - 1)
+                    }
                 )
                 hint(null, "L2", "Menü ausblenden")
                 hint(R.drawable.ic_ps_circle, null, "Zurück")
@@ -909,8 +930,9 @@ class SkylanderPortalFragment : Fragment() {
      *
      * @return true, wenn die Taste verbraucht ist.
      */
-    fun onControllerKey(event: KeyEvent): Boolean {
+    fun onControllerKey(event: KeyEvent, player: Int): Boolean {
         if (event.action != KeyEvent.ACTION_DOWN || _binding == null) return true
+        if (player != activePlayer) selectPlayer(player)
 
         // Solange das Menue beiseite steht, holt der naechste Druck es zurueck.
         if (hiddenUntilKey || hiddenTimed) {
@@ -958,7 +980,7 @@ class SkylanderPortalFragment : Fragment() {
      * Sticks und Steuerkreuz. Das Steuerkreuz des DualShock 4 kommt als
      * Achsenpaar HAT_X/HAT_Y, nicht als Taste.
      */
-    fun onControllerMotion(event: MotionEvent): Boolean {
+    fun onControllerMotion(event: MotionEvent, player: Int): Boolean {
         if (_binding == null) return true
 
         val now = System.currentTimeMillis()
@@ -971,6 +993,7 @@ class SkylanderPortalFragment : Fragment() {
         val dy = if (y < -STICK_THRESHOLD) -1 else if (y > STICK_THRESHOLD) 1 else 0
         if (dx == 0 && dy == 0) return true
 
+        if (player != activePlayer) selectPlayer(player)
         lastStickMove = now
         if (hiddenUntilKey || hiddenTimed) {
             unpeek()
@@ -1098,6 +1121,7 @@ class SkylanderPortalFragment : Fragment() {
         private var savedAllVariants = false
         private val savedCursors = IntArray(Mode.entries.size) { -1 }
 
-        fun newInstance(): SkylanderPortalFragment = SkylanderPortalFragment()
+        fun newInstance(player: Int = 1): SkylanderPortalFragment =
+            SkylanderPortalFragment().apply { activePlayer = player.coerceIn(1, 2) }
     }
 }

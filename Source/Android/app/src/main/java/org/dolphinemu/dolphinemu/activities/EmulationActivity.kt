@@ -80,6 +80,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     private var skylanderOverlay: SkylanderPortalFragment? = null
     private var skylanderShortcutLeft = false
     private var skylanderShortcutRight = false
+    private var skylanderShortcutController = 0
 
     var isActivityRecreated = false
     private var paths: Array<String>? = null
@@ -566,7 +567,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
 
         // Solange das Menue offen ist, bekommt es alle Tasten. Sonst wuerde man
         // das Spiel steuern statt das Menue.
-        skylanderOverlay?.let { return it.onControllerKey(event) }
+        skylanderOverlay?.let { return it.onControllerKey(event, skylanderPlayer(event.device?.controllerNumber)) }
 
         if (!menuVisible) {
             if (ControllerInterface.dispatchKeyEvent(event)) {
@@ -598,20 +599,32 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
         val pressed = event.action == KeyEvent.ACTION_DOWN
         when (event.keyCode) {
             KeyEvent.KEYCODE_BUTTON_MODE -> {
-                if (pressed) toggleSkylanderPortal()
+                if (pressed) toggleSkylanderPortal(skylanderPlayer(event.device?.controllerNumber))
                 return true
             }
 
-            KeyEvent.KEYCODE_BUTTON_THUMBL -> skylanderShortcutLeft = pressed
-            KeyEvent.KEYCODE_BUTTON_THUMBR -> skylanderShortcutRight = pressed
+            KeyEvent.KEYCODE_BUTTON_THUMBL, KeyEvent.KEYCODE_BUTTON_THUMBR -> {
+                val controller = event.device?.controllerNumber ?: 0
+                if (pressed && controller != skylanderShortcutController) {
+                    skylanderShortcutLeft = false
+                    skylanderShortcutRight = false
+                    skylanderShortcutController = controller
+                }
+                if (controller == skylanderShortcutController) {
+                    if (event.keyCode == KeyEvent.KEYCODE_BUTTON_THUMBL) skylanderShortcutLeft = pressed
+                    else skylanderShortcutRight = pressed
+                }
+            }
             else -> return false
         }
 
         if (skylanderShortcutLeft && skylanderShortcutRight) {
             skylanderShortcutLeft = false
             skylanderShortcutRight = false
-            toggleSkylanderPortal()
+            skylanderShortcutController = 0
+            toggleSkylanderPortal(skylanderPlayer(event.device?.controllerNumber))
         }
+        if (!skylanderShortcutLeft && !skylanderShortcutRight) skylanderShortcutController = 0
         return true
     }
 
@@ -965,16 +978,26 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
      * es wieder weg. Bewusst kein eigenes Fenster: das wuerde onPause ausloesen
      * und die Emulation samt Ton anhalten.
      */
-    private fun toggleSkylanderPortal() {
+    private fun skylanderPlayer(controllerNumber: Int?): Int {
+        if (controllerNumber == null || controllerNumber <= 0) return 1
+        val preferences = getSharedPreferences("skylanders_console", MODE_PRIVATE)
+        return if (controllerNumber == preferences.getInt("controller_player_2_number", -1)) 2 else 1
+    }
+
+    private fun toggleSkylanderPortal(player: Int = 1) {
         val open = supportFragmentManager.findFragmentByTag(SkylanderPortalFragment.TAG)
         if (open != null) {
+            if (open is SkylanderPortalFragment && open.activePlayer != player) {
+                open.selectPlayer(player)
+                return
+            }
             supportFragmentManager.beginTransaction().remove(open).commit()
             skylanderOverlay = null
             return
         }
 
-        val fragment = SkylanderPortalFragment.newInstance()
-        fragment.onClose = { toggleSkylanderPortal() }
+        val fragment = SkylanderPortalFragment.newInstance(player)
+        fragment.onClose = { toggleSkylanderPortal(fragment.activePlayer) }
         skylanderOverlay = fragment
         supportFragmentManager.beginTransaction()
             .add(R.id.frame_skylanders, fragment, SkylanderPortalFragment.TAG)
@@ -1073,7 +1096,7 @@ class EmulationActivity : AppCompatActivity(), ThemeProvider {
     }
 
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
-        skylanderOverlay?.let { return it.onControllerMotion(event) }
+        skylanderOverlay?.let { return it.onControllerMotion(event, skylanderPlayer(event.device?.controllerNumber)) }
 
         if (!menuVisible) {
             if (ControllerInterface.dispatchGenericMotionEvent(event)) {

@@ -76,6 +76,7 @@ internal fun assignConsoleControllers(preferences: SharedPreferences, devices: L
             preferences.edit().putString(activeKey, key).apply()
         }
         preferences.edit().putString("controller_player_${index + 1}_descriptor", device.descriptor).apply()
+        preferences.edit().putInt("controller_player_${index + 1}_number", device.controllerNumber).apply()
         names += family
         android.util.Log.i("PortalController", "Player ${index + 1}: $family -> ${pad.qualifier}")
     }
