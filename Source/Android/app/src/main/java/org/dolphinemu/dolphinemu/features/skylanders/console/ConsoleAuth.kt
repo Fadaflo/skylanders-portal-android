@@ -44,6 +44,10 @@ internal class ConsoleAuth(private val context: Context) {
     private val store = SecureSessionStore(context)
     private var session: AuthSession? = store.read()
 
+    fun currentUserId(): String? = session?.userId
+
+    fun currentAccessToken(): String? = session?.accessToken
+
     fun currentAccount(): ConsoleAccountState = session?.let {
         ConsoleAccountState(email = it.email, name = it.name, avatar = it.avatar)
     } ?: ConsoleAccountState()

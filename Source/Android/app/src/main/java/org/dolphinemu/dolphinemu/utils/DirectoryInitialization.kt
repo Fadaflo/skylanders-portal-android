@@ -19,6 +19,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary
 import org.dolphinemu.dolphinemu.R
 import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
+import org.dolphinemu.dolphinemu.features.skylanders.console.ConsoleProfileStorage
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -106,7 +107,7 @@ object DirectoryInitialization {
         return if (usingLegacyUserDirectory) {
             getLegacyUserDirectoryPath()
         } else {
-            context.getExternalFilesDir(null)
+            context.getExternalFilesDir(null)?.let { ConsoleProfileStorage.userDirectory(context, it) }
         }
     }
 

@@ -62,6 +62,7 @@ internal fun ProfileAvatar(avatar: String, name: String?, size: Dp, selected: Bo
 
 @Composable
 internal fun ProfilePage(account: ConsoleAccountState, games: List<ConsoleGame>,
+    cloudStatus: String, cloudBusy: Boolean, onCloudRefresh: () -> Unit,
     onBack: () -> Unit, onSignIn: (String, String) -> Unit,
     onSignUp: (String, String, String) -> Unit, onSignOut: () -> Unit,
     onUpdateName: (String) -> Unit, onUpdateAvatar: (String) -> Unit,
@@ -85,7 +86,8 @@ internal fun ProfilePage(account: ConsoleAccountState, games: List<ConsoleGame>,
         if (account.email == null) {
             SignedOutProfile(account, onSignIn, onSignUp, onRequestReset, onCompleteReset)
         } else {
-            SignedInProfile(account, games, onSignOut, onUpdateName, onUpdateAvatar,
+            SignedInProfile(account, games, cloudStatus, cloudBusy, onCloudRefresh,
+                onSignOut, onUpdateName, onUpdateAvatar,
                 onUpdatePassword)
         }
     }
@@ -93,6 +95,7 @@ internal fun ProfilePage(account: ConsoleAccountState, games: List<ConsoleGame>,
 
 @Composable
 private fun SignedInProfile(account: ConsoleAccountState, games: List<ConsoleGame>,
+    cloudStatus: String, cloudBusy: Boolean, onCloudRefresh: () -> Unit,
     onSignOut: () -> Unit, onUpdateName: (String) -> Unit, onUpdateAvatar: (String) -> Unit,
     onUpdatePassword: (String, String) -> Unit) {
     var editingName by remember { mutableStateOf(false) }
@@ -136,12 +139,16 @@ private fun SignedInProfile(account: ConsoleAccountState, games: List<ConsoleGam
         val compact = maxWidth < 760.dp
         if (compact) Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
             PlayTimePanel(games)
+            CloudPanel(cloudStatus, cloudBusy, onCloudRefresh)
             ProfileSettingsPanel(account, name, { name = it }, editingName, { editingName = it },
                 editingPassword, { editingPassword = it }, currentPassword, { currentPassword = it },
                 nextPassword, { nextPassword = it }, repeatPassword, { repeatPassword = it },
                 localError, { localError = it }, onUpdateName, onUpdatePassword, onSignOut)
         } else Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
-            Box(Modifier.weight(1.1f)) { PlayTimePanel(games) }
+            Box(Modifier.weight(1.1f)) { Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                PlayTimePanel(games)
+                CloudPanel(cloudStatus, cloudBusy, onCloudRefresh)
+            } }
             Box(Modifier.weight(0.9f)) {
                 ProfileSettingsPanel(account, name, { name = it }, editingName, { editingName = it },
                     editingPassword, { editingPassword = it }, currentPassword, { currentPassword = it },
@@ -149,6 +156,19 @@ private fun SignedInProfile(account: ConsoleAccountState, games: List<ConsoleGam
                     localError, { localError = it }, onUpdateName, onUpdatePassword, onSignOut)
             }
         }
+    }
+}
+
+@Composable
+private fun CloudPanel(status: String, busy: Boolean, onRefresh: () -> Unit) {
+    ProfilePanel {
+        Text("CLOUD-SPIELSTÄNDE", color = ProfileIce, fontSize = 11.sp,
+            fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+        Text(status, color = Color.White, fontSize = 14.sp)
+        Text("Figuren und Wii-Kampagnen gehören zu diesem Konto. Offline-Änderungen werden später abgeglichen.",
+            color = ProfileMuted, fontSize = 12.sp)
+        ProfileButton(if (busy) "Abgleich läuft …" else "Jetzt abgleichen",
+            Icons.Outlined.CloudSync, onRefresh, enabled = !busy)
     }
 }
 
@@ -245,8 +265,6 @@ private fun ProfileSettingsPanel(account: ConsoleAccountState, name: String,
             enabled = !account.busy)
     }
     Spacer(Modifier.height(12.dp))
-    Text("Figuren und Spielstände sind derzeit lokal auf diesem Gerät und noch keinem Konto zugeordnet.",
-        color = ProfileMuted, fontSize = 12.sp)
 }
 
 @Composable

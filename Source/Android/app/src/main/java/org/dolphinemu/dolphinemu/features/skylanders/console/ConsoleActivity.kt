@@ -5,6 +5,8 @@ package org.dolphinemu.dolphinemu.features.skylanders.console
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.hardware.input.InputManager
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.os.Bundle
 import android.os.SystemClock
 import android.provider.Settings
@@ -32,6 +34,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import androidx.lifecycle.Lifecycle
 import kotlinx.coroutines.withContext
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
@@ -84,6 +88,10 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     private lateinit var menuAudio: ConsoleAudio
     private lateinit var menuHaptics: ConsoleHaptics
     private lateinit var accountAuth: ConsoleAuth
+    private lateinit var cloud: ConsoleCloud
+    private val cloudLock = Mutex()
+    private var cloudJob: Job? = null
+    private var prepareLaunchJob: Job? = null
     private var accountRefreshJob: Job? = null
     private var launchJob: Job? = null
     private val heldMenuDirections = linkedMapOf<String, Int>()
@@ -103,6 +111,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         )
         super.onCreate(savedInstanceState)
         accountAuth = ConsoleAuth(this)
+        cloud = ConsoleCloud(this, accountAuth)
         state = state.copy(
             account = accountAuth.currentAccount(),
             page = ConsolePage.entries.firstOrNull { it.name == savedInstanceState?.getString("console_page") }
@@ -167,6 +176,14 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 onAccountCompleteReset = { email, code, password ->
                     accountAction { accountAuth.completePasswordReset(email, code, password) }
                 },
+                onCloseForProfileSwitch = { finishAffinity() },
+                onCloudRefresh = ::startCloudSync,
+                onCloudChooseLocal = { resolveCloudConflict(true) },
+                onCloudChooseRemote = { resolveCloudConflict(false) },
+                onCloudDefer = {
+                    state = state.copy(cloudConflictScope = null, cloudDeferred = true,
+                        cloudStatus = "Zwei Stände vorhanden · lokal weiterspielen. Später auswählen.")
+                },
                 onSelect = { game ->
                     if (game.key != state.selectedKey) playMenuFeedback(ConsoleCue.NAVIGATE)
                     state = state.copy(selectedKey = game.key)
@@ -225,6 +242,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             GameFileCacheManager.startLoad()
             refreshCollection()
             reloadDirectGames()
+            startCloudSync()
         }
         if (savedInstanceState == null) StartupHandler.HandleInit(this)
         ControllerInterface.devicesChanged.observe(this) { scheduleControllerSetup() }
@@ -238,6 +256,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
 
     override fun onResume() {
         super.onResume()
+        state = state.copy(cloudDeferred = false)
         state = state.copy(launchingGameKey = null)
         menuAudio.resume()
         menuHaptics.resume()
@@ -261,10 +280,13 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             refreshCollection()
             refreshPlayTimes()
             reloadDirectGames()
+            startCloudSync()
         }
     }
 
     override fun onPause() {
+        cloudJob?.cancel()
+        cloudJob = null
         accountRefreshJob?.cancel()
         accountRefreshJob = null
         stopMenuRepeat()
@@ -286,7 +308,10 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         state = state.copy(account = state.account.copy(busy = true, error = null, message = null))
         lifecycleScope.launch {
             try {
+                val previousUserId = accountAuth.currentUserId()
                 applyAccountOutcome(action(), explicit = true)
+                if (previousUserId != accountAuth.currentUserId()) requireProfileRestart()
+                else if (accountAuth.currentUserId() != null) startCloudSync()
             } catch (error: Exception) {
                 val message = when (error) {
                     is AuthHttpException -> when (error.code) {
@@ -325,6 +350,77 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                     else "Deine Sitzung ist abgelaufen. Melde dich erneut an.")
         }
         state = state.copy(account = updated)
+        if (outcome == AuthOutcome.SignedOut) requireProfileRestart()
+    }
+
+    private fun requireProfileRestart() {
+        if (!DirectoryInitialization.areDolphinDirectoriesReady()) return
+        val active = java.io.File(DirectoryInitialization.getUserDirectory()).canonicalPath
+        val expected = ConsoleProfileStorage.expectedDirectory(this,
+            getExternalFilesDir(null) ?: return).canonicalPath
+        if (active != expected) state = state.copy(profileRestartRequired = true, accountOpen = false)
+    }
+
+    private fun startCloudSync() {
+        if (!DirectoryInitialization.areDolphinDirectoriesReady() ||
+            accountAuth.currentUserId() == null || state.profileRestartRequired ||
+            cloudJob?.isActive == true) return
+        cloudJob = lifecycleScope.launch { performCloudSync() }
+    }
+
+    private suspend fun performCloudSync(): CloudResult = cloudLock.withLock {
+        if (state.profileRestartRequired) return@withLock CloudResult("Profilwechsel nötig.")
+        val connectivity = getSystemService(ConnectivityManager::class.java)
+        val network = connectivity.activeNetwork
+        if (network == null || connectivity.getNetworkCapabilities(network)
+                ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) != true) {
+            val offline = CloudResult("Offline · Fortschritt bleibt auf diesem Gerät.")
+            state = state.copy(cloudBusy = false, cloudStatus = offline.message)
+            return@withLock offline
+        }
+        state = state.copy(cloudBusy = true, cloudStatus = "Spielstände werden abgeglichen …")
+        val result = try {
+            when (val account = accountAuth.refreshIfNeeded()) {
+                is AuthOutcome.SignedIn -> {
+                    applyAccountOutcome(account)
+                    if (account.offline) CloudResult("Offline · Fortschritt bleibt auf diesem Gerät.")
+                    else cloud.sync()
+                }
+                else -> {
+                    applyAccountOutcome(account)
+                    CloudResult("Bitte erneut anmelden.")
+                }
+            }
+        } catch (error: Exception) {
+            if (error is kotlinx.coroutines.CancellationException) {
+                state = state.copy(cloudBusy = false)
+                throw error
+            }
+            android.util.Log.w("PortalCloud", "Cloud sync deferred", error)
+            CloudResult("Cloud nicht erreichbar · lokaler Fortschritt bleibt erhalten.")
+        }
+        state = state.copy(cloudBusy = false, cloudStatus = result.message,
+            cloudConflictScope = result.conflictScope, cloudDeferred = false)
+        if (result.restored) refreshCollection()
+        result
+    }
+
+    private fun resolveCloudConflict(useThisDevice: Boolean) {
+        val scope = state.cloudConflictScope ?: return
+        if (state.cloudBusy) return
+        lifecycleScope.launch {
+            state = state.copy(cloudBusy = true)
+            val result = try { cloudLock.withLock { cloud.resolve(scope, useThisDevice) } }
+            catch (error: Exception) {
+                if (error is kotlinx.coroutines.CancellationException) throw error
+                android.util.Log.w("PortalCloud", "Conflict resolution failed", error)
+                CloudResult("Abgleich fehlgeschlagen. Beide Versionen bleiben erhalten.", scope)
+            }
+            state = state.copy(cloudBusy = false, cloudStatus = result.message,
+                cloudConflictScope = result.conflictScope)
+            if (result.restored) refreshCollection()
+            if (result.conflictScope == null) startCloudSync()
+        }
     }
 
     private fun updateAudio(settings: ConsoleAudioSettings) {
@@ -383,6 +479,21 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     }
 
     private fun play(game: ConsoleGame) {
+        if (state.profileRestartRequired) return
+        if (game.path == null) return addGames()
+        if (state.cloudDeferred) return launchGame(game)
+        if (accountAuth.currentUserId() != null && DirectoryInitialization.areDolphinDirectoriesReady()) {
+            if (prepareLaunchJob?.isActive == true) return
+            prepareLaunchJob = lifecycleScope.launch {
+                val running = cloudJob
+                if (running?.isActive == true) running.join()
+                else performCloudSync()
+                if (state.cloudConflictScope == null && !state.profileRestartRequired) launchGame(game)
+            }
+        } else launchGame(game)
+    }
+
+    private fun launchGame(game: ConsoleGame) {
         val path = game.path ?: return addGames()
         if (state.launchingGameKey != null) return
         synchronizeController()

@@ -138,6 +138,11 @@ internal fun ConsoleScreen(
     onAccountUpdatePassword: (String, String) -> Unit,
     onAccountRequestReset: (String) -> Unit,
     onAccountCompleteReset: (String, String, String) -> Unit,
+    onCloseForProfileSwitch: () -> Unit,
+    onCloudRefresh: () -> Unit,
+    onCloudChooseLocal: () -> Unit,
+    onCloudChooseRemote: () -> Unit,
+    onCloudDefer: () -> Unit,
     onSelect: (ConsoleGame) -> Unit,
     onPlay: (ConsoleGame) -> Unit,
     onAddGames: () -> Unit,
@@ -220,7 +225,8 @@ internal fun ConsoleScreen(
                 }
                 Box(Modifier.weight(1f)) {
                     if (state.controllerTestActive) ControllerTestPage(state, onStopControllerTest)
-                    else if (state.accountOpen) ProfilePage(state.account, state.games, onCloseAccount,
+                    else if (state.accountOpen) ProfilePage(state.account, state.games,
+                        state.cloudStatus, state.cloudBusy, onCloudRefresh, onCloseAccount,
                         onAccountSignIn, onAccountSignUp, onAccountSignOut, onAccountUpdateName,
                         onAccountUpdateAvatar, onAccountUpdatePassword, onAccountRequestReset,
                         onAccountCompleteReset)
@@ -255,6 +261,25 @@ internal fun ConsoleScreen(
                 onDismissRequest = onDismissImportMessage,
                 title = { Text("Spieleimport") }, text = { Text(state.importMessage) },
                 confirmButton = { TextButton(onDismissImportMessage) { Text("OK") } })
+            if (state.profileRestartRequired) AlertDialog(
+                onDismissRequest = {},
+                title = { Text("Profil wechseln") },
+                text = { Text("Deine Spielstände werden getrennt pro Konto geladen. Schließe die App und öffne sie erneut, damit das richtige Profil aktiv wird.") },
+                confirmButton = { TextButton(onCloseForProfileSwitch) { Text("App schließen") } })
+            state.cloudConflictScope?.let { scope ->
+                AlertDialog(onDismissRequest = {},
+                    title = { Text("Zwei Spielstände gefunden") },
+                    text = { Column {
+                        Text("${if (scope == "figures") "Figurensammlung" else "Spielstand"}: Dieses Gerät und die Cloud haben unterschiedliche Fortschritte. Beide Versionen bleiben gesichert. Welcher Stand soll jetzt aktiv sein?")
+                        TextButton(onCloudDefer) { Text("Später lokal weiterspielen") }
+                    } },
+                    confirmButton = { TextButton(onCloudChooseLocal, enabled = !state.cloudBusy) {
+                        Text("Dieses Gerät")
+                    } },
+                    dismissButton = { TextButton(onCloudChooseRemote, enabled = !state.cloudBusy) {
+                        Text("Cloud")
+                    } })
+            }
         }
     }
     }
