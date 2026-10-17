@@ -47,6 +47,7 @@ import org.dolphinemu.dolphinemu.features.settings.ui.MenuTag
 import org.dolphinemu.dolphinemu.features.settings.ui.SettingsActivity
 import org.dolphinemu.dolphinemu.features.skylanders.catalog.SkyCollection
 import org.dolphinemu.dolphinemu.features.skylanders.catalog.SkylanderCatalog
+import org.dolphinemu.dolphinemu.features.skylanders.SkylanderConfig
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 import org.dolphinemu.dolphinemu.model.GameFile
 import org.dolphinemu.dolphinemu.ui.main.MainActivity
@@ -602,14 +603,16 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                     val ultimate = SkyCollection.maxedFolder(userDirectory).listFiles().orEmpty()
                         .filter { it.isFile && it.extension.equals("sky", true) && it.length() >= 1024 }
                     val normal = owned.map {
-                        collectionFigure(it.file.absolutePath, catalog[it.id to it.variant], false, standardIds)
+                        collectionFigure(it.file.absolutePath, catalog[it.id to it.variant], false,
+                            standardIds, SkylanderConfig.readUpgradePath(it.file.absolutePath))
                     }
                     // Read only: neither rename nor rewrite figure saves when browsing the collection.
                     normal + ultimate.map { file ->
                         val head = file.inputStream().use { stream -> ByteArray(32).also { stream.readFully(it) } }
                         fun short(at: Int) = (head[at].toInt() and 255) or
                             ((head[at + 1].toInt() and 255) shl 8)
-                        collectionFigure(file.absolutePath, catalog[short(16) to short(28)], true, standardIds)
+                        collectionFigure(file.absolutePath, catalog[short(16) to short(28)], true,
+                            standardIds, SkylanderConfig.readUpgradePath(file.absolutePath))
                     }
                 }
             }

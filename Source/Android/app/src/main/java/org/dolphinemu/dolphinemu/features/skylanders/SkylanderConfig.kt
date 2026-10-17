@@ -18,6 +18,10 @@ object SkylanderConfig {
     @JvmStatic
     external fun loadSkylander(slot: Int, fileName: String?): Pair<Int?, String?>?
 
+    /** Read only: -1 unreadable, 0 no path, 1 upper, 2 lower. */
+    @JvmStatic
+    external fun readUpgradePath(fileName: String): Int
+
     /**
      * Erschafft eine fertig ausgebaute Figur aus einer Vorlage.
      *

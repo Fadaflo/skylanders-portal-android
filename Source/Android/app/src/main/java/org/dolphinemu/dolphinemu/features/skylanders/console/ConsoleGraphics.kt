@@ -56,7 +56,10 @@ internal fun applyConsoleGraphics(context: Context, game: ConsoleGame): String {
     int("Settings", "SafeTextureCacheColorSamples", 128)
     bool("Settings", "SSAA", false)
     bool("Settings", "FastDepthCalc", plan.fastDepth)
-    bool("Settings", "WaitForShadersBeforeStarting", false)
+    // On Qualcomm/OpenGL, background compilation is unsafe on some drivers.
+    // Compile Spyro's already discovered shaders on the render thread at launch
+    // instead of hitching later when a cached dialogue or prompt reappears.
+    bool("Settings", "WaitForShadersBeforeStarting", spyro && plan.backend == "OGL")
     bool("Settings", "ShaderCache", true)
     int("Enhancements", "MaxAnisotropy", -1)
     int("Enhancements", "ForceTextureFiltering", 0)

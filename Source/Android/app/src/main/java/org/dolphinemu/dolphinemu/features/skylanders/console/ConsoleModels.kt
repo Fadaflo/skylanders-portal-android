@@ -37,7 +37,8 @@ internal data class ConsoleFigure(
     val ultimate: Boolean,
     val game: String = "",
     val type: String = "",
-    val specialVariant: Boolean = false
+    val specialVariant: Boolean = false,
+    val upgradePath: Int = -1
 )
 
 internal val figureGameLabels = linkedMapOf("SpyrosAdv" to "Spyro’s Adventure", "Giants" to "Giants",
@@ -138,7 +139,8 @@ internal fun catalogGameForDisc(id: String, title: String): ConsoleGame? {
     return consoleCatalog.firstOrNull { it.key == key } ?: catalogGameFor(title)
 }
 
-internal fun collectionFigure(path: String, figure: CatalogFigure?, ultimate: Boolean, standardIds: Set<Int> = emptySet()) =
+internal fun collectionFigure(path: String, figure: CatalogFigure?, ultimate: Boolean,
+    standardIds: Set<Int> = emptySet(), upgradePath: Int = -1) =
     ConsoleFigure(path, figure?.name ?: java.io.File(path).nameWithoutExtension,
         figure?.element ?: "Other", figure?.image, ultimate, figure?.game ?: "", figure?.type ?: "",
-        figure != null && (figure.variant and 0xFF) >= 2 && figure.id in standardIds)
+        figure != null && (figure.variant and 0xFF) >= 2 && figure.id in standardIds, upgradePath)

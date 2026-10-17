@@ -968,6 +968,16 @@ private fun FigureCharacterCard(figure: ConsoleFigure, focused: Boolean, onFocus
                 Text((figureGameLabels[figure.game] ?: "Spiel unbekannt").uppercase(),
                     color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold,
                     letterSpacing = 0.7.sp, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                if (figure.type in setOf("Skylander", "Giant", "Swapper", "TrapMaster", "Mini")) {
+                    Text(when (figure.upgradePath) {
+                        1 -> "Oberer Pfad"
+                        2 -> "Unterer Pfad"
+                        0 -> "Noch kein Pfad gewählt"
+                        else -> "Pfad nicht lesbar"
+                    }, color = if (figure.upgradePath > 0) accent else Muted,
+                        fontSize = 11.sp, fontWeight = FontWeight.SemiBold,
+                        maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
             }
         }
         if (focused) {

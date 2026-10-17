@@ -119,6 +119,30 @@ Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_loadSkylander
       ToJString(env, name));
 }
 
+// Read the selected upgrade path without loading the figure into a portal slot.
+// -1 means unreadable, 0 means no path, 1 upper, 2 lower.
+JNIEXPORT jint JNICALL
+Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_readUpgradePath(
+    JNIEnv* env, jclass clazz, jstring file_name)
+{
+  File::IOFile sky_file(GetJString(env, file_name), "rb");
+  if (!sky_file)
+    return -1;
+  std::array<u8, IOS::HLE::USB::FIGURE_SIZE> file_data{};
+  if (!sky_file.ReadBytes(file_data.data(), file_data.size()))
+    return -1;
+
+  IOS::HLE::USB::SkylanderFigure figure(std::move(sky_file));
+  std::array<u8, IOS::HLE::USB::FIGURE_SIZE> decrypted{};
+  figure.DecryptFigure(&decrypted);
+  const u16 area = (static_cast<u8>(decrypted[0x89] + 1) != decrypted[0x249]) ? 0x80 : 0x240;
+  const u16 upgrades = static_cast<u16>(decrypted[area + 0x10]) |
+                       (static_cast<u16>(decrypted[area + 0x11]) << 8);
+  if (!(upgrades & 1))
+    return 0;
+  return (upgrades & 2) ? 2 : 1;
+}
+
 JNIEXPORT jobject JNICALL
 Java_org_dolphinemu_dolphinemu_features_skylanders_SkylanderConfig_createMaxedSkylander(
     JNIEnv* env, jclass clazz, jint id, jint var, jstring fileName, jint slot,
