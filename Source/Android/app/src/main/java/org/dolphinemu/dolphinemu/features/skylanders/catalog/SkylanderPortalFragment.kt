@@ -137,6 +137,10 @@ class SkylanderPortalFragment : Fragment() {
         binding.textElementNext.setOnClickListener { cycleElement(1) }
         binding.textFilterGame.setOnClickListener { cycleGame() }
         binding.badgeGame.setOnClickListener { cycleGame() }
+        binding.textItemsAll.setOnClickListener {
+            gameFilter = 0
+            rebuildRows(resetCursor = true)
+        }
         binding.textFilterVariants.setOnClickListener { toggleVariants() }
         binding.badgeVariants.setOnClickListener { toggleVariants() }
         binding.textModeHint.setOnClickListener { toggleDeleteMode() }
@@ -251,6 +255,7 @@ class SkylanderPortalFragment : Fragment() {
         } else when (mode) {
             Mode.COLLECTION -> collection.mapNotNull { file ->
                 val figure = byKey[file.id to file.variant] ?: return@mapNotNull null
+                if (figure.type !in MAXABLE_TYPES) return@mapNotNull null
                 if (!passesFilter(figure)) return@mapNotNull null
 
                 val path = file.file.absolutePath
@@ -268,7 +273,9 @@ class SkylanderPortalFragment : Fragment() {
                 )
             }
 
-            Mode.SUMMON -> allFigures.filter { passesFilter(it) }.sortedBy(::sortKey).map { figure ->
+            Mode.SUMMON -> allFigures.filter {
+                it.type in MAXABLE_TYPES && passesFilter(it)
+            }.sortedBy(::sortKey).map { figure ->
                 FigureRow(
                     figure = figure,
                     file = null,
@@ -278,7 +285,10 @@ class SkylanderPortalFragment : Fragment() {
             }
 
             Mode.ITEMS -> allFigures
-                .filter { passesFilter(it) && it.type in ITEM_TYPES }
+                .filter {
+                    it.type in ITEM_TYPES &&
+                        (gameFilter == 0 || it.game == GAMES[gameFilter])
+                }
                 .sortedBy { it.gameLabel + " " + it.name }
                 .map { figure ->
                     FigureRow(
@@ -328,6 +338,30 @@ class SkylanderPortalFragment : Fragment() {
         else -> "Extra 2"
     }
 
+    /** Extra-Plätze zeigen Gegenstände; Spielerplätze behalten ihre Figurenansicht. */
+    private fun syncModeToActiveSlot() {
+        if (activeSlot >= 2 && mode != Mode.ITEMS) {
+            savedCursors[mode.ordinal] = adapter.selected
+            savedFigureMode = mode
+            savedSwapForMain = swapMode
+            savedFigureGameFilter = gameFilter
+            savedFigureElementFilter = elementFilter
+            mode = Mode.ITEMS
+            swapMode = false
+            gameFilter = savedItemGameFilter
+            elementFilter = 0
+            deleteMode = false
+            marked.clear()
+        } else if (activeSlot < 2 && mode == Mode.ITEMS) {
+            savedCursors[Mode.ITEMS.ordinal] = adapter.selected
+            savedItemGameFilter = gameFilter
+            mode = savedFigureMode
+            swapMode = savedSwapForMain
+            gameFilter = savedFigureGameFilter
+            elementFilter = savedFigureElementFilter
+        }
+    }
+
     // ------------------------------------------------------------ Portalplätze
 
     private fun buildSlotRow() {
@@ -351,18 +385,15 @@ class SkylanderPortalFragment : Fragment() {
                     activeSlot = activePlayer - 1
                     swapTop = false
                     focus = Focus.GRID
-                    rebuildRows(resetCursor = true)
                 } else {
                     activeSlot = visual
                     activePlayer = if (visual == 0 || visual == 2) 1 else 2
-                    if (swapMode && visual < 2 && !swapTop) {
-                        swapTop = true
-                        rebuildRows(resetCursor = true)
-                    }
                     focus = Focus.PORTAL
                 }
-                updateSlots()
-                updateButtonBar()
+                syncModeToActiveSlot()
+                if (swapMode && !isBottomTile && visual < 2) swapTop = true
+                rebuildRows(resetCursor = true)
+                restoreCursor()
             }
             if (isBottomTile) bottom[visual - SLOT_COUNT] = slotBinding
             else main[visual] = slotBinding
@@ -417,8 +448,15 @@ class SkylanderPortalFragment : Fragment() {
         activeSlot = activePlayer - 1
         focus = Focus.GRID
         if (_binding != null) {
-            updateSlots()
-            updateButtonBar()
+            val previousMode = mode
+            syncModeToActiveSlot()
+            if (mode != previousMode) {
+                rebuildRows(resetCursor = true)
+                restoreCursor()
+            } else {
+                updateSlots()
+                updateButtonBar()
+            }
             setStatus(if (swapMode) {
                 "Swap-Modus · ${if (swapTop) "Oberteil" else "Unterteil"} für Spieler $activePlayer wählen."
             } else {
@@ -519,6 +557,17 @@ class SkylanderPortalFragment : Fragment() {
     }
 
     private fun updateElementBar() {
+        val items = mode == Mode.ITEMS
+        binding.textElementPrev.visibility = if (items) View.GONE else View.VISIBLE
+        binding.scrollElements.visibility = if (items) View.GONE else View.VISIBLE
+        binding.textElementNext.visibility = if (items) View.GONE else View.VISIBLE
+        binding.textItemsAll.visibility = if (items) View.VISIBLE else View.GONE
+        binding.textItemsAll.setBackgroundResource(
+            if (items && gameFilter == 0) R.drawable.sky_element_active
+            else R.drawable.sky_shoulder_button
+        )
+        binding.badgeVariants.visibility = if (items) View.GONE else View.VISIBLE
+        binding.textFilterVariants.visibility = if (items) View.GONE else View.VISIBLE
         elementViews.forEachIndexed { index, item ->
             val active = index == elementFilter
             item.root.setBackgroundResource(if (active) R.drawable.sky_element_active else 0)
@@ -535,9 +584,13 @@ class SkylanderPortalFragment : Fragment() {
                 scroll.smoothScrollTo(target.coerceAtLeast(0), 0)
             }
         }
-        binding.textFilterGame.text = if (swapMode) (if (swapTop) "Oberteile" else "Unterteile") else "Spiel: " +
-            if (gameFilter == 0) "Alle"
-            else (CatalogFigure.GAME_LABELS[GAMES[gameFilter]] ?: GAMES[gameFilter])
+        binding.textFilterGame.text = when {
+            items && gameFilter == 0 -> "Spiel wählen"
+            swapMode -> if (swapTop) "Oberteile" else "Unterteile"
+            gameFilter == 0 -> "Spiel: Alle"
+            else -> "Spiel: " +
+                (CatalogFigure.GAME_LABELS[GAMES[gameFilter]] ?: GAMES[gameFilter])
+        }
         binding.textFilterVariants.text =
             "Varianten: " + if (allVariants) "alle" else "Standard"
     }
@@ -580,7 +633,9 @@ class SkylanderPortalFragment : Fragment() {
             focus == Focus.PORTAL -> {
                 hint(R.drawable.ic_ps_cross, null, "Platz leeren")
                 hint(R.drawable.ic_ps_square, null, "Portal leeren")
-                hint(null, "L2", if (swapMode) "Swap-Modus beenden" else "Swap-Modus")
+                if (mode != Mode.ITEMS) {
+                    hint(null, "L2", if (swapMode) "Swap-Modus beenden" else "Swap-Modus")
+                }
                 if (swapMode) hint(null, "R2", "Oberteil / Unterteil")
                 hint(R.drawable.ic_ps_circle, null, "Spielerplatz / Extra")
             }
@@ -601,7 +656,9 @@ class SkylanderPortalFragment : Fragment() {
                         else -> "Extra " + (activeSlot - 1)
                     }
                 )
-                hint(null, "L2", if (swapMode) "Swap-Modus beenden" else "Swap-Modus")
+                if (mode != Mode.ITEMS) {
+                    hint(null, "L2", if (swapMode) "Swap-Modus beenden" else "Swap-Modus")
+                }
                 if (swapMode) hint(null, "R2", "Oberteil / Unterteil")
                 hint(R.drawable.ic_ps_circle, null, "Spielerplatz / Extra")
             }
@@ -619,16 +676,14 @@ class SkylanderPortalFragment : Fragment() {
         }
     }
 
-    /**
-     * Die Reiter oben zeigen, in welcher Ansicht man steht. „Ultimative" ist
-     * angelegt, aber noch blass — die fertig ausgebauten Figuren kommen in
-     * Phase 7 dazu.
-     */
+    /** Die Reiter zeigen die aktive Figuren- oder Gegenstandsansicht. */
     private fun updateTitle() {
         val total = if (swapMode) allFigures.count { passesSwapFilter(it) } else when (mode) {
-            Mode.COLLECTION -> collection.size
+            Mode.COLLECTION -> collection.count {
+                byKey[it.id to it.variant]?.type in MAXABLE_TYPES
+            }
             Mode.ITEMS -> allFigures.count { it.type in ITEM_TYPES }
-            else -> allFigures.size
+            Mode.SUMMON, Mode.MAXED -> allFigures.count { it.type in MAXABLE_TYPES }
         }
         binding.textTitle.text = rows.size.toString() + " von " + total +
             if (swapMode) {
@@ -657,6 +712,7 @@ class SkylanderPortalFragment : Fragment() {
         binding.textSwapToggle.setBackgroundResource(
             if (swapMode) R.drawable.sky_element_active else R.drawable.sky_shoulder_button
         )
+        binding.textSwapToggle.visibility = if (mode == Mode.ITEMS) View.GONE else View.VISIBLE
         binding.rowSwapHalves.visibility = if (swapMode) View.VISIBLE else View.GONE
         binding.swapHead.setBackgroundResource(if (swapMode && swapTop) R.drawable.sky_tab_active else 0)
         binding.swapFeet.setBackgroundResource(if (swapMode && !swapTop) R.drawable.sky_tab_active else 0)
@@ -678,6 +734,9 @@ class SkylanderPortalFragment : Fragment() {
 
         val row = adapter.rowAt(adapter.selected) ?: return
 
+        if (activeSlot >= 2 && row.figure.type !in ITEM_TYPES) return
+        if (activeSlot < 2 && row.figure.type !in MAXABLE_TYPES) return
+
         if (deleteMode) {
             val path = row.file?.file?.absolutePath ?: return
             if (!marked.remove(path)) marked.add(path)
@@ -694,7 +753,12 @@ class SkylanderPortalFragment : Fragment() {
             Mode.COLLECTION -> row.file?.let { placeFile(row.figure, it) }
             Mode.SUMMON -> summon(row.figure)
             Mode.MAXED -> placeMaxed(row.figure)
-            Mode.ITEMS -> summon(row.figure)
+            Mode.ITEMS -> {
+                val owned = collection.firstOrNull {
+                    it.id == row.figure.id && it.variant == row.figure.variant
+                }
+                if (owned != null) placeFile(row.figure, owned) else summon(row.figure)
+            }
         }
     }
 
@@ -955,6 +1019,11 @@ class SkylanderPortalFragment : Fragment() {
             return
         }
 
+        if (mode == Mode.ITEMS) {
+            setStatus("R2 filtert Gegenstände nach Spiel; Alle anzeigen setzt den Filter zurück.")
+            return
+        }
+
         if (mode != Mode.COLLECTION) {
             setStatus("Beschwören erschafft immer neue Figuren auf Stufe 0.")
             return
@@ -1005,11 +1074,13 @@ class SkylanderPortalFragment : Fragment() {
     // ----------------------------------------------------------------- Filter
 
     private fun cycleElement(direction: Int) {
+        if (mode == Mode.ITEMS) return
         elementFilter = (elementFilter + direction + ELEMENTS.size) % ELEMENTS.size
         rebuildRows(resetCursor = true)
     }
 
     private fun toggleVariants() {
+        if (mode == Mode.ITEMS) return
         allVariants = !allVariants
         rebuildRows(resetCursor = true)
         setStatus(
@@ -1028,6 +1099,10 @@ class SkylanderPortalFragment : Fragment() {
     }
 
     private fun toggleSwapMode() {
+        if (mode == Mode.ITEMS) {
+            setStatus("Mit Kreis zum Spielerplatz wechseln, dann L2 für den Swap-Modus drücken.")
+            return
+        }
         swapMode = !swapMode
         deleteMode = false
         confirming = false
@@ -1073,8 +1148,17 @@ class SkylanderPortalFragment : Fragment() {
     private fun switchTo(target: Mode) {
         if (target == mode && !swapMode) return
         savedCursors[mode.ordinal] = adapter.selected
-        mode = target
-        swapMode = false
+        if (target == Mode.ITEMS) {
+            activeSlot = activePlayer + 1
+            syncModeToActiveSlot()
+        } else {
+            activeSlot = activePlayer - 1
+            syncModeToActiveSlot()
+            mode = target
+            savedFigureMode = target
+            swapMode = false
+            savedSwapForMain = false
+        }
         deleteMode = false
         confirming = false
         marked.clear()
@@ -1104,8 +1188,10 @@ class SkylanderPortalFragment : Fragment() {
             when {
                 dx != 0 -> {
                     activeSlot = (activeSlot + dx + SLOT_COUNT) % SLOT_COUNT
-                    updateSlots()
-                    updateButtonBar()
+                    activePlayer = if (activeSlot == 0 || activeSlot == 2) 1 else 2
+                    syncModeToActiveSlot()
+                    rebuildRows(resetCursor = true)
+                    restoreCursor()
                 }
 
                 dy > 0 -> {
@@ -1157,8 +1243,9 @@ class SkylanderPortalFragment : Fragment() {
         val extra = activePlayer + 1
         activeSlot = if (activeSlot == main) extra else main
         focus = Focus.GRID
-        updateSlots()
-        updateButtonBar()
+        syncModeToActiveSlot()
+        rebuildRows(resetCursor = true)
+        restoreCursor()
         setStatus(if (activeSlot == main) "Spieler $activePlayer gewählt." else "Extra $activePlayer gewählt.")
     }
 
@@ -1392,6 +1479,11 @@ class SkylanderPortalFragment : Fragment() {
          * Ansicht stand.
          */
         private var savedMode = Mode.COLLECTION
+        private var savedFigureMode = Mode.COLLECTION
+        private var savedSwapForMain = false
+        private var savedFigureGameFilter = 0
+        private var savedFigureElementFilter = 0
+        private var savedItemGameFilter = 0
         private var savedElement = 0
         private var savedGame = 0
         private var savedSlot = 0

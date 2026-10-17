@@ -325,6 +325,20 @@
             android:textStyle="bold" />
 
         <TextView
+            android:id="@+id/text_items_all"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="8dp"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp"
+            android:paddingTop="3dp"
+            android:paddingBottom="3dp"
+            android:text="Alle anzeigen"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            android:visibility="gone" />
+
+        <TextView
             android:id="@+id/badge_game"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
