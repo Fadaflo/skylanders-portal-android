@@ -152,9 +152,13 @@ internal class ConsoleAudio(
         }
         if (sound !in loadedSounds) return
         lastCueAt = now
-        val gain = settings.effectsVolume * settings.effectsVolume
+        // The short, low UI taps already have a quiet envelope. Squaring the slider
+        // again makes them disappear beneath the music on small tablet speakers.
+        val gain = if (cue == ConsoleCue.PORTAL) settings.effectsVolume * settings.effectsVolume
+            else settings.effectsVolume
         currentStream = pool.play(sound, gain, gain, 1, 0,
             if (cue == ConsoleCue.BACK) 0.88f else 1f)
+        if (currentStream == 0) onError("Der Menüklang konnte nicht abgespielt werden.")
     }
 
     fun release() {

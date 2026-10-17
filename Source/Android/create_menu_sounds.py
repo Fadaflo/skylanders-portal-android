@@ -21,7 +21,7 @@ def soft_tap(filename, duration, pitch, peak_level):
         tail = min(1.0, (duration - t) / 0.010)
         envelope = attack * decay * (0.5 - 0.5 * math.cos(math.pi * tail))
         phase = 2 * math.pi * pitch * t
-        body = math.sin(phase) + 0.07 * math.sin(2 * phase) + 0.02 * math.sin(3 * phase)
+        body = math.sin(phase) + 0.18 * math.sin(2 * phase) + 0.05 * math.sin(3 * phase)
         samples.append(envelope * body)
         envelopes.append(envelope)
     # Remove DC without introducing steps at either end of the waveform.
@@ -66,6 +66,6 @@ def launch_chime():
 
 if __name__ == "__main__":
     TARGET.mkdir(parents=True, exist_ok=True)
-    soft_tap("portal_menu_swish.wav", 0.050, 180, 0.18)
-    soft_tap("portal_menu_confirm.wav", 0.065, 230, 0.22)
+    soft_tap("portal_menu_swish.wav", 0.050, 280, 0.32)
+    soft_tap("portal_menu_confirm.wav", 0.065, 340, 0.34)
     launch_chime()

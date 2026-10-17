@@ -56,15 +56,15 @@ internal class ConsoleHaptics(private var enabled: Boolean) {
         val now = SystemClock.uptimeMillis()
         if (!test && now - lastPulseAt < 100) return
         val target = motor(device) ?: return
-        val duration = when (cue) {
-            ConsoleCue.NAVIGATE, ConsoleCue.BACK -> 28L
-            ConsoleCue.CONFIRM -> 28L
+        val duration = if (test) 80L else when (cue) {
+            ConsoleCue.NAVIGATE, ConsoleCue.BACK -> 40L
+            ConsoleCue.CONFIRM -> 40L
             ConsoleCue.PORTAL -> 36L
         }
         runCatching {
             if (Build.VERSION.SDK_INT >= 26) {
                 val amplitude = if (target.hasAmplitudeControl()) {
-                    56
+                    if (test) 128 else 96
                 } else VibrationEffect.DEFAULT_AMPLITUDE
                 @Suppress("DEPRECATION")
                 target.vibrate(VibrationEffect.createOneShot(duration, amplitude), attributes)
