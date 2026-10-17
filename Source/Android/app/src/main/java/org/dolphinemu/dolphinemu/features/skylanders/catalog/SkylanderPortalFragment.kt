@@ -432,14 +432,14 @@ class SkylanderPortalFragment : Fragment() {
                 hint(R.drawable.ic_ps_cross, null, "Vormerken")
                 hint(R.drawable.ic_ps_square, null, "Löschen (" + marked.size + ")")
                 hint(null, "Options", "Löschmodus beenden")
-                hint(R.drawable.ic_ps_circle, null, "Zurück")
+                hint(R.drawable.ic_ps_circle, null, "Spielerplatz / Extra")
             }
 
             focus == Focus.PORTAL -> {
                 hint(R.drawable.ic_ps_cross, null, "Platz leeren")
                 hint(R.drawable.ic_ps_square, null, "Portal leeren")
                 hint(null, "L2", "Menü ausblenden")
-                hint(R.drawable.ic_ps_circle, null, "Zurück")
+                hint(R.drawable.ic_ps_circle, null, "Spielerplatz / Extra")
             }
 
             else -> {
@@ -459,7 +459,7 @@ class SkylanderPortalFragment : Fragment() {
                     }
                 )
                 hint(null, "L2", "Menü ausblenden")
-                hint(R.drawable.ic_ps_circle, null, "Zurück")
+                hint(R.drawable.ic_ps_circle, null, "Spielerplatz / Extra")
             }
         }
 
@@ -910,6 +910,17 @@ class SkylanderPortalFragment : Fragment() {
         adapter.rowAt(next)?.let { setStatus(it.figure.name + "  -  " + it.figure.gameLabel) }
     }
 
+    /** Kreis springt nur zwischen den beiden Plätzen des aktiven Spielers. */
+    private fun togglePlayerSlot() {
+        val main = activePlayer - 1
+        val extra = activePlayer + 1
+        activeSlot = if (activeSlot == main) extra else main
+        focus = Focus.GRID
+        updateSlots()
+        updateButtonBar()
+        setStatus(if (activeSlot == main) "Spieler $activePlayer gewählt." else "Extra $activePlayer gewählt.")
+    }
+
     // ------------------------------------------------------------------ Peek
 
     /**
@@ -975,7 +986,7 @@ class SkylanderPortalFragment : Fragment() {
 
         when (event.keyCode) {
             KeyEvent.KEYCODE_BUTTON_A, KeyEvent.KEYCODE_DPAD_CENTER -> accept()
-            KeyEvent.KEYCODE_BUTTON_B -> onClose?.invoke()
+            KeyEvent.KEYCODE_BUTTON_B -> togglePlayerSlot()
             KeyEvent.KEYCODE_BUTTON_Y -> toggleMode()
 
             KeyEvent.KEYCODE_BUTTON_X ->
