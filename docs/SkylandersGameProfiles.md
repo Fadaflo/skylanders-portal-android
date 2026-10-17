@@ -64,5 +64,16 @@ kurzen Ladepausen sind noch nicht eindeutig als Shader-Problem identifiziert.
 Vor einer Anpassung eine wiederholbare betroffene Stelle prüfen; Spyros
 Shader-Vorladen nur übertragen, wenn es dort messbar hilft.
 
+### Trap Team auf dem SM-T970, 17. Oktober 2026
+
+Erster Spieltest des Nutzers mit dem allgemeinen Geräteplan: Bildqualität
+akzeptabel, aber das Spiel wirkt teilweise wie in Zeitlupe. Aktive Werte vor der
+Änderung: OpenGL, 2×, `VISkip=False`, `WaitForShadersBeforeStarting=False`.
+Der Emulator war beim Einspielen der Anpassung geschlossen. Danach bekam nur
+Trap Team, analog zu Spyro, `VISkip=True` und auf OpenGL das Vorladen bereits
+bekannter Shader. Die 2×-Auflösung und alle sonstigen Grafik- und Tonwerte
+bleiben erhalten. Giants und Swap Force bleiben beim bisherigen Profil.
+**Spieltest mit dem neuen Profil steht noch aus.**
+
 Relevanter Code: `Source/Android/app/src/main/java/org/dolphinemu/dolphinemu/features/skylanders/console/ConsoleGraphics.kt`
 und `ConsoleActivity.kt` im gleichen Verzeichnis.

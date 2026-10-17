@@ -34,9 +34,9 @@ internal fun applyConsoleGraphics(context: Context, game: ConsoleGame): String {
         if (Build.VERSION.SDK_INT >= 31) Build.SOC_MODEL else "").joinToString(" ")
     val plan = consoleGraphicsPlan(hardware, activityManager.isLowRamDevice,
         context.packageManager.hasSystemFeature("android.hardware.vulkan.level"))
-    // Spyro's Adventure slows down even at native resolution on this tablet. Preserve
-    // its image quality and let VBI Skip maintain game/audio time when emulation lags.
-    val spyro = game.title == "Spyro’s Adventure"
+    // Spyro's Adventure and Trap Team can fall into slow motion on this tablet.
+    // Keep the device's image quality while letting emulation recover its timing.
+    val timingRecovery = game.title == "Spyro’s Adventure" || game.title == "Trap Team"
     val directory = File(DirectoryInitialization.getUserDirectory(), "Config")
     val backup = File(directory, "Profiles/PortalGraphics/Vor-Automatik.ini")
     val original = File(directory, "GFX.ini")
@@ -57,18 +57,18 @@ internal fun applyConsoleGraphics(context: Context, game: ConsoleGame): String {
     bool("Settings", "SSAA", false)
     bool("Settings", "FastDepthCalc", plan.fastDepth)
     // On Qualcomm/OpenGL, background compilation is unsafe on some drivers.
-    // Compile Spyro's already discovered shaders on the render thread at launch
+    // Compile already discovered shaders on the render thread at launch
     // instead of hitching later when a cached dialogue or prompt reappears.
-    bool("Settings", "WaitForShadersBeforeStarting", spyro && plan.backend == "OGL")
+    bool("Settings", "WaitForShadersBeforeStarting", timingRecovery && plan.backend == "OGL")
     bool("Settings", "ShaderCache", true)
     int("Enhancements", "MaxAnisotropy", -1)
     int("Enhancements", "ForceTextureFiltering", 0)
     bool("Hacks", "EFBAccessEnable", true)
     bool("Hacks", "EFBEmulateFormatChanges", true)
-    bool("Hacks", "VISkip", spyro)
+    bool("Hacks", "VISkip", timingRecovery)
     bool("Hacks", "ImmediateXFBEnable", false)
     bool("Hacks", "EFBScaledCopy", game.title != "Giants")
     NativeConfig.save(layer)
-    android.util.Log.i("PortalGraphics", "${game.title}: ${plan.backend}, shaders=${plan.shaders}, depth=${plan.fastDepth}, scale=${plan.resolution}, vbi=$spyro")
-    return if (spyro) "Automatisch · Spyro’s Adventure · ${plan.resolution}×" else plan.label
+    android.util.Log.i("PortalGraphics", "${game.title}: ${plan.backend}, shaders=${plan.shaders}, depth=${plan.fastDepth}, scale=${plan.resolution}, vbi=$timingRecovery")
+    return if (timingRecovery) "Automatisch · ${game.title} · ${plan.resolution}×" else plan.label
 }
