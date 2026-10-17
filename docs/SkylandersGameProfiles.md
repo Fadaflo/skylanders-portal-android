@@ -73,7 +73,25 @@ Der Emulator war beim Einspielen der Anpassung geschlossen. Danach bekam nur
 Trap Team, analog zu Spyro, `VISkip=True` und auf OpenGL das Vorladen bereits
 bekannter Shader. Die 2×-Auflösung und alle sonstigen Grafik- und Tonwerte
 bleiben erhalten. Giants und Swap Force bleiben beim bisherigen Profil.
-**Spieltest mit dem neuen Profil steht noch aus.**
+Mit VBI Skip und Shader-Vorladen ist Trap Team laut zweitem Spieltest besser,
+ruckelt aber noch oft beim Laufen, Kämpfen, Zerstören von Fässern und in
+Dialogen. Eine vorübergehend aktivierte Dolphin-Leistungsanzeige zeigte auf
+dem SM-T970 während der Bewegung etwa 99–101 % Emulationsgeschwindigkeit,
+ungefähr 59–60 VPS, aber nur 28–36 sichtbare FPS. Das spricht für eine
+variable, häufig niedrige Bildrate im Spiel selbst. Dolphin beschreibt
+ebenfalls, dass Trap Team auf Originalhardware oft unter der maximalen
+Bildrate bleibt und ein höherer emulierter CPU-Takt helfen kann:
+https://wiki.dolphin-emu.org/forum/Skylanders%3A%20Trap%20Team/embed
+Das Tablet meldete beim längeren Spielen thermischen Status 2; ein höherer
+CPU-Takt könnte die Wärme und die Emulationslast erhöhen. Kein allgemeines
+Overclocking für andere Spiele oder Geräte übernehmen.
+
+Noch während dieser Messung meldete der Nutzer, Trap Team laufe nun „schon
+sehr flüssig“. Daher kein CPU-Taktversuch und keine weitere Grafikänderung.
+Die drei temporären Leistungsanzeigen wurden nach dem Schließen des Spiels
+entfernt; 2× Auflösung, VBI Skip und Shader-Vorladen blieben aktiv. Bei einem
+erneuten Problem zuerst prüfen, ob es nur beim ersten Auftreten einer Szene
+oder erst nach längerem Spielen auftritt.
 
 Relevanter Code: `Source/Android/app/src/main/java/org/dolphinemu/dolphinemu/features/skylanders/console/ConsoleGraphics.kt`
 und `ConsoleActivity.kt` im gleichen Verzeichnis.
