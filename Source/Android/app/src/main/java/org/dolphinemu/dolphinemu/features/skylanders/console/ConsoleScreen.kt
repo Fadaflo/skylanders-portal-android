@@ -750,14 +750,23 @@ private fun GameStage(state: ConsoleState, selectedIndex: Int, onSelect: (Consol
                 }
             }
             Spacer(Modifier.height(if (short) 6.dp else 12.dp))
-            Box(Modifier.graphicsLayer {
+            Row(Modifier.graphicsLayer {
                 alpha = actionsAlpha.value
                 translationY = if (motion) (1f - actionsAlpha.value) * 4.dp.toPx() else 0f
-            }) {
+            }, verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(if (phone) 10.dp else 0.dp)) {
                 ScenePlayButton(game, state.ready,
                     { if (!heroSwipe.moving && actionsAlpha.value > 0.95f) onPlay(game) },
                     { if (!heroSwipe.moving && actionsAlpha.value > 0.95f) onAdd() },
                     short, Modifier.focusRequester(heroFocus))
+                if (phone) TextButton(onDetails,
+                    modifier = Modifier.semantics { contentDescription = "Spielinfos öffnen" },
+                    colors = ButtonDefaults.textButtonColors(contentColor = Color.White.copy(alpha = 0.9f))) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Outlined.KeyboardDoubleArrowUp, null, modifier = Modifier.size(24.dp))
+                        Text("Spielinfos", fontWeight = FontWeight.Bold, fontSize = 11.sp)
+                    }
+                }
             }
         }
         Row(Modifier.align(Alignment.BottomCenter).fillMaxWidth()
@@ -781,7 +790,7 @@ private fun GameStage(state: ConsoleState, selectedIndex: Int, onSelect: (Consol
             IconButton(onAdd, enabled = state.ready) { Icon(Icons.Outlined.FolderOpen, "Spieleordner hinzufügen", tint = Color.White) }
             if (wide) IconButton(onRefresh, enabled = state.ready && !state.refreshing) { Icon(Icons.Outlined.Refresh, "Spiele aktualisieren", tint = Color.White) }
         }
-        TextButton(onDetails, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 6.dp)
+        if (!phone) TextButton(onDetails, modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 6.dp)
             .semantics { contentDescription = "Nach oben wischen für Spielinfos" },
             colors = ButtonDefaults.textButtonColors(contentColor = Color.White.copy(alpha = 0.85f))) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
