@@ -76,6 +76,7 @@ internal data class ConsoleState(
     val audio: ConsoleAudioSettings = ConsoleAudioSettings(),
     val audioError: String? = null,
     val controllerVibration: Boolean = true,
+    val controllerVibrationIntensity: Float = 0.4f,
     val hapticsAvailable: Boolean = false,
     val hapticsStatus: String = "Verbinde einen Controller, um Vibration zu verwenden.",
     val immersiveInfo: Boolean = true,

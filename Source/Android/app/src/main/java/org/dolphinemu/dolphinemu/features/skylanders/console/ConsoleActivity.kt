@@ -105,6 +105,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             lastPlayedPath = preferences.getString("last_played", null),
             audio = ConsoleAudioSettings.load(preferences),
             controllerVibration = preferences.getBoolean("menu_controller_vibration", true),
+            controllerVibrationIntensity = preferences.getFloat("menu_controller_vibration_intensity", 0.4f).coerceIn(0f, 1f),
             autoController = preferences.getBoolean("auto_controller", true),
             autoGraphics = preferences.getBoolean("auto_graphics", true),
             graphicsSetup = preferences.getString("graphics_profile", null) ?: "Automatisch · wird beim Spielstart gewählt",
@@ -115,7 +116,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             savedInstanceState?.getInt("menu_music_position") ?: 0) { error ->
             state = state.copy(audioError = error)
         }
-        menuHaptics = ConsoleHaptics(state.controllerVibration)
+        menuHaptics = ConsoleHaptics(state.controllerVibration, state.controllerVibrationIntensity)
         // Use our quiet UI cues instead of adding Android's default click on top.
         window.decorView.isSoundEffectsEnabled = false
         setContent {
@@ -126,6 +127,12 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                     preferences.edit().putBoolean("menu_controller_vibration", enabled).apply()
                     menuHaptics.update(enabled)
                     playMenuFeedback(ConsoleCue.CONFIRM)
+                },
+                onVibrationIntensity = { value ->
+                    val level = value.coerceIn(0f, 1f)
+                    state = state.copy(controllerVibrationIntensity = level)
+                    preferences.edit().putFloat("menu_controller_vibration_intensity", level).apply()
+                    menuHaptics.updateIntensity(level)
                 },
                 onTestVibration = {
                     menuHaptics.test(preferredController ?: preferences.getString("controller_profile_descriptor", null))

@@ -114,6 +114,7 @@ internal fun ConsoleScreen(
     dispatchMenuKey: (Int) -> Unit,
     onAudioSettings: (ConsoleAudioSettings) -> Unit,
     onControllerVibration: (Boolean) -> Unit,
+    onVibrationIntensity: (Float) -> Unit,
     onTestVibration: () -> Unit,
     onMenuSound: (ConsoleCue) -> Unit,
     onInfoAnimation: (Boolean) -> Unit,
@@ -199,7 +200,7 @@ internal fun ConsoleScreen(
                         ConsolePage.CONTROLLERS -> ControllersPage(state, onBluetooth, onControllerSettings, onAutoController)
                         ConsolePage.SETTINGS -> SettingsPage(state, onAudioSettings, onInfoAnimation, onAutoGraphics,
                             onSettings, onAdvanced, onSetup, onAddGames, { settingsNavigating = it },
-                            onControllerVibration, onTestVibration)
+                            onControllerVibration, onTestVibration, onVibrationIntensity)
                     }
                 }
             }
@@ -885,7 +886,7 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
     onAutoGraphics: (Boolean) -> Unit,
     onSettings: () -> Unit, onAdvanced: () -> Unit, onSetup: () -> Unit, onAddGames: () -> Unit,
     onNavigationChanged: (Boolean) -> Unit, onControllerVibration: (Boolean) -> Unit,
-    onTestVibration: () -> Unit) {
+    onTestVibration: () -> Unit, onVibrationIntensity: (Float) -> Unit) {
     val sound = LocalMenuSound.current
     val inputMode = LocalInputModeManager.current
     val list = rememberLazyListState()
@@ -991,7 +992,7 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
         }
         item(key = "haptics") {
             SettingsCardFrame(titles[5], targets[5], { onFocused(5) }) {
-                HapticsControl(state, onControllerVibration, onTestVibration)
+                HapticsControl(state, onControllerVibration, onTestVibration, onVibrationIntensity)
             }
         }
         item(key = "profile") {
@@ -1051,7 +1052,8 @@ private fun SettingsSwitch(checked: Boolean, onChecked: (Boolean) -> Unit, label
 }
 
 @Composable
-private fun HapticsControl(state: ConsoleState, onEnabled: (Boolean) -> Unit, onTest: () -> Unit) {
+private fun HapticsControl(state: ConsoleState, onEnabled: (Boolean) -> Unit, onTest: () -> Unit,
+    onIntensity: (Float) -> Unit) {
     PortalSurface(Modifier.fillMaxWidth()
         .onPreviewKeyEvent { event ->
             when (event.key) {
@@ -1059,13 +1061,19 @@ private fun HapticsControl(state: ConsoleState, onEnabled: (Boolean) -> Unit, on
                     if (event.type == KeyEventType.KeyDown) onEnabled(!state.controllerVibration)
                     true
                 }
-                Key.DirectionLeft, Key.DirectionRight -> true
+                Key.DirectionLeft, Key.DirectionRight -> {
+                    if (event.type == KeyEventType.KeyDown) {
+                        val delta = if (event.key == Key.DirectionRight) 1 else -1
+                        onIntensity(((state.controllerVibrationIntensity * 20).roundToInt() + delta).coerceIn(0, 20) / 20f)
+                    }
+                    true
+                }
                 else -> if (event.nativeKeyEvent.keyCode == android.view.KeyEvent.KEYCODE_BUTTON_X) {
                     if (event.type == KeyEventType.KeyDown && state.controllerVibration && state.hapticsAvailable) onTest()
                     true
                 } else false
             }
-        }.focusable().semantics { contentDescription = "Controller-Vibration: Bestätigen schaltet ein oder aus" },
+        }.focusable().semantics { contentDescription = "Controller-Vibration: Bestätigen schaltet ein oder aus, links und rechts ändern die Intensität" },
         shadow = false, focusWholeSurface = false) {
         Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -1074,10 +1082,19 @@ private fun HapticsControl(state: ConsoleState, onEnabled: (Boolean) -> Unit, on
                     keyboardFocus = false)
             }
             Text(state.hapticsStatus, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
-            Text("Kurzes Feedback beim Bedienen des Menüs. Die Einstellung bleibt gespeichert.", color = Muted, fontSize = 12.sp)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                Slider(state.controllerVibrationIntensity, onIntensity, steps = 19,
+                    modifier = Modifier.weight(1f).focusProperties { canFocus = false }
+                        .semantics { contentDescription = "Vibrationsintensität" })
+                Text("${(state.controllerVibrationIntensity * 100).roundToInt()} %", color = Color.White,
+                    fontWeight = FontWeight.Bold, modifier = Modifier.width(48.dp))
+            }
+            Text("X schaltet ein/aus · Links/rechts ändert die Intensität · □ testet. Bleibt auch nach einem Controllerwechsel gespeichert.", color = Muted, fontSize = 12.sp)
             ConsoleButton("Vibration testen · □ / X", Icons.Outlined.Vibration, onTest,
-                enabled = state.controllerVibration && state.hapticsAvailable,
+                enabled = state.controllerVibration && state.hapticsAvailable && state.controllerVibrationIntensity > 0f,
                 modifier = Modifier.focusProperties { canFocus = false })
+            Text("Falls nichts spürbar ist: Controller neu verbinden. Manche Android-Treiber melden Motoren, obwohl sie die Ausgabe ablehnen.", color = Muted, fontSize = 12.sp)
         }
     }
 }
