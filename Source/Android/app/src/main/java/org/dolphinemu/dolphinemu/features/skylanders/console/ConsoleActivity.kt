@@ -158,6 +158,12 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                     preferences.edit().putBoolean("immersive_info", enabled).apply()
                     playMenuFeedback(ConsoleCue.CONFIRM)
                 },
+                onSelectPage = { page ->
+                    if (state.page != page || state.accountOpen) {
+                        playMenuFeedback(ConsoleCue.NAVIGATE)
+                        state = state.copy(page = page, accountOpen = false)
+                    }
+                },
                 onOpenAccount = { state = state.copy(accountOpen = true) },
                 onCloseAccount = { state = state.copy(accountOpen = false) },
                 onAccountSignIn = { email, password -> accountAction { accountAuth.signIn(email, password) } },

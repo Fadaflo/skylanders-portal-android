@@ -36,7 +36,7 @@ internal fun applyConsoleGraphics(context: Context, game: ConsoleGame): String {
         context.packageManager.hasSystemFeature("android.hardware.vulkan.level"))
     // Spyro's Adventure needs a lighter rendering path than Giants on the same tablet.
     // Keep the hardware backend choice, but render this game's bloom at native size.
-    val spyro = game.key == "spyro"
+    val spyro = game.title == "Spyro’s Adventure"
     val resolution = if (spyro) 1 else plan.resolution
     val directory = File(DirectoryInitialization.getUserDirectory(), "Config")
     val backup = File(directory, "Profiles/PortalGraphics/Vor-Automatik.ini")
@@ -65,7 +65,7 @@ internal fun applyConsoleGraphics(context: Context, game: ConsoleGame): String {
     bool("Hacks", "EFBEmulateFormatChanges", true)
     bool("Hacks", "VISkip", false)
     bool("Hacks", "ImmediateXFBEnable", false)
-    bool("Hacks", "EFBScaledCopy", game.key != "giants" && !spyro)
+    bool("Hacks", "EFBScaledCopy", game.title != "Giants" && !spyro)
     NativeConfig.save(layer)
     android.util.Log.i("PortalGraphics", "${game.title}: ${plan.backend}, shaders=${plan.shaders}, depth=${plan.fastDepth}, scale=$resolution")
     return if (spyro) "Automatisch · Spyro’s Adventure · Leistung · 1×" else plan.label

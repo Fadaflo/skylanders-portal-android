@@ -128,6 +128,7 @@ internal fun ConsoleScreen(
     onTestVibration: () -> Unit,
     onMenuSound: (ConsoleCue) -> Unit,
     onInfoAnimation: (Boolean) -> Unit,
+    onSelectPage: (ConsolePage) -> Unit,
     onOpenAccount: () -> Unit,
     onCloseAccount: () -> Unit,
     onAccountSignIn: (String, String) -> Unit,
@@ -219,7 +220,7 @@ internal fun ConsoleScreen(
                 alpha = if (state.page == ConsolePage.GAMES) heroSwipe.infoProgress else 0f
             }.background(Color.Black.copy(alpha = 0.48f)))
             Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-                if (!state.controllerTestActive) ConsoleHeader(state, onOpenAccount, accountFocus)
+                if (!state.controllerTestActive) ConsoleHeader(state, onSelectPage, onOpenAccount, accountFocus)
                 if (!state.controllerTestActive && (state.refreshing || !state.ready)) {
                     LinearProgressIndicator(Modifier.fillMaxWidth(), color = Ice, trackColor = Panel)
                 }
@@ -340,7 +341,8 @@ private fun BackdropLayer(game: ConsoleGame, incoming: Boolean, blend: () -> Flo
 }
 
 @Composable
-private fun ConsoleHeader(state: ConsoleState, onOpenAccount: () -> Unit,
+private fun ConsoleHeader(state: ConsoleState, onSelectPage: (ConsolePage) -> Unit,
+    onOpenAccount: () -> Unit,
     accountFocus: FocusRequester) {
     BoxWithConstraints(Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 8.dp)) {
         val compact = maxWidth < 600.dp
@@ -368,6 +370,9 @@ private fun ConsoleHeader(state: ConsoleState, onOpenAccount: () -> Unit,
                         .onGloballyPositioned {
                             tabBounds[page] = it.positionInParent().x to it.size.width.toFloat()
                         }
+                        .focusProperties { canFocus = false }
+                        .clickable(interactionSource = remember { MutableInteractionSource() },
+                            indication = null) { onSelectPage(page) }
                         .padding(horizontal = if (compact) 9.dp else 20.dp),
                         contentAlignment = Alignment.Center) {
                         Text(page.title, fontSize = if (compact) 12.sp else 14.sp,
