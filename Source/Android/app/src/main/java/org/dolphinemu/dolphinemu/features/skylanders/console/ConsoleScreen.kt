@@ -761,13 +761,9 @@ private fun GameStage(state: ConsoleState, selectedIndex: Int, onSelect: (Consol
                     { if (!heroSwipe.moving && actionsAlpha.value > 0.95f) onPlay(game) },
                     { if (!heroSwipe.moving && actionsAlpha.value > 0.95f) onAdd() },
                     short, Modifier.focusRequester(heroFocus))
-                if (phone) TextButton(onDetails,
-                    modifier = Modifier.semantics { contentDescription = "Spielinfos öffnen" },
-                    colors = ButtonDefaults.textButtonColors(contentColor = Color.White.copy(alpha = 0.9f))) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Outlined.KeyboardDoubleArrowUp, null, modifier = Modifier.size(24.dp))
-                        Text("Spielinfos", fontWeight = FontWeight.Bold, fontSize = 11.sp)
-                    }
+                if (phone) IconButton(onClick = onDetails, modifier = Modifier.size(48.dp)) {
+                    Icon(Icons.Outlined.KeyboardDoubleArrowUp, "Spielinfos öffnen",
+                        tint = Color.White, modifier = Modifier.size(24.dp))
                 }
             }
         }
