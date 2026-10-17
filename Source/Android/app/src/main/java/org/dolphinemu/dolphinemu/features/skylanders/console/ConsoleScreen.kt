@@ -19,6 +19,8 @@ import androidx.compose.foundation.pager.VerticalPager
 import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.PagerDefaults
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.input.pointer.pointerInput
@@ -49,6 +51,7 @@ import android.os.Build
 import android.content.res.Configuration
 import androidx.compose.foundation.focusable
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextAlign
 import kotlinx.coroutines.launch
@@ -465,6 +468,7 @@ private fun ImmersiveGamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> U
     onPlay: (ConsoleGame) -> Unit, onAdd: () -> Unit, onRefresh: () -> Unit, heroSwipe: HeroSwipeState,
     gamePager: PagerState, onFocusAccount: () -> Unit) {
     val selectedIndex = state.games.indexOfFirst { it.key == state.selectedKey }.coerceAtLeast(0)
+    val phone = LocalConfiguration.current.smallestScreenWidthDp < 600
     var detailsOpen by rememberSaveable { mutableStateOf(false) }
     val pager = rememberPagerState(initialPage = if (detailsOpen) 1 else 0, pageCount = { 2 })
     val motion = LocalPortalMotion.current
@@ -512,9 +516,31 @@ private fun ImmersiveGamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> U
         }
     }
     BackHandler(detailsOpen || pager.currentPage != 0 || pager.currentPageOffsetFraction != 0f) { goTo(0) }
+    val phoneInfoSwipe = if (phone) Modifier.pointerInput(state.ready, state.launchingGameKey) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            var last = down.position
+            var travelX = 0f
+            var travelY = 0f
+            var released = false
+            while (!released) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                travelX += change.position.x - last.x
+                travelY += change.position.y - last.y
+                last = change.position
+                released = !change.pressed
+            }
+            if (released && state.ready && state.launchingGameKey == null &&
+                -travelY > size.height * 0.12f &&
+                -travelY > kotlin.math.abs(travelX) * 1.45f) {
+                goTo(1)
+            }
+        }
+    } else Modifier
     VerticalPager(state = pager, beyondViewportPageCount = 1,
         overscrollEffect = null,
-        userScrollEnabled = state.ready && state.launchingGameKey == null,
+        userScrollEnabled = state.ready && state.launchingGameKey == null && (!phone || detailsOpen),
         flingBehavior = PagerDefaults.flingBehavior(pager,
             snapPositionalThreshold = 0.22f,
             snapAnimationSpec = tween(if (motion) PortalPalette.GlideDurationMs else 0,
@@ -525,7 +551,7 @@ private fun ImmersiveGamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> U
                 { if (!detailsOpen && !pager.isScrollInProgress) onPlay(it) },
                 { if (!detailsOpen && !pager.isScrollInProgress) onAdd() }, onRefresh,
                 { goTo(1) }, heroFocus, heroSwipe, gamePager, onFocusAccount,
-                Modifier.fillMaxSize().graphicsLayer {
+                Modifier.fillMaxSize().then(phoneInfoSwipe).graphicsLayer {
                     val progress = (pager.currentPage + pager.currentPageOffsetFraction).coerceIn(0f, 1f)
                     // Counter the pager displacement: the menu stays behind the rising info layer.
                     translationY = progress * size.height
