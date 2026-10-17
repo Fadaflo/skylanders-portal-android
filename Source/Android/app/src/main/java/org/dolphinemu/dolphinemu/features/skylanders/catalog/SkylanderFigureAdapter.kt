@@ -79,10 +79,10 @@ class SkylanderFigureAdapter(
             when {
                 row.marked -> R.drawable.sky_card_marked
                 chosen -> R.drawable.sky_card_selected
-                else -> 0
+                else -> R.drawable.sky_card_idle
             }
         )
-        holder.itemView.alpha = if (chosen || row.marked || row.owned) 1.0f else 0.45f
+        holder.itemView.alpha = if (chosen || row.marked || row.owned) 1.0f else 0.86f
 
         onClick?.let { listener -> holder.itemView.setOnClickListener { listener(position) } }
     }

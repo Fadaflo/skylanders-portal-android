@@ -11,19 +11,60 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:fitsSystemWindows="true"
-    android:background="#D9101014"
+    android:background="@drawable/sky_portal_backdrop"
     android:clickable="true"
     android:focusable="true"
     android:paddingStart="16dp"
     android:paddingEnd="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:text="SKYLANDERS  /  PORTAL"
+        android:textColor="#FF9ADFFF"
+        android:letterSpacing="0.18"
+        android:textSize="10sp"
+        android:textStyle="bold" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingTop="6dp"
-        android:paddingBottom="2dp">
+        android:paddingBottom="6dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="Charakter wählen"
+            android:textColor="#FFFFFFFF"
+            android:textSize="27sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/text_active_player"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/sky_slot_frame_focused"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp"
+            android:text="SPIELER 1 AKTIV"
+            android:textColor="#FFCEF2FF"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingTop="2dp"
+        android:paddingBottom="7dp">
 
         <TextView
             android:id="@+id/tab_collection"
@@ -106,12 +147,27 @@
             android:textStyle="bold" />
     </LinearLayout>
 
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="#669ADFFF" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical|end"
-        android:paddingTop="2dp">
+        android:paddingTop="6dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="wrap_content"
+            android:text="PORTALPLÄTZE"
+            android:textColor="#FFB5D5E9"
+            android:letterSpacing="0.12"
+            android:textSize="11sp"
+            android:textStyle="bold" />
 
         <ImageView
             android:layout_width="16dp"
@@ -134,8 +190,18 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:baselineAligned="false"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp" />
+        android:paddingTop="4dp"
+        android:paddingBottom="9dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="3dp"
+        android:text="FIGUREN AUSWÄHLEN"
+        android:textColor="#FFB5D5E9"
+        android:letterSpacing="0.12"
+        android:textSize="11sp"
+        android:textStyle="bold" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/grid_figures"
@@ -143,8 +209,8 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:clipToPadding="false"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp" />
+        android:paddingTop="8dp"
+        android:paddingBottom="8dp" />
 
     <LinearLayout
         android:layout_width="match_parent"

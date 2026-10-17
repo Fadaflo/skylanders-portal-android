@@ -2,6 +2,7 @@
 
 package org.dolphinemu.dolphinemu.features.skylanders.catalog
 
+import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -290,6 +291,14 @@ class SkylanderPortalFragment : Fragment() {
         val inflater = LayoutInflater.from(requireContext())
         slotViews = (0 until SLOT_COUNT).map { index ->
             val slotBinding = ListItemPortalSlotBinding.inflate(inflater, binding.rowSlots, true)
+            slotBinding.root.layoutParams = android.widget.LinearLayout.LayoutParams(
+                0,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
+                if (index < 2) 1.35f else 0.75f
+            ).apply {
+                marginStart = (3 * resources.displayMetrics.density).toInt()
+                marginEnd = marginStart
+            }
             slotBinding.root.setOnClickListener {
                 focus = Focus.PORTAL
                 activeSlot = index
@@ -313,6 +322,14 @@ class SkylanderPortalFragment : Fragment() {
     }
 
     private fun updateSlots() {
+        binding.textActivePlayer.apply {
+            text = "SPIELER $activePlayer AKTIV"
+            setBackgroundResource(
+                if (activePlayer == 2) R.drawable.sky_slot_frame_player2
+                else R.drawable.sky_slot_frame_focused
+            )
+            setTextColor(Color.parseColor(if (activePlayer == 2) "#FFFFDFAE" else "#FFCEF2FF"))
+        }
         for (index in 0 until SLOT_COUNT) {
             val view = slotViews[index]
             val slot = slots[index]
@@ -331,9 +348,11 @@ class SkylanderPortalFragment : Fragment() {
             // Der gewaehlte Platz bleibt umrandet, auch wenn das Raster am Zug
             // ist: er ist eine bleibende Auswahl, kein Fokus auf Zeit.
             view.root.setBackgroundResource(
-                if (chosen) R.drawable.sky_slot_frame_focused else R.drawable.sky_slot_frame
+                if (chosen && index == 1) R.drawable.sky_slot_frame_player2
+                else if (chosen) R.drawable.sky_slot_frame_focused
+                else R.drawable.sky_slot_frame
             )
-            view.root.alpha = if (chosen) 1.0f else 0.6f
+            view.root.alpha = if (chosen) 1.0f else if (index < 2) 0.84f else 0.66f
         }
         adapter.selectionVisible = focus == Focus.GRID
     }
@@ -474,10 +493,12 @@ class SkylanderPortalFragment : Fragment() {
             }
 
         fun tab(view: android.widget.TextView, active: Boolean, available: Boolean) {
-            view.setBackgroundResource(if (active) R.drawable.sky_element_active else 0)
+            view.setBackgroundResource(if (active) R.drawable.sky_tab_active else 0)
+            view.setTextColor(Color.parseColor(if (active) "#FFFFFFFF" else "#FFCAD8E5"))
+            view.textSize = if (active) 17f else 15f
             view.alpha = when {
                 active -> 1.0f
-                available -> 0.55f
+                available -> 0.78f
                 else -> 0.3f
             }
         }
