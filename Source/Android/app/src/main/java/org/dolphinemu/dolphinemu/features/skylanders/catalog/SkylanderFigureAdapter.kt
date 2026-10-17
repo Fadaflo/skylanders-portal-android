@@ -2,6 +2,7 @@
 
 package org.dolphinemu.dolphinemu.features.skylanders.catalog
 
+import android.content.res.Configuration
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -56,6 +57,19 @@ class SkylanderFigureAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val binding = ListItemSkylanderFigureBinding.inflate(inflater, parent, false)
+        val configuration = parent.resources.configuration
+        if (configuration.smallestScreenWidthDp < 600 &&
+            configuration.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            val density = parent.resources.displayMetrics.density
+            val padding = (4 * density).toInt()
+            binding.root.setPadding(padding, padding, padding, padding)
+            val artworkFrame = binding.imageFigure.parent as View
+            artworkFrame.layoutParams = artworkFrame.layoutParams.apply {
+                height = (60 * density).toInt()
+            }
+            binding.textFigureName.textSize = 11f
+            binding.textFigureGame.textSize = 10f
+        }
         if (onClick != null) {
             binding.root.isClickable = true
         }

@@ -2,6 +2,7 @@
 
 package org.dolphinemu.dolphinemu.features.skylanders.catalog
 
+import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
 import android.os.Handler
@@ -162,6 +163,10 @@ class SkylanderPortalFragment : Fragment() {
     /** Spaltenzahl nach Bildschirmbreite; quer werden es mehr als hochkant. */
     private fun columnCount(): Int =
         (resources.configuration.screenWidthDp / COLUMN_WIDTH_DP).coerceIn(3, 10)
+
+    private fun compactPhoneLandscape(): Boolean =
+        resources.configuration.smallestScreenWidthDp < 600 &&
+            resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     // ------------------------------------------------------------------ Daten
 
@@ -330,9 +335,16 @@ class SkylanderPortalFragment : Fragment() {
         val main = arrayOfNulls<ListItemPortalSlotBinding>(SLOT_COUNT)
         val bottom = arrayOfNulls<ListItemPortalSlotBinding>(2)
         val gap = (3 * resources.displayMetrics.density).toInt()
+        val compact = compactPhoneLandscape()
 
         fun configure(slotBinding: ListItemPortalSlotBinding, visual: Int) {
             val isBottomTile = visual >= SLOT_COUNT
+            if (compact) {
+                val padding = (4 * resources.displayMetrics.density).toInt()
+                slotBinding.root.setPadding(padding, padding, padding, padding)
+                slotBinding.textSlotNumber.textSize = 10f
+                slotBinding.textSlotLabel.textSize = 10f
+            }
             slotBinding.root.setOnClickListener {
                 if (isBottomTile) {
                     activePlayer = visual - SLOT_COUNT + 1
@@ -416,6 +428,7 @@ class SkylanderPortalFragment : Fragment() {
     }
 
     private fun updateSlots() {
+        val compact = compactPhoneLandscape()
         binding.textActivePlayer.apply {
             text = "SPIELER $activePlayer AKTIV"
             setBackgroundResource(
@@ -444,7 +457,11 @@ class SkylanderPortalFragment : Fragment() {
             view.imageSlotFigure.setImageBitmap(
                 (slot.figure ?: slot.bottomFigure)?.let { SkylanderCatalog.getArtwork(requireContext(), it) }
             )
-            val topHeight = ((if (swapMode) 43 else 62) * resources.displayMetrics.density).toInt()
+            val hasFigure = slot.figure != null || slot.bottomFigure != null
+            view.imageSlotFigure.visibility =
+                if (compact && !hasFigure) View.GONE else View.VISIBLE
+            val topHeight = ((if (compact) 32 else if (swapMode) 43 else 62) *
+                resources.displayMetrics.density).toInt()
             if (view.imageSlotFigure.layoutParams.height != topHeight) {
                 view.imageSlotFigure.layoutParams = view.imageSlotFigure.layoutParams.apply { height = topHeight }
             }
@@ -466,7 +483,10 @@ class SkylanderPortalFragment : Fragment() {
             view.imageSlotFigure.setImageBitmap(
                 slot.bottomFigure?.let { SkylanderCatalog.getArtwork(requireContext(), it) }
             )
-            val bottomHeight = (43 * resources.displayMetrics.density).toInt()
+            view.imageSlotFigure.visibility =
+                if (compact && slot.bottomFigure == null) View.GONE else View.VISIBLE
+            val bottomHeight = ((if (compact) 32 else 43) *
+                resources.displayMetrics.density).toInt()
             if (view.imageSlotFigure.layoutParams.height != bottomHeight) {
                 view.imageSlotFigure.layoutParams = view.imageSlotFigure.layoutParams.apply { height = bottomHeight }
             }

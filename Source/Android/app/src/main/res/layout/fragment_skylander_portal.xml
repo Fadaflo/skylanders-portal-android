@@ -10,16 +10,6 @@
     android:paddingStart="10dp"
     android:paddingEnd="10dp">
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="8dp"
-        android:text="SKYLANDERS  /  PORTAL"
-        android:textColor="#FF9ADFFF"
-        android:letterSpacing="0.18"
-        android:textSize="10sp"
-        android:textStyle="bold" />
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -33,7 +23,7 @@
             android:layout_height="wrap_content"
             android:text="Charakter wählen"
             android:textColor="#FFFFFFFF"
-            android:textSize="23sp"
+            android:textSize="21sp"
             android:textStyle="bold" />
 
         <TextView
@@ -57,7 +47,7 @@
         android:orientation="horizontal"
         android:gravity="center_vertical"
         android:paddingTop="2dp"
-        android:paddingBottom="6dp">
+        android:paddingBottom="4dp">
 
         <TextView
             android:id="@+id/tab_collection"
@@ -68,7 +58,7 @@
             android:paddingTop="3dp"
             android:paddingBottom="3dp"
             android:text="Sammlung"
-            android:textSize="15sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <TextView
@@ -80,7 +70,7 @@
             android:paddingTop="3dp"
             android:paddingBottom="3dp"
             android:text="Beschwören"
-            android:textSize="15sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <TextView
@@ -92,7 +82,7 @@
             android:paddingTop="3dp"
             android:paddingBottom="3dp"
             android:text="Ultimative"
-            android:textSize="15sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <TextView
@@ -104,7 +94,7 @@
             android:paddingTop="3dp"
             android:paddingBottom="3dp"
             android:text="Gegenstände"
-            android:textSize="15sp"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
         <ImageView
