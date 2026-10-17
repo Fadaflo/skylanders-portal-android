@@ -136,6 +136,7 @@ class SkylanderPortalFragment : Fragment() {
         binding.textElementPrev.setOnClickListener { cycleElement(-1) }
         binding.textElementNext.setOnClickListener { cycleElement(1) }
         binding.textFilterGame.setOnClickListener { cycleGame() }
+        binding.imageFilterGame.setOnClickListener { cycleGame() }
         binding.badgeGame.setOnClickListener { cycleGame() }
         binding.textItemsAll.setOnClickListener {
             gameFilter = 0
@@ -591,6 +592,16 @@ class SkylanderPortalFragment : Fragment() {
             else -> "Spiel: " +
                 (CatalogFigure.GAME_LABELS[GAMES[gameFilter]] ?: GAMES[gameFilter])
         }
+        val gameArtwork = when (GAMES[gameFilter]) {
+            "SpyrosAdv" -> R.drawable.sky_console_spyro
+            "Giants" -> R.drawable.sky_console_giants
+            "SwapForce" -> R.drawable.sky_console_swap
+            "TrapTeam" -> R.drawable.sky_console_trap
+            else -> null
+        }
+        binding.imageFilterGame.visibility =
+            if (gameArtwork != null && !swapMode) View.VISIBLE else View.GONE
+        gameArtwork?.let(binding.imageFilterGame::setImageResource)
         binding.textFilterVariants.text =
             "Varianten: " + if (allVariants) "alle" else "Standard"
     }

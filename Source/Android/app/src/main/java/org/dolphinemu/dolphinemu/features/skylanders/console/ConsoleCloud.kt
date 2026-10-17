@@ -13,7 +13,9 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
-import java.time.Instant
+import java.util.Calendar
+import java.util.GregorianCalendar
+import java.util.TimeZone
 import java.util.UUID
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -22,7 +24,7 @@ import java.util.zip.ZipOutputStream
 internal data class CloudResult(val message: String, val conflictScope: String? = null,
     val restored: Boolean = false)
 internal data class CloudSaveInfo(val scope: String, val label: String,
-    val localModifiedAt: Long?, val cloudModifiedAt: Long?)
+    val localModifiedAt: Long?, val cloudModifiedAt: Long?, val cloudPresent: Boolean?)
 
 /** Saves figures and Wii campaign files as immutable, account-owned snapshots. */
 internal class ConsoleCloud(private val context: Context, private val auth: ConsoleAuth) {
@@ -38,33 +40,67 @@ internal class ConsoleCloud(private val context: Context, private val auth: Cons
     suspend fun saveInfo(online: Boolean): List<CloudSaveInfo> = withContext(Dispatchers.IO) {
         val userId = auth.currentUserId() ?: return@withContext emptyList()
         val remoteTimes = mutableMapOf<String, Long>()
+        val remoteScopes = mutableSetOf<String>()
+        var cloudReachable = false
         if (online) {
             try {
                 val token = auth.currentAccessToken()
                 if (token != null) {
                     val rows = JSONArray(request("GET", "/rest/v1/portal_heads?select=scope,updated_at", token))
+                    cloudReachable = true
                     for (index in 0 until rows.length()) {
                         val row = rows.getJSONObject(index)
                         val scope = row.getString("scope")
-                        val time = Instant.parse(row.getString("updated_at")).toEpochMilli()
-                        remoteTimes[scope] = time
-                        settings.edit().putLong("$userId:$scope:cloud_time", time).apply()
+                        if (scope != "figures" && !scope.matches(Regex("wii:[0-9A-F]{8}"))) continue
+                        remoteScopes += scope
+                        runCatching { parseCloudTime(row.getString("updated_at")) }.onSuccess { time ->
+                            remoteTimes[scope] = time
+                            settings.edit().putLong("$userId:$scope:cloud_time", time).apply()
+                        }.onFailure { error -> android.util.Log.w("PortalCloud", "Cloud timestamp invalid", error) }
                     }
                 }
             } catch (error: Exception) {
                 android.util.Log.w("PortalCloud", "Save timestamps unavailable", error)
             }
         }
-        val scopes = (localScopes() + rememberedScopes() + remoteTimes.keys).toSortedSet()
+        val scopes = (localScopes() + rememberedScopes() + remoteScopes).toSortedSet()
         scopes.mapNotNull { scope ->
             val source = folder(scope)
             val local = source.takeIf { it.isDirectory }?.walkTopDown()
                 ?.filter { it.isFile && (scope != "figures" || it.extension.equals("sky", true)) }
                 ?.map { it.lastModified() }?.maxOrNull()?.takeIf { it > 0 }
             val cached = settings.getLong("$userId:$scope:cloud_time", 0L).takeIf { it > 0 }
-            val cloud = remoteTimes[scope] ?: cached
-            if (local == null && cloud == null) null else CloudSaveInfo(scope, scopeLabel(scope), local, cloud)
+            val cloud = if (cloudReachable) remoteTimes[scope] else cached
+            val cloudPresent = when {
+                cloudReachable -> scope in remoteScopes
+                cloud != null -> true
+                else -> null
+            }
+            if (local == null && cloudPresent != true) null
+            else CloudSaveInfo(scope, scopeLabel(scope), local, cloud, cloudPresent)
         }
+    }
+
+    private fun parseCloudTime(raw: String): Long {
+        // PostgREST timestamps may include six fractional digits and +00:00 offsets.
+        val parts = Regex("""^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2}):(\d{2})(?:\.(\d+))?(Z|[+-]\d{2}(?::?\d{2})?)$""")
+            .matchEntire(raw) ?: throw IOException("Invalid cloud timestamp")
+        val g = parts.groupValues
+        val date = GregorianCalendar(TimeZone.getTimeZone("UTC")).apply {
+            isLenient = false
+            clear()
+            set(g[1].toInt(), g[2].toInt() - 1, g[3].toInt(), g[4].toInt(), g[5].toInt(), g[6].toInt())
+            set(Calendar.MILLISECOND, g[7].padEnd(3, '0').take(3).toIntOrNull() ?: 0)
+        }
+        val zone = g[8]
+        val offsetMinutes = if (zone == "Z") 0 else {
+            val digits = zone.drop(1).replace(":", "")
+            val hours = digits.take(2).toInt()
+            val minutes = digits.drop(2).ifEmpty { "0" }.toInt()
+            require(hours <= 23 && minutes <= 59)
+            (hours * 60 + minutes) * if (zone.startsWith('-')) -1 else 1
+        }
+        return date.timeInMillis - offsetMinutes * 60_000L
     }
 
     private fun scopeLabel(scope: String): String = when (scope.removePrefix("wii:").take(6)) {
@@ -133,7 +169,7 @@ internal class ConsoleCloud(private val context: Context, private val auth: Cons
         }
         CloudResult(when {
             uploaded + downloaded > 0 -> "Cloud aktuell · $uploaded hochgeladen, $downloaded geladen."
-            else -> "Cloud aktuell."
+            else -> "Cloud aktuell · keine geänderten Dateiinhalte erkannt."
         }, restored = downloaded > 0)
     }
 

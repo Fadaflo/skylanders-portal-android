@@ -371,6 +371,15 @@
             android:textSize="11sp"
             android:textStyle="bold" />
 
+        <ImageView
+            android:id="@+id/image_filter_game"
+            android:layout_width="32dp"
+            android:layout_height="24dp"
+            android:layout_marginEnd="6dp"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop"
+            android:visibility="gone" />
+
         <TextView
             android:id="@+id/text_filter_game"
             android:layout_width="wrap_content"

@@ -187,7 +187,7 @@ private fun CloudPanel(status: String, busy: Boolean, saves: List<CloudSaveInfo>
         Text("CLOUD-SPIELSTÄNDE", color = ProfileIce, fontSize = 11.sp,
             fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
         Text(status, color = Color.White, fontSize = 14.sp)
-        Text("Figuren und Wii-Kampagnen gehören zu diesem Konto. Offline-Änderungen werden später abgeglichen.",
+        Text("Figuren und Wii-Kampagnen gehören zu diesem Konto. Offline-Änderungen werden später abgeglichen. Eine neue lokale Uhrzeit allein bedeutet noch keinen neuen Spielstand.",
             color = ProfileMuted, fontSize = 12.sp)
         if (saves.isNotEmpty()) {
             HorizontalDivider(color = Color.White.copy(alpha = 0.14f))
@@ -195,7 +195,7 @@ private fun CloudPanel(status: String, busy: Boolean, saves: List<CloudSaveInfo>
                 Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
                     Text(save.label, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
                     Text("Dieses Gerät: ${saveTime(save.localModifiedAt)}", color = ProfileMuted, fontSize = 12.sp)
-                    Text("Cloud: ${saveTime(save.cloudModifiedAt)}", color = ProfileMuted, fontSize = 12.sp)
+                    Text("Cloud: ${cloudTimeLabel(save)}", color = ProfileMuted, fontSize = 12.sp)
                 }
             }
         }
@@ -206,6 +206,13 @@ private fun CloudPanel(status: String, busy: Boolean, saves: List<CloudSaveInfo>
 
 internal fun saveTime(time: Long?): String = if (time == null) "Noch kein Stand"
     else SimpleDateFormat("dd.MM.yyyy · HH:mm", Locale.GERMAN).format(Date(time))
+
+internal fun cloudTimeLabel(save: CloudSaveInfo): String = when {
+    save.cloudModifiedAt != null -> saveTime(save.cloudModifiedAt)
+    save.cloudPresent == true -> "Stand vorhanden · Zeit nicht verfügbar"
+    save.cloudPresent == false -> "Noch kein Stand"
+    else -> "Offline · Status nicht verfügbar"
+}
 
 @Composable
 private fun PlayTimePanel(games: List<ConsoleGame>) {

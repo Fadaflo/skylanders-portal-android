@@ -290,7 +290,7 @@ internal fun ConsoleScreen(
                     title = { Text("Zwei Spielstände gefunden") },
                     text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                         Text("${saveInfo?.label ?: if (scope == "figures") "Figurensammlung" else "Spielstand"}: Dieses Gerät und die Cloud wurden beide geändert. Beide Versionen bleiben gesichert.")
-                        if (saveInfo != null) Text("Dieses Gerät: ${saveTime(saveInfo.localModifiedAt)}\nCloud: ${saveTime(saveInfo.cloudModifiedAt)}",
+                        if (saveInfo != null) Text("Dieses Gerät: ${saveTime(saveInfo.localModifiedAt)}\nCloud: ${cloudTimeLabel(saveInfo)}",
                             color = Muted)
                         Text("Welcher Stand soll aktiv sein? Die Uhrzeit allein sagt nicht, welcher Spielfortschritt weiter ist.", color = Muted)
                         TextButton(onCloudDefer) { Text("Später lokal weiterspielen") }
