@@ -238,7 +238,16 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
 
     private fun playMenuFeedback(cue: ConsoleCue) {
         menuAudio.play(cue)
-        menuHaptics.play(cue)
+        // Navigation rumbles at the physical input, never at the delayed pager settlement.
+        if (cue != ConsoleCue.NAVIGATE) menuHaptics.play(cue)
+    }
+
+    private fun navigationHaptics(keyCode: Int) {
+        if (state.launchingGameKey == null &&
+            (keyCode in KeyEvent.KEYCODE_DPAD_UP..KeyEvent.KEYCODE_DPAD_RIGHT ||
+                keyCode == KeyEvent.KEYCODE_BUTTON_L1 || keyCode == KeyEvent.KEYCODE_BUTTON_R1)) {
+            menuHaptics.play(ConsoleCue.NAVIGATE)
+        }
     }
 
     private fun updateHapticsStatus() {
@@ -482,6 +491,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             if (menuKey != null) {
                 if (event.action == KeyEvent.ACTION_DOWN &&
                     (event.repeatCount == 0 || menuKey in KeyEvent.KEYCODE_DPAD_UP..KeyEvent.KEYCODE_DPAD_RIGHT)) {
+                    navigationHaptics(menuKey)
                     controllerKeys.trySend(menuKey)
                 }
                 return true
@@ -505,6 +515,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             val now = SystemClock.uptimeMillis()
             if (direction != 0 && (direction != lastStickDirection || now - lastStickTime > 240)) {
                 rememberController(event.device)
+                navigationHaptics(direction)
                 if (state.page == ConsolePage.CONTROLLERS) {
                     val label = when (direction) {
                         KeyEvent.KEYCODE_DPAD_LEFT -> "← Links"

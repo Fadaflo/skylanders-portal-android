@@ -1019,13 +1019,14 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
 private fun SettingsCardFrame(title: String, target: FocusRequester, onFocused: () -> Unit,
     passive: Boolean = false, content: @Composable () -> Unit) {
     var focused by remember { mutableStateOf(false) }
+    val highlighted = focused && LocalInputModeManager.current.inputMode == InputMode.Keyboard
     Box(Modifier.fillMaxWidth().focusRequester(target).onFocusChanged {
         focused = it.hasFocus
         if (it.hasFocus) onFocused()
     }.focusGroup().then(if (passive) Modifier.focusable() else Modifier)
         .semantics { contentDescription = "Einstellung: $title" }
-        .border(if (passive && focused) 2.dp else 0.dp,
-            if (passive && focused) Ice else Color.Transparent, Shape)) { content() }
+        .border(if (highlighted) 2.dp else 0.dp,
+            if (highlighted) Ice else Color.Transparent, Shape)) { content() }
 }
 
 @Composable
@@ -1041,9 +1042,7 @@ private fun SettingsSwitch(checked: Boolean, onChecked: (Boolean) -> Unit, label
 
 @Composable
 private fun HapticsControl(state: ConsoleState, onEnabled: (Boolean) -> Unit, onTest: () -> Unit) {
-    var focused by remember { mutableStateOf(false) }
-    val controllerFocus = focused && LocalInputModeManager.current.inputMode == InputMode.Keyboard
-    PortalSurface(Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused }
+    PortalSurface(Modifier.fillMaxWidth()
         .onPreviewKeyEvent { event ->
             when (event.key) {
                 Key.Enter, Key.NumPadEnter, Key.DirectionCenter -> {
@@ -1062,7 +1061,7 @@ private fun HapticsControl(state: ConsoleState, onEnabled: (Boolean) -> Unit, on
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 PortalCardTitle("Controller-Vibration", Modifier.weight(1f))
                 SettingsSwitch(state.controllerVibration, onEnabled, "Controller-Vibration",
-                    emphasized = controllerFocus, keyboardFocus = false)
+                    keyboardFocus = false)
             }
             Text(state.hapticsStatus, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
             Text("Kurzes Feedback beim Bedienen des Menüs. Die Einstellung bleibt gespeichert.", color = Muted, fontSize = 12.sp)
@@ -1078,23 +1077,15 @@ private fun AudioControl(title: String, description: String, enabled: Boolean, v
     onEnabled: (Boolean) -> Unit, onVolume: (Float) -> Unit, previewSound: Boolean = false,
     extra: @Composable () -> Unit = {}) {
     val sound = LocalMenuSound.current
-    val inputMode = LocalInputModeManager.current
-    var focused by remember { mutableStateOf(false) }
-    var toggleFocus by remember { mutableStateOf(false) }
-    val controllerFocus = focused && inputMode.inputMode == InputMode.Keyboard
     // One controller stop per audio card. Touch and accessibility keep the individual controls.
-    PortalSurface(Modifier.fillMaxWidth().onFocusChanged {
-        if (it.isFocused && !focused) toggleFocus = !enabled
-        focused = it.isFocused
-    }.onPreviewKeyEvent { event ->
+    PortalSurface(Modifier.fillMaxWidth().onPreviewKeyEvent { event ->
         when (event.key) {
             Key.Enter, Key.NumPadEnter, Key.DirectionCenter -> {
-                if (event.type == KeyEventType.KeyDown) { toggleFocus = true; onEnabled(!enabled) }
+                if (event.type == KeyEventType.KeyDown) onEnabled(!enabled)
                 true
             }
             Key.DirectionLeft, Key.DirectionRight -> {
                 if (event.type == KeyEventType.KeyDown) {
-                    toggleFocus = !enabled
                     if (enabled) {
                         val delta = if (event.key == Key.DirectionRight) 1 else -1
                         onVolume(((volume * 20).roundToInt() + delta).coerceIn(0, 20) / 20f)
@@ -1113,14 +1104,13 @@ private fun AudioControl(title: String, description: String, enabled: Boolean, v
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 PortalCardTitle(title, Modifier.weight(1f))
                 SettingsSwitch(enabled, onEnabled, title,
-                    emphasized = controllerFocus && (toggleFocus || !enabled), keyboardFocus = false)
+                    keyboardFocus = false)
             }
             Text(description, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(18.dp)) {
                 Slider(volume, onVolume, enabled = enabled, steps = 19,
                     modifier = Modifier.weight(1f).focusProperties { canFocus = false }
-                        .border(2.dp, if (controllerFocus && !toggleFocus && enabled) Ice else Color.Transparent, RoundedCornerShape(14.dp))
                         .padding(horizontal = 8.dp).semantics { contentDescription = "Lautstärke $title" })
                 Text(if (enabled) "${(volume * 100).roundToInt()} %" else "Aus", color = Color.White,
                     fontWeight = FontWeight.Bold, modifier = Modifier.width(48.dp))
