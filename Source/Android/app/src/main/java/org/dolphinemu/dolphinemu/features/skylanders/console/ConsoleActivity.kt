@@ -81,6 +81,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         }
     }
     private lateinit var menuAudio: ConsoleAudio
+    private lateinit var menuHaptics: ConsoleHaptics
     private var launchJob: Job? = null
     private var lastStickDirection = 0
     private var lastStickTime = 0L
@@ -103,6 +104,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             selectedKey = preferences.getString("selected_game", "giants") ?: "giants",
             lastPlayedPath = preferences.getString("last_played", null),
             audio = ConsoleAudioSettings.load(preferences),
+            controllerVibration = preferences.getBoolean("menu_controller_vibration", true),
             autoController = preferences.getBoolean("auto_controller", true),
             autoGraphics = preferences.getBoolean("auto_graphics", true),
             graphicsSetup = preferences.getString("graphics_profile", null) ?: "Automatisch · wird beim Spielstart gewählt",
@@ -113,22 +115,33 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             savedInstanceState?.getInt("menu_music_position") ?: 0) { error ->
             state = state.copy(audioError = error)
         }
+        menuHaptics = ConsoleHaptics(state.controllerVibration)
         // Use our quiet UI cues instead of adding Android's default click on top.
         window.decorView.isSoundEffectsEnabled = false
         setContent {
             ConsoleScreen(state, controllerInput, ::dispatchMenuKey,
-                onAudioSettings = ::updateAudio, onMenuSound = menuAudio::play,
+                onAudioSettings = ::updateAudio, onMenuSound = ::playMenuFeedback,
+                onControllerVibration = { enabled ->
+                    state = state.copy(controllerVibration = enabled)
+                    preferences.edit().putBoolean("menu_controller_vibration", enabled).apply()
+                    menuHaptics.update(enabled)
+                    playMenuFeedback(ConsoleCue.CONFIRM)
+                },
+                onTestVibration = {
+                    menuHaptics.test(preferredController ?: preferences.getString("controller_profile_descriptor", null))
+                    updateHapticsStatus()
+                },
                 onInfoAnimation = { enabled ->
                     state = state.copy(immersiveInfo = enabled)
                     preferences.edit().putBoolean("immersive_info", enabled).apply()
-                    menuAudio.play(ConsoleCue.CONFIRM)
+                    playMenuFeedback(ConsoleCue.CONFIRM)
                 },
                 onPage = {
-                    if (it != state.page) menuAudio.play(ConsoleCue.NAVIGATE)
+                    if (it != state.page) playMenuFeedback(ConsoleCue.NAVIGATE)
                     state = state.copy(page = it)
                 },
                 onSelect = { game ->
-                    if (game.key != state.selectedKey) menuAudio.play(ConsoleCue.NAVIGATE)
+                    if (game.key != state.selectedKey) playMenuFeedback(ConsoleCue.NAVIGATE)
                     state = state.copy(selectedKey = game.key)
                     preferences.edit().putString("selected_game", game.key).apply()
                 }, onPlay = ::play, onAddGames = ::addGames,
@@ -160,7 +173,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 onCloseImport = { state = state.copy(importOpen = false) },
                 onDismissImportMessage = { state = state.copy(importMessage = null) },
                 onAdvanced = {
-                    menuAudio.play(ConsoleCue.CONFIRM)
+                    playMenuFeedback(ConsoleCue.CONFIRM)
                     startActivity(Intent(this, MainActivity::class.java))
                 })
         }
@@ -188,6 +201,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         super.onResume()
         state = state.copy(launchingGameKey = null)
         menuAudio.resume()
+        menuHaptics.resume()
         WindowCompat.getInsetsController(window, window.decorView).apply {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -206,11 +220,13 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         launchJob?.cancel()
         state = state.copy(launchingGameKey = null)
         menuAudio.pause()
+        menuHaptics.pause()
         super.onPause()
     }
 
     override fun onDestroy() {
         menuAudio.release()
+        menuHaptics.pause()
         super.onDestroy()
     }
 
@@ -218,6 +234,21 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         state = state.copy(audio = settings)
         settings.save(preferences)
         menuAudio.update(settings)
+    }
+
+    private fun playMenuFeedback(cue: ConsoleCue) {
+        menuAudio.play(cue)
+        menuHaptics.play(cue)
+    }
+
+    private fun updateHapticsStatus() {
+        val status = menuHaptics.status()
+        state = state.copy(hapticsAvailable = status.available, hapticsStatus = status.description)
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) menuHaptics.touchInput()
+        return super.dispatchTouchEvent(event)
     }
 
     override fun onStop() {
@@ -249,7 +280,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         val path = game.path ?: return addGames()
         if (state.launchingGameKey != null) return
         synchronizeController()
-        menuAudio.play(ConsoleCue.PORTAL)
+        playMenuFeedback(ConsoleCue.PORTAL)
         if (catalogGameFor("Skylanders ${game.title}") != null) {
             if (state.autoGraphics && NativeLibrary.IsUninitialized()) {
                 val profile = applyConsoleGraphics(this, game)
@@ -274,12 +305,12 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     }
 
     private fun addGames() {
-        menuAudio.play(ConsoleCue.CONFIRM)
+        playMenuFeedback(ConsoleCue.CONFIRM)
         state = state.copy(importOpen = true)
     }
 
     private fun refresh() {
-        menuAudio.play(ConsoleCue.CONFIRM)
+        playMenuFeedback(ConsoleCue.CONFIRM)
         AfterDirectoryInitializationRunner().runWithLifecycle(this) {
             GameFileCacheManager.startRescan()
             refreshCollection()
@@ -376,12 +407,13 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     }
 
     private fun openBluetooth() {
-        menuAudio.play(ConsoleCue.CONFIRM)
+        playMenuFeedback(ConsoleCue.CONFIRM)
         val intent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
         if (intent.resolveActivity(packageManager) != null) startActivity(intent)
     }
 
     private fun updateControllers() {
+        updateHapticsStatus()
         state = state.copy(controllers = InputDevice.getDeviceIds().toList().mapNotNull { id ->
             InputDevice.getDevice(id)?.takeIf { !it.isVirtual && it.isController() }?.name
         })
@@ -416,6 +448,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     }
 
     private fun rememberController(device: InputDevice?) {
+        if (device != null && !device.isVirtual && device.isController()) menuHaptics.controllerInput(device)
         if (device != null && !device.isVirtual && device.isController() && preferredController != device.descriptor) {
             preferredController = device.descriptor
             scheduleControllerSetup()
@@ -434,6 +467,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             event.keyCode == KeyEvent.KEYCODE_BUTTON_L1 || event.keyCode == KeyEvent.KEYCODE_BUTTON_R1 ||
             event.isFromSource(InputDevice.SOURCE_GAMEPAD) ||
             event.isFromSource(InputDevice.SOURCE_JOYSTICK)) {
+            if (event.action == KeyEvent.ACTION_DOWN) rememberController(event.device)
             if (state.page == ConsolePage.CONTROLLERS && event.action == KeyEvent.ACTION_DOWN) {
                 state = state.copy(lastInput = "${event.device?.name ?: "Controller"}: ${KeyEvent.keyCodeToString(event.keyCode).removePrefix("KEYCODE_")}")
             }
@@ -446,7 +480,6 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 else -> null
             }
             if (menuKey != null) {
-                rememberController(event.device)
                 if (event.action == KeyEvent.ACTION_DOWN &&
                     (event.repeatCount == 0 || menuKey in KeyEvent.KEYCODE_DPAD_UP..KeyEvent.KEYCODE_DPAD_RIGHT)) {
                     controllerKeys.trySend(menuKey)
@@ -460,7 +493,6 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     // Intercept before Compose: its generic-motion handler may consume joystick events.
     override fun dispatchGenericMotionEvent(event: MotionEvent): Boolean {
         if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) && event.action == MotionEvent.ACTION_MOVE) {
-            rememberController(event.device)
             val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
             val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)
             val x = if (abs(hatX) > 0.5f) hatX else event.getAxisValue(MotionEvent.AXIS_X)
@@ -472,6 +504,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             }
             val now = SystemClock.uptimeMillis()
             if (direction != 0 && (direction != lastStickDirection || now - lastStickTime > 240)) {
+                rememberController(event.device)
                 if (state.page == ConsolePage.CONTROLLERS) {
                     val label = when (direction) {
                         KeyEvent.KEYCODE_DPAD_LEFT -> "← Links"
@@ -496,17 +529,17 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             if (keyCode == KeyEvent.KEYCODE_BACK) {
                 launchJob?.cancel()
                 state = state.copy(launchingGameKey = null)
-                menuAudio.play(ConsoleCue.BACK)
+                playMenuFeedback(ConsoleCue.BACK)
             }
             return
         }
         when (keyCode) {
             KeyEvent.KEYCODE_BACK -> {
-                menuAudio.play(ConsoleCue.BACK)
+                playMenuFeedback(ConsoleCue.BACK)
                 onBackPressedDispatcher.onBackPressed()
             }
             KeyEvent.KEYCODE_BUTTON_L1, KeyEvent.KEYCODE_BUTTON_R1 -> {
-                menuAudio.play(ConsoleCue.NAVIGATE)
+                playMenuFeedback(ConsoleCue.NAVIGATE)
                 val offset = if (keyCode == KeyEvent.KEYCODE_BUTTON_R1) 1 else -1
                 val pages = ConsolePage.entries
                 state = state.copy(page = pages[(state.page.ordinal + offset + pages.size) % pages.size])
@@ -514,7 +547,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             else -> {
                 // Game swipes sound once when the selected page actually settles.
                 if (state.page != ConsolePage.GAMES && keyCode in KeyEvent.KEYCODE_DPAD_UP..KeyEvent.KEYCODE_DPAD_RIGHT) {
-                    menuAudio.play(ConsoleCue.NAVIGATE)
+                    playMenuFeedback(ConsoleCue.NAVIGATE)
                 }
                 val now = SystemClock.uptimeMillis()
                 // Compose buttons handle Enter consistently after entering keyboard input mode.
@@ -528,7 +561,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
 
     override fun setVersionString(version: String) = Unit
     override fun launchSettingsActivity(menuTag: MenuTag?) {
-        menuAudio.play(ConsoleCue.CONFIRM)
+        playMenuFeedback(ConsoleCue.CONFIRM)
         AfterDirectoryInitializationRunner().runWithLifecycle(this) { SettingsActivity.launch(this, menuTag) }
     }
     override fun setRefreshing(refreshing: Boolean) { state = state.copy(refreshing = refreshing) }

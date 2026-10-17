@@ -113,6 +113,8 @@ internal fun ConsoleScreen(
     controllerKeys: Flow<Int>,
     dispatchMenuKey: (Int) -> Unit,
     onAudioSettings: (ConsoleAudioSettings) -> Unit,
+    onControllerVibration: (Boolean) -> Unit,
+    onTestVibration: () -> Unit,
     onMenuSound: (ConsoleCue) -> Unit,
     onInfoAnimation: (Boolean) -> Unit,
     onPage: (ConsolePage) -> Unit,
@@ -196,7 +198,8 @@ internal fun ConsoleScreen(
                         }
                         ConsolePage.CONTROLLERS -> ControllersPage(state, onBluetooth, onControllerSettings, onAutoController)
                         ConsolePage.SETTINGS -> SettingsPage(state, onAudioSettings, onInfoAnimation, onAutoGraphics,
-                            onSettings, onAdvanced, onSetup, onAddGames, { settingsNavigating = it })
+                            onSettings, onAdvanced, onSetup, onAddGames, { settingsNavigating = it },
+                            onControllerVibration, onTestVibration)
                     }
                 }
             }
@@ -881,14 +884,15 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
     onInfoAnimation: (Boolean) -> Unit,
     onAutoGraphics: (Boolean) -> Unit,
     onSettings: () -> Unit, onAdvanced: () -> Unit, onSetup: () -> Unit, onAddGames: () -> Unit,
-    onNavigationChanged: (Boolean) -> Unit) {
+    onNavigationChanged: (Boolean) -> Unit, onControllerVibration: (Boolean) -> Unit,
+    onTestVibration: () -> Unit) {
     val sound = LocalMenuSound.current
     val inputMode = LocalInputModeManager.current
     val list = rememberLazyListState()
     val scope = rememberCoroutineScope()
     val titles = listOf("Bibliothek und Einrichtung", "Grafik", "Spielinfos", "Menümusik",
-        "Menüklänge", "Lokales Profil", "Bild, Ton und Spielsteuerung", "Erweiterte Verwaltung")
-    val targets = remember { List(8) { FocusRequester() } }
+        "Menüklänge", "Controller-Vibration", "Lokales Profil", "Bild, Ton und Spielsteuerung", "Erweiterte Verwaltung")
+    val targets = remember { List(titles.size) { FocusRequester() } }
     var selectedCard by rememberSaveable { mutableIntStateOf(0) }
     var navigationJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     val onFocused: (Int) -> Unit = { if (navigationJob?.isActive != true) selectedCard = it }
@@ -976,7 +980,7 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
         }
         item(key = "effects") {
             SettingsCardFrame(titles[4], targets[4], { onFocused(4) }) {
-                AudioControl(titles[4], "Ein kurzes, weiches Wischen beim Navigieren und Bestätigen.",
+                AudioControl(titles[4], "Ein kurzer, dumpfer Ton beim Navigieren und Bestätigen.",
                     state.audio.effectsEnabled, state.audio.effectsVolume,
                     { onAudioSettings(state.audio.copy(effectsEnabled = it)); sound(ConsoleCue.CONFIRM) },
                     { onAudioSettings(state.audio.copy(effectsVolume = it)) }, previewSound = true) {
@@ -984,21 +988,26 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
                 }
             }
         }
+        item(key = "haptics") {
+            SettingsCardFrame(titles[5], targets[5], { onFocused(5) }) {
+                HapticsControl(state, onControllerVibration, onTestVibration)
+            }
+        }
         item(key = "profile") {
-            SettingsCardFrame(titles[5], targets[5], { onFocused(5) }, passive = true) {
-                InfoCard(titles[5], "Deine Figuren und Spielstände werden auf diesem Gerät gespeichert. Anmeldung und Cloud-Abgleich kommen in einem späteren Schritt.")
+            SettingsCardFrame(titles[6], targets[6], { onFocused(6) }, passive = true) {
+                InfoCard(titles[6], "Deine Figuren und Spielstände werden auf diesem Gerät gespeichert. Anmeldung und Cloud-Abgleich kommen in einem späteren Schritt.")
             }
         }
         item(key = "emulator") {
-            SettingsCardFrame(titles[6], targets[6], { onFocused(6) }) {
-                InfoCard(titles[6], "Öffne die vorhandenen Einstellungen des Emulators.") {
+            SettingsCardFrame(titles[7], targets[7], { onFocused(7) }) {
+                InfoCard(titles[7], "Öffne die vorhandenen Einstellungen des Emulators.") {
                     ConsoleButton("Einstellungen öffnen", Icons.Outlined.Settings, onSettings, primary = true)
                 }
             }
         }
         item(key = "advanced") {
-            SettingsCardFrame(titles[7], targets[7], { onFocused(7) }) {
-                InfoCard(titles[7], "Die bisherige Dolphin-Oberfläche bleibt für zusätzliche Werkzeuge erreichbar.") {
+            SettingsCardFrame(titles[8], targets[8], { onFocused(8) }) {
+                InfoCard(titles[8], "Die bisherige Dolphin-Oberfläche bleibt für zusätzliche Werkzeuge erreichbar.") {
                     ConsoleButton("Dolphin-Werkzeuge", Icons.Outlined.Tune, onAdvanced)
                 }
             }
@@ -1028,6 +1037,40 @@ private fun SettingsSwitch(checked: Boolean, onChecked: (Boolean) -> Unit, label
         .focusProperties { canFocus = keyboardFocus }
         .border(2.dp, if (emphasized || (focused && keyboard)) Ice else Color.Transparent, CircleShape)
         .padding(4.dp).semantics { contentDescription = label })
+}
+
+@Composable
+private fun HapticsControl(state: ConsoleState, onEnabled: (Boolean) -> Unit, onTest: () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
+    val controllerFocus = focused && LocalInputModeManager.current.inputMode == InputMode.Keyboard
+    PortalSurface(Modifier.fillMaxWidth().onFocusChanged { focused = it.isFocused }
+        .onPreviewKeyEvent { event ->
+            when (event.key) {
+                Key.Enter, Key.NumPadEnter, Key.DirectionCenter -> {
+                    if (event.type == KeyEventType.KeyDown) onEnabled(!state.controllerVibration)
+                    true
+                }
+                Key.DirectionLeft, Key.DirectionRight -> true
+                else -> if (event.nativeKeyEvent.keyCode == android.view.KeyEvent.KEYCODE_BUTTON_X) {
+                    if (event.type == KeyEventType.KeyDown && state.controllerVibration && state.hapticsAvailable) onTest()
+                    true
+                } else false
+            }
+        }.focusable().semantics { contentDescription = "Controller-Vibration: Bestätigen schaltet ein oder aus" },
+        shadow = false, focusWholeSurface = false) {
+        Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                PortalCardTitle("Controller-Vibration", Modifier.weight(1f))
+                SettingsSwitch(state.controllerVibration, onEnabled, "Controller-Vibration",
+                    emphasized = controllerFocus, keyboardFocus = false)
+            }
+            Text(state.hapticsStatus, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
+            Text("Kurzes Feedback beim Bedienen des Menüs. Die Einstellung bleibt gespeichert.", color = Muted, fontSize = 12.sp)
+            ConsoleButton("Vibration testen · □ / X", Icons.Outlined.Vibration, onTest,
+                enabled = state.controllerVibration && state.hapticsAvailable,
+                modifier = Modifier.focusProperties { canFocus = false })
+        }
+    }
 }
 
 @Composable

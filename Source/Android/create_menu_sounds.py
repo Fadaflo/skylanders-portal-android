@@ -1,40 +1,40 @@
-"""Generate original UI swishes and a soft launch chime with the standard library."""
+"""Generate original muted UI taps and a soft launch chime with the standard library."""
 from pathlib import Path
 import math
 import random
 import struct
 import wave
 
-TARGET = Path(__file__).resolve().parents[1] / "dolphin/Source/Android/app/src/main/res/raw"
+HERE = Path(__file__).resolve()
+TARGET = (HERE.parent / "app/src/main/res/raw" if (HERE.parent / "app").is_dir()
+          else HERE.parents[1] / "dolphin/Source/Android/app/src/main/res/raw")
 RATE = 44100
 
 
-def swish(filename, duration, seed, pitch):
-    rng = random.Random(seed)
-    filtered = 0.0
-    bass = 0.0
-    phase = 0.0
-    samples = []
+def soft_tap(filename, duration, pitch, peak_level):
+    """A short, rounded body without airy noise or a frequency sweep."""
+    samples, envelopes = [], []
     for i in range(round(RATE * duration)):
         t = i / RATE
-        u = t / duration
-        envelope = math.sin(math.pi * u) ** 2.4
-        cutoff = 380 + 1100 * math.sin(math.pi * u) ** 2
-        alpha = 1 - math.exp(-2 * math.pi * cutoff / RATE)
-        filtered += alpha * (rng.uniform(-1, 1) - filtered)
-        bass += 0.012 * (filtered - bass)
-        phase += 2 * math.pi * (pitch * (1 - 0.52 * u)) / RATE
-        # Soft band-limited air with a small falling, rounded low-frequency body.
-        samples.append(envelope * ((filtered - bass) * 1.7 + math.sin(phase) * 0.10))
+        attack = 1 - math.exp(-t / 0.0025)
+        decay = math.exp(-t / (duration * 0.27))
+        tail = min(1.0, (duration - t) / 0.010)
+        envelope = attack * decay * (0.5 - 0.5 * math.cos(math.pi * tail))
+        phase = 2 * math.pi * pitch * t
+        body = math.sin(phase) + 0.07 * math.sin(2 * phase) + 0.02 * math.sin(3 * phase)
+        samples.append(envelope * body)
+        envelopes.append(envelope)
+    # Remove DC without introducing steps at either end of the waveform.
+    bias = sum(samples) / sum(envelopes)
+    samples = [value - bias * env for value, env in zip(samples, envelopes)]
     peak = max(abs(v) for v in samples)
-    pcm = b"".join(struct.pack("<h", round(v / peak * 0.40 * 32767)) for v in samples)
+    pcm = b"".join(struct.pack("<h", round(v / peak * peak_level * 32767)) for v in samples)
     with wave.open(str(TARGET / filename), "wb") as output:
         output.setnchannels(1)
         output.setsampwidth(2)
         output.setframerate(RATE)
         output.writeframes(pcm)
-    print(filename, f"{duration * 1000:.0f} ms", f"{len(pcm)} PCM bytes")
-
+    print(filename, f"{duration * 1000:.0f} ms soft tap", f"{len(pcm)} PCM bytes")
 
 def launch_chime():
     duration = 0.62
@@ -66,6 +66,6 @@ def launch_chime():
 
 if __name__ == "__main__":
     TARGET.mkdir(parents=True, exist_ok=True)
-    swish("portal_menu_swish.wav", 0.125, 82026, 185)
-    swish("portal_menu_confirm.wav", 0.165, 92026, 155)
+    soft_tap("portal_menu_swish.wav", 0.050, 180, 0.18)
+    soft_tap("portal_menu_confirm.wav", 0.065, 230, 0.22)
     launch_chime()
