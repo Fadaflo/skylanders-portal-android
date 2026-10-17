@@ -34,6 +34,10 @@ internal fun applyConsoleGraphics(context: Context, game: ConsoleGame): String {
         if (Build.VERSION.SDK_INT >= 31) Build.SOC_MODEL else "").joinToString(" ")
     val plan = consoleGraphicsPlan(hardware, activityManager.isLowRamDevice,
         context.packageManager.hasSystemFeature("android.hardware.vulkan.level"))
+    // Spyro's Adventure needs a lighter rendering path than Giants on the same tablet.
+    // Keep the hardware backend choice, but render this game's bloom at native size.
+    val spyro = game.key == "spyro"
+    val resolution = if (spyro) 1 else plan.resolution
     val directory = File(DirectoryInitialization.getUserDirectory(), "Config")
     val backup = File(directory, "Profiles/PortalGraphics/Vor-Automatik.ini")
     val original = File(directory, "GFX.ini")
@@ -48,7 +52,7 @@ internal fun applyConsoleGraphics(context: Context, game: ConsoleGame): String {
     int("Settings", "ShaderCompilationMode", plan.shaders)
     int("Settings", "ShaderCompilerThreads", if (plan.backend == "OGL") 0 else 1)
     int("Settings", "ShaderPrecompilerThreads", if (plan.backend == "OGL") 0 else 1)
-    int("Settings", "InternalResolution", plan.resolution)
+    int("Settings", "InternalResolution", resolution)
     int("Settings", "MSAA", 1)
     int("Settings", "SafeTextureCacheColorSamples", 128)
     bool("Settings", "SSAA", false)
@@ -61,8 +65,8 @@ internal fun applyConsoleGraphics(context: Context, game: ConsoleGame): String {
     bool("Hacks", "EFBEmulateFormatChanges", true)
     bool("Hacks", "VISkip", false)
     bool("Hacks", "ImmediateXFBEnable", false)
-    bool("Hacks", "EFBScaledCopy", game.title != "Giants")
+    bool("Hacks", "EFBScaledCopy", game.key != "giants" && !spyro)
     NativeConfig.save(layer)
-    android.util.Log.i("PortalGraphics", "${game.title}: ${plan.backend}, shaders=${plan.shaders}, depth=${plan.fastDepth}, scale=${plan.resolution}")
-    return plan.label
+    android.util.Log.i("PortalGraphics", "${game.title}: ${plan.backend}, shaders=${plan.shaders}, depth=${plan.fastDepth}, scale=$resolution")
+    return if (spyro) "Automatisch · Spyro’s Adventure · Leistung · 1×" else plan.label
 }
