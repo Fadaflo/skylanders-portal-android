@@ -8,6 +8,11 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.VerticalPager
@@ -837,9 +842,17 @@ private fun SceneTile(game: ConsoleGame, active: Boolean, size: androidx.compose
     onBounds: (Rect) -> Unit, onClick: () -> Unit) {
     val art: Any = game.sceneArtwork ?: "file:///android_asset/skylanders/images/${game.artwork}"
     val tileShape = RoundedCornerShape(2.dp)
+    val motion = LocalPortalMotion.current
+    val breathingPhase: State<Float> = if (motion && active) {
+        rememberInfiniteTransition(label = "gameTileBreathing").animateFloat(
+            0f, (2f * Math.PI).toFloat(),
+            infiniteRepeatable(tween(7200, easing = LinearEasing), RepeatMode.Restart),
+            label = "gameTileBreath")
+    } else remember { mutableFloatStateOf(0f) }
     Box(modifier.width(size).height(size / 1.6f + 20.dp).padding(12.dp).zIndex(if (active) 1f else 0f)
         .graphicsLayer {
-            scaleX = 0.84f + 0.16f * prominence()
+            val breath = if (motion && active) (1f - kotlin.math.cos(breathingPhase.value)) * 0.5f else 0f
+            scaleX = (0.84f + 0.16f * prominence()) * (1f + breath * 0.035f)
             scaleY = scaleX
         }
         .shadow(
@@ -853,7 +866,7 @@ private fun SceneTile(game: ConsoleGame, active: Boolean, size: androidx.compose
         PortalSurface(Modifier.fillMaxSize().semantics { selected = active }
             .onGloballyPositioned { if (active && !launching) onBounds(it.boundsInRoot()) },
             accent = Color.White, selected = active, enabled = ready && !launching,
-            breathe = true, prominentMotion = true, shadow = false,
+            shadow = false,
             shape = tileShape, onClick = onClick) {
             Box(Modifier.fillMaxSize().background(Color(game.color).copy(alpha = 0.07f)))
             AsyncImage(art, game.title, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
