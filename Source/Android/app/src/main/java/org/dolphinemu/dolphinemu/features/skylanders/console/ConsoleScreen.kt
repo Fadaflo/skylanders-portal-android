@@ -152,6 +152,7 @@ internal fun ConsoleScreen(
     onAccountCompleteReset: (String, String, String) -> Unit,
     onCloseForProfileSwitch: () -> Unit,
     onCloudRefresh: () -> Unit,
+    onDownloadUpdate: () -> Unit,
     onCloudChooseLocal: () -> Unit,
     onCloudChooseRemote: () -> Unit,
     onCloudDefer: () -> Unit,
@@ -240,7 +241,9 @@ internal fun ConsoleScreen(
                 Box(Modifier.weight(1f)) {
                     if (state.controllerTestActive) ControllerTestPage(state, onStopControllerTest)
                     else if (state.accountOpen) ProfilePage(state.account, state.games,
-                        state.cloudStatus, state.cloudBusy, onCloudRefresh, onCloseAccount,
+                        state.cloudStatus, state.cloudBusy, state.cloudSaveInfo,
+                        state.updateAvailable, state.updateBusy, state.updateMessage,
+                        onCloudRefresh, onDownloadUpdate, onCloseAccount,
                         onAccountSignIn, onAccountSignUp, onAccountSignOut, onAccountUpdateName,
                         onAccountUpdateAvatar, onAccountUpdatePassword, onAccountRequestReset,
                         onAccountCompleteReset)
@@ -282,10 +285,14 @@ internal fun ConsoleScreen(
                 text = { Text("Deine Spielstände werden getrennt pro Konto geladen. Schließe die App und öffne sie erneut, damit das richtige Profil aktiv wird.") },
                 confirmButton = { TextButton(onCloseForProfileSwitch) { Text("App schließen") } })
             state.cloudConflictScope?.let { scope ->
+                val saveInfo = state.cloudSaveInfo.firstOrNull { it.scope == scope }
                 AlertDialog(onDismissRequest = {},
                     title = { Text("Zwei Spielstände gefunden") },
-                    text = { Column {
-                        Text("${if (scope == "figures") "Figurensammlung" else "Spielstand"}: Dieses Gerät und die Cloud haben unterschiedliche Fortschritte. Beide Versionen bleiben gesichert. Welcher Stand soll jetzt aktiv sein?")
+                    text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Text("${saveInfo?.label ?: if (scope == "figures") "Figurensammlung" else "Spielstand"}: Dieses Gerät und die Cloud wurden beide geändert. Beide Versionen bleiben gesichert.")
+                        if (saveInfo != null) Text("Dieses Gerät: ${saveTime(saveInfo.localModifiedAt)}\nCloud: ${saveTime(saveInfo.cloudModifiedAt)}",
+                            color = Muted)
+                        Text("Welcher Stand soll aktiv sein? Die Uhrzeit allein sagt nicht, welcher Spielfortschritt weiter ist.", color = Muted)
                         TextButton(onCloudDefer) { Text("Später lokal weiterspielen") }
                     } },
                     confirmButton = { TextButton(onCloudChooseLocal, enabled = !state.cloudBusy) {
@@ -407,6 +414,11 @@ private fun ConsoleHeader(state: ConsoleState, onSelectPage: (ConsolePage) -> Un
                     if (phonePortrait) 42.dp else 48.dp,
                     selected = state.accountOpen, onClick = onOpenAccount,
                     modifier = Modifier.focusRequester(accountFocus))
+                if (state.updateAvailable != null) Box(Modifier.align(Alignment.TopEnd)
+                    .offset(x = 3.dp, y = (-3).dp).size(18.dp)
+                    .background(Color(0xFFFFC65C), CircleShape), contentAlignment = Alignment.Center) {
+                    Text("!", color = Color(0xFF151A22), fontSize = 12.sp, fontWeight = FontWeight.Black)
+                }
             }
             if (activeBounds != null && !state.accountOpen) Box(Modifier.align(Alignment.BottomStart)
                 .offset { IntOffset(lineStart.roundToInt(), 0) }

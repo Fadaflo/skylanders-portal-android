@@ -37,6 +37,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 private val ProfileInk = PortalPalette.Background
 private val ProfileIce = PortalPalette.Focus
@@ -62,7 +65,9 @@ internal fun ProfileAvatar(avatar: String, name: String?, size: Dp, selected: Bo
 
 @Composable
 internal fun ProfilePage(account: ConsoleAccountState, games: List<ConsoleGame>,
-    cloudStatus: String, cloudBusy: Boolean, onCloudRefresh: () -> Unit,
+    cloudStatus: String, cloudBusy: Boolean, cloudSaveInfo: List<CloudSaveInfo>,
+    updateAvailable: PortalUpdate?, updateBusy: Boolean, updateMessage: String?,
+    onCloudRefresh: () -> Unit, onDownloadUpdate: () -> Unit,
     onBack: () -> Unit, onSignIn: (String, String) -> Unit,
     onSignUp: (String, String, String) -> Unit, onSignOut: () -> Unit,
     onUpdateName: (String) -> Unit, onUpdateAvatar: (String) -> Unit,
@@ -83,10 +88,11 @@ internal fun ProfilePage(account: ConsoleAccountState, games: List<ConsoleGame>,
             ProfileButton("Zurück", Icons.Outlined.ArrowBack, onBack,
                 modifier = Modifier.focusRequester(backFocus))
         }
+        if (updateAvailable != null) UpdatePanel(updateAvailable, updateBusy, updateMessage, onDownloadUpdate)
         if (account.email == null) {
             SignedOutProfile(account, onSignIn, onSignUp, onRequestReset, onCompleteReset)
         } else {
-            SignedInProfile(account, games, cloudStatus, cloudBusy, onCloudRefresh,
+            SignedInProfile(account, games, cloudStatus, cloudBusy, cloudSaveInfo, onCloudRefresh,
                 onSignOut, onUpdateName, onUpdateAvatar,
                 onUpdatePassword)
         }
@@ -95,7 +101,8 @@ internal fun ProfilePage(account: ConsoleAccountState, games: List<ConsoleGame>,
 
 @Composable
 private fun SignedInProfile(account: ConsoleAccountState, games: List<ConsoleGame>,
-    cloudStatus: String, cloudBusy: Boolean, onCloudRefresh: () -> Unit,
+    cloudStatus: String, cloudBusy: Boolean, cloudSaveInfo: List<CloudSaveInfo>,
+    onCloudRefresh: () -> Unit,
     onSignOut: () -> Unit, onUpdateName: (String) -> Unit, onUpdateAvatar: (String) -> Unit,
     onUpdatePassword: (String, String) -> Unit) {
     var editingName by remember { mutableStateOf(false) }
@@ -139,7 +146,7 @@ private fun SignedInProfile(account: ConsoleAccountState, games: List<ConsoleGam
         val compact = maxWidth < 760.dp
         if (compact) Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
             PlayTimePanel(games)
-            CloudPanel(cloudStatus, cloudBusy, onCloudRefresh)
+            CloudPanel(cloudStatus, cloudBusy, cloudSaveInfo, onCloudRefresh)
             ProfileSettingsPanel(account, name, { name = it }, editingName, { editingName = it },
                 editingPassword, { editingPassword = it }, currentPassword, { currentPassword = it },
                 nextPassword, { nextPassword = it }, repeatPassword, { repeatPassword = it },
@@ -147,7 +154,7 @@ private fun SignedInProfile(account: ConsoleAccountState, games: List<ConsoleGam
         } else Row(horizontalArrangement = Arrangement.spacedBy(20.dp)) {
             Box(Modifier.weight(1.1f)) { Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                 PlayTimePanel(games)
-                CloudPanel(cloudStatus, cloudBusy, onCloudRefresh)
+                CloudPanel(cloudStatus, cloudBusy, cloudSaveInfo, onCloudRefresh)
             } }
             Box(Modifier.weight(0.9f)) {
                 ProfileSettingsPanel(account, name, { name = it }, editingName, { editingName = it },
@@ -160,17 +167,45 @@ private fun SignedInProfile(account: ConsoleAccountState, games: List<ConsoleGam
 }
 
 @Composable
-private fun CloudPanel(status: String, busy: Boolean, onRefresh: () -> Unit) {
+private fun UpdatePanel(update: PortalUpdate, busy: Boolean, message: String?, onDownload: () -> Unit) {
+    ProfilePanel {
+        Text("UPDATE VERFÜGBAR", color = Color(0xFFFFC65C), fontSize = 11.sp,
+            fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
+        Text("Skylanders Portal ${update.version}", color = Color.White, fontSize = 16.sp,
+            fontWeight = FontWeight.Bold)
+        Text("Das Update wird direkt hier geladen. Android bittet dich anschließend um die Installation.",
+            color = ProfileMuted, fontSize = 12.sp)
+        if (message != null) Text(message, color = ProfileIce, fontSize = 12.sp)
+        ProfileButton(if (busy) "Download läuft …" else "Update herunterladen",
+            Icons.Outlined.Download, onDownload, enabled = !busy)
+    }
+}
+
+@Composable
+private fun CloudPanel(status: String, busy: Boolean, saves: List<CloudSaveInfo>, onRefresh: () -> Unit) {
     ProfilePanel {
         Text("CLOUD-SPIELSTÄNDE", color = ProfileIce, fontSize = 11.sp,
             fontWeight = FontWeight.Bold, letterSpacing = 1.5.sp)
         Text(status, color = Color.White, fontSize = 14.sp)
         Text("Figuren und Wii-Kampagnen gehören zu diesem Konto. Offline-Änderungen werden später abgeglichen.",
             color = ProfileMuted, fontSize = 12.sp)
+        if (saves.isNotEmpty()) {
+            HorizontalDivider(color = Color.White.copy(alpha = 0.14f))
+            saves.forEach { save ->
+                Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                    Text(save.label, color = Color.White, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+                    Text("Dieses Gerät: ${saveTime(save.localModifiedAt)}", color = ProfileMuted, fontSize = 12.sp)
+                    Text("Cloud: ${saveTime(save.cloudModifiedAt)}", color = ProfileMuted, fontSize = 12.sp)
+                }
+            }
+        }
         ProfileButton(if (busy) "Abgleich läuft …" else "Jetzt abgleichen",
             Icons.Outlined.CloudSync, onRefresh, enabled = !busy)
     }
 }
+
+internal fun saveTime(time: Long?): String = if (time == null) "Noch kein Stand"
+    else SimpleDateFormat("dd.MM.yyyy · HH:mm", Locale.GERMAN).format(Date(time))
 
 @Composable
 private fun PlayTimePanel(games: List<ConsoleGame>) {

@@ -13,6 +13,7 @@ import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
 import java.security.MessageDigest
+import java.time.Instant
 import java.util.UUID
 import java.util.zip.ZipEntry
 import java.util.zip.ZipInputStream
@@ -20,6 +21,8 @@ import java.util.zip.ZipOutputStream
 
 internal data class CloudResult(val message: String, val conflictScope: String? = null,
     val restored: Boolean = false)
+internal data class CloudSaveInfo(val scope: String, val label: String,
+    val localModifiedAt: Long?, val cloudModifiedAt: Long?)
 
 /** Saves figures and Wii campaign files as immutable, account-owned snapshots. */
 internal class ConsoleCloud(private val context: Context, private val auth: ConsoleAuth) {
@@ -30,6 +33,46 @@ internal class ConsoleCloud(private val context: Context, private val auth: Cons
         settings.getString("device_id", null) ?: UUID.randomUUID().toString().also {
             check(settings.edit().putString("device_id", it).commit())
         }
+    }
+
+    suspend fun saveInfo(online: Boolean): List<CloudSaveInfo> = withContext(Dispatchers.IO) {
+        val userId = auth.currentUserId() ?: return@withContext emptyList()
+        val remoteTimes = mutableMapOf<String, Long>()
+        if (online) {
+            try {
+                val token = auth.currentAccessToken()
+                if (token != null) {
+                    val rows = JSONArray(request("GET", "/rest/v1/portal_heads?select=scope,updated_at", token))
+                    for (index in 0 until rows.length()) {
+                        val row = rows.getJSONObject(index)
+                        val scope = row.getString("scope")
+                        val time = Instant.parse(row.getString("updated_at")).toEpochMilli()
+                        remoteTimes[scope] = time
+                        settings.edit().putLong("$userId:$scope:cloud_time", time).apply()
+                    }
+                }
+            } catch (error: Exception) {
+                android.util.Log.w("PortalCloud", "Save timestamps unavailable", error)
+            }
+        }
+        val scopes = (localScopes() + rememberedScopes() + remoteTimes.keys).toSortedSet()
+        scopes.mapNotNull { scope ->
+            val source = folder(scope)
+            val local = source.takeIf { it.isDirectory }?.walkTopDown()
+                ?.filter { it.isFile && (scope != "figures" || it.extension.equals("sky", true)) }
+                ?.map { it.lastModified() }?.maxOrNull()?.takeIf { it > 0 }
+            val cached = settings.getLong("$userId:$scope:cloud_time", 0L).takeIf { it > 0 }
+            val cloud = remoteTimes[scope] ?: cached
+            if (local == null && cloud == null) null else CloudSaveInfo(scope, scopeLabel(scope), local, cloud)
+        }
+    }
+
+    private fun scopeLabel(scope: String): String = when (scope.removePrefix("wii:").take(6)) {
+        "535350" -> "Spyro’s Adventure"
+        "534B59" -> "Giants"
+        "535658" -> "Swap Force"
+        "534B38" -> "Trap Team"
+        else -> if (scope == "figures") "Figurensammlung" else "Wii-Spielstand"
     }
 
     suspend fun sync(): CloudResult = withContext(Dispatchers.IO) {

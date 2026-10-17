@@ -15,6 +15,7 @@ import org.json.JSONObject
 import java.io.IOException
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 import java.security.KeyStore
 import javax.crypto.Cipher
 import javax.crypto.KeyGenerator
@@ -63,7 +64,8 @@ internal class ConsoleAuth(private val context: Context) {
     suspend fun signUp(email: String, password: String, name: String): AuthOutcome = lock.withLock {
         val data = JSONObject()
         if (name.isNotBlank()) data.put("display_name", name.trim())
-        val response = request("/auth/v1/signup", JSONObject().put("email", email.trim())
+        val redirect = URLEncoder.encode("https://skylanders-portal.vercel.app/email-bestaetigt.html", "UTF-8")
+        val response = request("/auth/v1/signup?redirect_to=$redirect", JSONObject().put("email", email.trim())
             .put("password", password).put("data", data))
         if (response.optString("access_token").isNotEmpty()) {
             val next = AuthSession.from(response)

@@ -7,7 +7,9 @@ import android.content.pm.PackageManager
 import android.hardware.input.InputManager
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.net.Uri
 import android.os.Bundle
+import android.os.Build
 import android.os.SystemClock
 import android.provider.Settings
 import android.view.InputDevice
@@ -15,6 +17,7 @@ import android.view.KeyEvent
 import android.view.KeyCharacterMap
 import android.view.MotionEvent
 import java.io.IOException
+import java.io.File
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.SystemBarStyle
@@ -24,6 +27,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
+import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -90,6 +94,9 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     private lateinit var menuHaptics: ConsoleHaptics
     private lateinit var accountAuth: ConsoleAuth
     private lateinit var cloud: ConsoleCloud
+    private val updater by lazy { ConsoleUpdate(this) }
+    private var updateJob: Job? = null
+    private var pendingUpdateInstall: File? = null
     private val cloudLock = Mutex()
     private var cloudJob: Job? = null
     private var prepareLaunchJob: Job? = null
@@ -187,6 +194,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 },
                 onCloseForProfileSwitch = { finishAffinity() },
                 onCloudRefresh = ::startCloudSync,
+                onDownloadUpdate = ::downloadUpdate,
                 onCloudChooseLocal = { resolveCloudConflict(true) },
                 onCloudChooseRemote = { resolveCloudConflict(false) },
                 onCloudDefer = {
@@ -276,6 +284,13 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
 
     override fun onResume() {
         super.onResume()
+        pendingUpdateInstall?.let { file ->
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O || packageManager.canRequestPackageInstalls()) {
+                pendingUpdateInstall = null
+                installUpdate(file)
+            }
+        }
+        checkForUpdate()
         state = state.copy(cloudDeferred = false)
         state = state.copy(launchingGameKey = null)
         menuAudio.resume()
@@ -388,6 +403,52 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         cloudJob = lifecycleScope.launch { performCloudSync() }
     }
 
+    private fun checkForUpdate() {
+        if (updateJob?.isActive == true) return
+        updateJob = lifecycleScope.launch {
+            runCatching { updater.check() }.onSuccess { available ->
+                state = state.copy(updateAvailable = available)
+            }
+        }
+    }
+
+    private fun downloadUpdate() {
+        val update = state.updateAvailable ?: return
+        if (state.updateBusy) return
+        state = state.copy(updateBusy = true, updateMessage = "Update wird geladen und geprüft …")
+        lifecycleScope.launch {
+            try {
+                val file = updater.download(update)
+                state = state.copy(updateBusy = false, updateMessage = "Update bereit · Android-Installation öffnen …")
+                installUpdate(file)
+            } catch (error: Exception) {
+                if (error is kotlinx.coroutines.CancellationException) throw error
+                android.util.Log.w("PortalUpdate", "Update failed", error)
+                state = state.copy(updateBusy = false,
+                    updateMessage = "Download fehlgeschlagen. Bitte erneut versuchen.")
+            }
+        }
+    }
+
+    private fun installUpdate(file: File) {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !packageManager.canRequestPackageInstalls()) {
+                pendingUpdateInstall = file
+                state = state.copy(updateMessage = "Erlaube einmalig die Installation aus dieser App.")
+                startActivity(Intent(Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
+                    Uri.parse("package:$packageName")))
+                return
+            }
+            val uri = FileProvider.getUriForFile(this, "$packageName.portalupdates", file)
+            startActivity(Intent(Intent.ACTION_VIEW).setDataAndType(uri,
+                "application/vnd.android.package-archive")
+                .addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION))
+        } catch (error: Exception) {
+            android.util.Log.w("PortalUpdate", "Installer unavailable", error)
+            state = state.copy(updateMessage = "Installation konnte nicht geöffnet werden. Bitte erneut versuchen.")
+        }
+    }
+
     private suspend fun performCloudSync(): CloudResult = cloudLock.withLock {
         if (state.profileRestartRequired) return@withLock CloudResult("Profilwechsel nötig.")
         val connectivity = getSystemService(ConnectivityManager::class.java)
@@ -396,6 +457,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 ?.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) != true) {
             val offline = CloudResult("Offline · Fortschritt bleibt auf diesem Gerät.")
             state = state.copy(cloudBusy = false, cloudStatus = offline.message)
+            state = state.copy(cloudSaveInfo = cloud.saveInfo(false))
             return@withLock offline
         }
         state = state.copy(cloudBusy = true, cloudStatus = "Spielstände werden abgeglichen …")
@@ -420,7 +482,8 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             CloudResult("Cloud nicht erreichbar · lokaler Fortschritt bleibt erhalten.")
         }
         state = state.copy(cloudBusy = false, cloudStatus = result.message,
-            cloudConflictScope = result.conflictScope, cloudDeferred = false)
+            cloudConflictScope = result.conflictScope, cloudDeferred = false,
+            cloudSaveInfo = cloud.saveInfo(true))
         if (result.restored) refreshCollection()
         result
     }
@@ -437,7 +500,8 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 CloudResult("Abgleich fehlgeschlagen. Beide Versionen bleiben erhalten.", scope)
             }
             state = state.copy(cloudBusy = false, cloudStatus = result.message,
-                cloudConflictScope = result.conflictScope)
+                cloudConflictScope = result.conflictScope,
+                cloudSaveInfo = cloud.saveInfo(true))
             if (result.restored) refreshCollection()
             if (result.conflictScope == null) startCloudSync()
         }
