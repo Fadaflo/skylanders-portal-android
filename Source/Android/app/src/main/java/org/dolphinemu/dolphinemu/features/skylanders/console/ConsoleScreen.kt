@@ -551,7 +551,9 @@ private fun ImmersiveGamesPage(state: ConsoleState, onSelect: (ConsoleGame) -> U
     }
     VerticalPager(state = pager, beyondViewportPageCount = 1,
         overscrollEffect = null,
-        userScrollEnabled = state.ready && state.launchingGameKey == null && detailsOpen,
+        // The details content scrolls independently. A draggable pager can stop between
+        // pages after the inner scroll reaches its top, leaving the hero out of view.
+        userScrollEnabled = false,
         flingBehavior = PagerDefaults.flingBehavior(pager,
             snapPositionalThreshold = 0.22f,
             snapAnimationSpec = tween(if (motion) PortalPalette.GlideDurationMs else 0,
@@ -832,7 +834,29 @@ private fun GameDetails(game: ConsoleGame, onBack: () -> Unit, modifier: Modifie
     val uriHandler = LocalUriHandler.current
     val menuSound = LocalMenuSound.current
     val infoScroll = rememberScrollState()
-    Box(modifier.then(if (panel) Modifier.background(Color(0xFF100E13).copy(alpha = 0.88f)) else Modifier),
+    val returnSwipe = if (panel) Modifier else Modifier.pointerInput(onBack) {
+        awaitEachGesture {
+            val down = awaitFirstDown(requireUnconsumed = false)
+            // A swipe that starts within the description should scroll it to the top first.
+            if (infoScroll.value > 0) return@awaitEachGesture
+            var last = down.position
+            var travelX = 0f
+            var travelY = 0f
+            var released = false
+            while (!released) {
+                val event = awaitPointerEvent(PointerEventPass.Initial)
+                val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                travelX += change.position.x - last.x
+                travelY += change.position.y - last.y
+                last = change.position
+                released = !change.pressed
+            }
+            if (released && travelY > size.height * 0.12f &&
+                travelY > kotlin.math.abs(travelX) * 1.45f) onBack()
+        }
+    }
+    Box(modifier.then(returnSwipe)
+        .then(if (panel) Modifier.background(Color(0xFF100E13).copy(alpha = 0.88f)) else Modifier),
         contentAlignment = Alignment.TopCenter) {
         Column(Modifier.widthIn(max = 1000.dp).fillMaxWidth()
             .then(if (panel) Modifier else Modifier.verticalScroll(infoScroll, overscrollEffect = null))
