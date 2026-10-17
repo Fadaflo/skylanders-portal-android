@@ -51,5 +51,18 @@ Swap Force und Trap Team verwenden bisher den allgemeinen Geräteplan. Für beid
 separat Bild, Ton, schnelle Bewegung, Dialoge und Portalwechsel auf Tablet und
 Handy prüfen und nur dann ein eigenes Spielprofil ergänzen.
 
+### Swap Force auf dem SM-T970, 17. Oktober 2026
+
+Erster Spieltest des Nutzers: insgesamt sehr flüssig; nur kurze Verzögerungen,
+wenn das Spiel Inhalte lädt. Das Bild ist scharf, wirkt aber wenig detailreich.
+Aktive Werte: OpenGL, 2× Auflösung, spezialisierte Shader (`0`), Shader-Cache
+an, `VISkip=False`, `WaitForShadersBeforeStarting=False`, `EFBScaledCopy=True`.
+Das Tablet meldete nach einigen Minuten thermischen Status 1 (leichte
+Erwärmung). Keine Änderung am Profil: höhere Auflösung erzeugt keine neuen
+Textur- oder Modell-Details und würde zusätzliche GPU-Leistung brauchen. Die
+kurzen Ladepausen sind noch nicht eindeutig als Shader-Problem identifiziert.
+Vor einer Anpassung eine wiederholbare betroffene Stelle prüfen; Spyros
+Shader-Vorladen nur übertragen, wenn es dort messbar hilft.
+
 Relevanter Code: `Source/Android/app/src/main/java/org/dolphinemu/dolphinemu/features/skylanders/console/ConsoleGraphics.kt`
 und `ConsoleActivity.kt` im gleichen Verzeichnis.
