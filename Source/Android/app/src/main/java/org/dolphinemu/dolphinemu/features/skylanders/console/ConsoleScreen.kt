@@ -73,6 +73,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.focusProperties
@@ -819,15 +820,25 @@ private fun SceneTile(game: ConsoleGame, active: Boolean, size: androidx.compose
     ready: Boolean, modifier: Modifier, prominence: () -> Float, launching: Boolean,
     onBounds: (Rect) -> Unit, onClick: () -> Unit) {
     val art: Any = game.sceneArtwork ?: "file:///android_asset/skylanders/images/${game.artwork}"
+    val tileShape = RoundedCornerShape(2.dp)
     Box(modifier.width(size).height(size / 1.6f + 20.dp).padding(12.dp).zIndex(if (active) 1f else 0f)
         .graphicsLayer {
             scaleX = 0.84f + 0.16f * prominence()
             scaleY = scaleX
-        }) {
+        }
+        .shadow(
+            elevation = if (active) 22.dp else 9.dp,
+            shape = tileShape,
+            ambientColor = if (active) Color(0xFFD9F2FF).copy(alpha = 0.62f)
+                else Color.Black.copy(alpha = 0.38f),
+            spotColor = if (active) Color.White.copy(alpha = 0.72f)
+                else Color.Black.copy(alpha = 0.48f)
+        )) {
         PortalSurface(Modifier.fillMaxSize().semantics { selected = active }
             .onGloballyPositioned { if (active && !launching) onBounds(it.boundsInRoot()) },
             accent = Color.White, selected = active, enabled = ready && !launching,
-            breathe = true, prominentMotion = true, shape = RoundedCornerShape(2.dp), onClick = onClick) {
+            breathe = true, prominentMotion = true, shadow = false,
+            shape = tileShape, onClick = onClick) {
             Box(Modifier.fillMaxSize().background(Color(game.color).copy(alpha = 0.07f)))
             AsyncImage(art, game.title, modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
             if (!active) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = 0.12f)))
