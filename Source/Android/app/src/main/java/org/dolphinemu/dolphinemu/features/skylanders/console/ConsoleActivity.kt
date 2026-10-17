@@ -99,7 +99,8 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     private var repeatingDirection = 0
     private var directionRepeatJob: Job? = null
     private var controllerSetupJob: Job? = null
-    private var preferredController: String? = null
+    private var menuControllerId: Int? = null
+    private var secondControllerId: Int? = null
     private val controllerKeys = Channel<Int>(Channel.BUFFERED)
     private val controllerInput = controllerKeys.receiveAsFlow()
     private val inputManager by lazy { getSystemService(InputManager::class.java) }
@@ -151,7 +152,8 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                     menuHaptics.updateIntensity(level)
                 },
                 onTestVibration = {
-                    menuHaptics.test(preferredController ?: preferences.getString("controller_profile_descriptor", null))
+                    menuHaptics.test(preferences.getString("controller_player_1_descriptor", null)
+                        ?: preferences.getString("controller_profile_descriptor", null))
                     updateHapticsStatus()
                 },
                 onInfoAnimation = { enabled ->
@@ -198,6 +200,17 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 }, onPlay = ::play, onAddGames = ::addGames,
                 onRefresh = ::refresh, onBluetooth = ::openBluetooth,
                 onControllerSettings = { launchSettingsActivity(MenuTag.WIIMOTE_1) },
+                onControllerSettings2 = { launchSettingsActivity(MenuTag.WIIMOTE_2) },
+                onSwapControllers = {
+                    secondControllerId?.let { id ->
+                        val second = InputDevice.getDevice(id)
+                        if (second != null) {
+                            preferences.edit().putInt("controller_player_1_device_id", id)
+                                .putString("controller_player_1_descriptor", second.descriptor).apply()
+                            synchronizeController()
+                        }
+                    }
+                },
                 onStartControllerTest = {
                     stopMenuRepeat()
                     state = state.copy(controllerTestActive = true,
@@ -641,8 +654,10 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     private fun updateControllers() {
         updateHapticsStatus()
         state = state.copy(controllers = InputDevice.getDeviceIds().toList().mapNotNull { id ->
-            InputDevice.getDevice(id)?.takeIf { !it.isVirtual && it.isController() }?.name
-        })
+            InputDevice.getDevice(id)?.takeIf { !it.isVirtual && it.isController() &&
+                it.controllerNumber > 0 }?.let { it.controllerNumber to
+                    controllerFamily(it.vendorId, it.productId, it.name) }
+        }.distinctBy { it.first }.map { it.second })
         scheduleControllerSetup()
     }
 
@@ -664,21 +679,19 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         val devices = InputDevice.getDeviceIds().toList().mapNotNull { InputDevice.getDevice(it) }
             .filter { !it.isVirtual && it.isController() }
         val result = runCatching {
-            applyConsoleControllerProfile(preferences, devices,
-                preferredController ?: preferences.getString("controller_profile_descriptor", null))
+            assignConsoleControllers(preferences, devices)
         }.getOrElse { error ->
             android.util.Log.w("PortalController", "Automatic setup failed", error)
-            "Automatische Einrichtung nicht möglich. Bitte die Belegung manuell prüfen."
+            ConsoleControllerSetup("Automatische Einrichtung nicht möglich. Bitte die Belegung manuell prüfen.")
         }
-        state = state.copy(controllerSetup = result)
+        state = state.copy(controllerSetup = result.message,
+            player1Controller = result.player1, player2Controller = result.player2)
+        menuControllerId = result.player1DeviceId
+        secondControllerId = result.player2DeviceId
     }
 
     private fun rememberController(device: InputDevice?) {
         if (device != null && !device.isVirtual && device.isController()) menuHaptics.controllerInput(device)
-        if (device != null && !device.isVirtual && device.isController() && preferredController != device.descriptor) {
-            preferredController = device.descriptor
-            scheduleControllerSetup()
-        }
     }
 
     private fun InputDevice.isController() =
@@ -703,6 +716,8 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 testPressedKeys = pressed)
             return true
         }
+        if (event.device?.isController() == true && menuControllerId != null && event.deviceId != menuControllerId)
+            return true
         if (event.device?.isController() == true ||
             event.keyCode == KeyEvent.KEYCODE_BUTTON_L1 || event.keyCode == KeyEvent.KEYCODE_BUTTON_R1 ||
             event.isFromSource(InputDevice.SOURCE_GAMEPAD) ||
@@ -750,6 +765,8 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             }
             return true
         }
+        if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) && menuControllerId != null &&
+            event.deviceId != menuControllerId) return true
         if (event.isFromSource(InputDevice.SOURCE_JOYSTICK) && event.action == MotionEvent.ACTION_MOVE) {
             val hatX = event.getAxisValue(MotionEvent.AXIS_HAT_X)
             val hatY = event.getAxisValue(MotionEvent.AXIS_HAT_Y)

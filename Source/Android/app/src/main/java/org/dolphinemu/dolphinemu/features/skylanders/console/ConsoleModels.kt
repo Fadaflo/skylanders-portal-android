@@ -71,6 +71,8 @@ internal data class ConsoleState(
     val controllers: List<String> = emptyList(),
     val autoController: Boolean = true,
     val controllerSetup: String = "Verbinde einen Controller über Bluetooth oder USB.",
+    val player1Controller: String? = null,
+    val player2Controller: String? = null,
     val autoGraphics: Boolean = true,
     val graphicsSetup: String = "Automatisch · wird beim Spielstart gewählt",
     val lastInput: String = "Drücke eine Taste auf deinem Controller.",

@@ -150,6 +150,8 @@ internal fun ConsoleScreen(
     onRefresh: () -> Unit,
     onBluetooth: () -> Unit,
     onControllerSettings: () -> Unit,
+    onControllerSettings2: () -> Unit,
+    onSwapControllers: () -> Unit,
     onStartControllerTest: () -> Unit,
     onStopControllerTest: () -> Unit,
     onAutoController: (Boolean) -> Unit,
@@ -237,7 +239,8 @@ internal fun ConsoleScreen(
                         ConsolePage.FIGURES -> figurePageState.SaveableStateProvider("figures") {
                             FiguresPage(state, onRefresh, accountFocus)
                         }
-                        ConsolePage.CONTROLLERS -> ControllersPage(state, onBluetooth, onControllerSettings,
+                        ConsolePage.CONTROLLERS -> ControllersPage(state, onBluetooth, onControllerSettings, onControllerSettings2,
+                            onSwapControllers,
                             onAutoController, onStartControllerTest, accountFocus)
                         ConsolePage.SETTINGS -> SettingsPage(state, onAudioSettings, onInfoAnimation, onAutoGraphics,
                             onSettings, onAdvanced, onSetup, onAddGames, { settingsNavigating = it },
@@ -1104,6 +1107,7 @@ private fun FigureFilterMenu(label: String, value: String, options: List<Pair<St
 
 @Composable
 private fun ControllersPage(state: ConsoleState, onBluetooth: () -> Unit, onMapping: () -> Unit,
+    onMapping2: () -> Unit, onSwapControllers: () -> Unit,
     onAutoController: (Boolean) -> Unit, onStartTest: () -> Unit,
     accountFocus: FocusRequester) {
     LazyVerticalGrid(columns = GridCells.Adaptive(500.dp), contentPadding = PaddingValues(28.dp),
@@ -1138,10 +1142,21 @@ private fun ControllersPage(state: ConsoleState, onBluetooth: () -> Unit, onMapp
             }
         }
         item {
-            InfoCard("Deine Tastenbelegung", "Die vorhandene Spielsteuerung bleibt erhalten. Hier kannst du sie prüfen und anpassen.",
+            InfoCard("Spieler 1", state.player1Controller ?: "Noch kein Controller zugewiesen.",
                 angular = true) {
-                ConsoleButton("Belegung einstellen", Icons.Outlined.Gamepad, onMapping, enabled = state.ready,
+                ConsoleButton("Belegung Spieler 1", Icons.Outlined.Gamepad, onMapping, enabled = state.ready,
                     shape = RoundedCornerShape(2.dp))
+            }
+        }
+        item {
+            InfoCard("Spieler 2", state.player2Controller ?: "Verbinde einen zweiten Controller vor dem Spielstart.",
+                angular = true) {
+                ConsoleButton("Belegung Spieler 2", Icons.Outlined.Gamepad, onMapping2, enabled = state.ready,
+                    shape = RoundedCornerShape(2.dp))
+                if (state.player2Controller != null) {
+                    ConsoleButton("Spieler 1 und 2 tauschen", Icons.Outlined.SwapHoriz, onSwapControllers,
+                        shape = RoundedCornerShape(2.dp))
+                }
             }
         }
         item(span = { GridItemSpan(maxLineSpan) }) {

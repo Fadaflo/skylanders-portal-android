@@ -7,6 +7,8 @@
 #include <atomic>
 #include <chrono>
 #include <memory>
+#include <mutex>
+#include <optional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -88,6 +90,7 @@ using Clock = std::chrono::steady_clock;
 constexpr Clock::duration ACTIVE_INPUT_TIMEOUT = std::chrono::milliseconds(1000);
 
 std::unordered_map<jint, ciface::Core::DeviceQualifier> s_device_id_to_device_qualifier;
+std::mutex s_device_qualifier_mutex;
 
 constexpr int MAX_KEYCODE = AKEYCODE_PROFILE_SWITCH;  // Up to date as of SDK 31
 
@@ -426,18 +429,23 @@ std::string ConstructAxisName(int source, int axis, bool negative)
 
 std::shared_ptr<ciface::Core::Device> FindDevice(jint device_id)
 {
-  const auto it = s_device_id_to_device_qualifier.find(device_id);
-  if (it == s_device_id_to_device_qualifier.end())
+  std::optional<ciface::Core::DeviceQualifier> qualifier;
+  {
+    std::lock_guard guard(s_device_qualifier_mutex);
+    const auto it = s_device_id_to_device_qualifier.find(device_id);
+    if (it != s_device_id_to_device_qualifier.end())
+      qualifier = it->second;
+  }
+  if (!qualifier)
   {
     ERROR_LOG_FMT(CONTROLLERINTERFACE, "Could not find device ID {}", device_id);
     return nullptr;
   }
 
-  const ciface::Core::DeviceQualifier& qualifier = it->second;
-  std::shared_ptr<ciface::Core::Device> device = g_controller_interface.FindDevice(qualifier);
+  std::shared_ptr<ciface::Core::Device> device = g_controller_interface.FindDevice(*qualifier);
   if (!device)
   {
-    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Could not find device {}", qualifier.ToString());
+    ERROR_LOG_FMT(CONTROLLERINTERFACE, "Could not find device {}", qualifier->ToString());
     return nullptr;
   }
 
@@ -979,7 +987,10 @@ void InputBackend::AddDevice(JNIEnv* env, jint device_id)
 
   INFO_LOG_FMT(CONTROLLERINTERFACE, "Added device ID {} as {}", device_id,
                device->GetQualifiedName());
-  s_device_id_to_device_qualifier.emplace(device_id, qualifier);
+  {
+    std::lock_guard guard(s_device_qualifier_mutex);
+    s_device_id_to_device_qualifier.emplace(device_id, qualifier);
+  }
 
   jstring j_qualifier = ToJString(env, qualifier.ToString());
   env->CallVoidMethod(device->GetSensorEventListener(),
@@ -1017,7 +1028,10 @@ void InputBackend::RemoveDevice(jint device_id)
            static_cast<const AndroidDevice*>(device)->GetDeviceID() == device_id;
   });
 
-  s_device_id_to_device_qualifier.erase(device_id);
+  {
+    std::lock_guard guard(s_device_qualifier_mutex);
+    s_device_id_to_device_qualifier.erase(device_id);
+  }
 }
 
 void InputBackend::PopulateDevices()
@@ -1209,6 +1223,16 @@ Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_getAllDe
     JNIEnv* env, jclass)
 {
   return SpanToJStringArray(env, g_controller_interface.GetAllDeviceStrings());
+}
+
+JNIEXPORT jstring JNICALL
+Java_org_dolphinemu_dolphinemu_features_input_model_ControllerInterface_getDeviceStringForId(
+    JNIEnv* env, jclass, jint device_id)
+{
+  std::lock_guard guard(s_device_qualifier_mutex);
+  const auto it = s_device_id_to_device_qualifier.find(device_id);
+  return it == s_device_id_to_device_qualifier.end() ? nullptr
+                                                     : ToJString(env, it->second.ToString());
 }
 
 JNIEXPORT jobject JNICALL

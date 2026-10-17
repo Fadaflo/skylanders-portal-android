@@ -99,6 +99,9 @@ object ControllerInterface {
 
     external fun getAllDeviceStrings(): Array<String>
 
+    /** Native qualifier for this exact Android input device, even when names match. */
+    external fun getDeviceStringForId(deviceId: Int): String?
+
     external fun getDevice(deviceString: String): CoreDevice?
 
     private fun onInputStateChanged() {
