@@ -42,6 +42,7 @@ class SkylanderPortalFragment : Fragment() {
     private val binding get() = _binding!!
 
     private lateinit var slotViews: List<ListItemPortalSlotBinding>
+    private lateinit var bottomSlotViews: List<ListItemPortalSlotBinding>
     private lateinit var elementViews: List<ItemSkyElementBinding>
     private lateinit var adapter: SkylanderFigureAdapter
 
@@ -72,6 +73,9 @@ class SkylanderPortalFragment : Fragment() {
         get() = savedAllVariants
         set(value) { savedAllVariants = value }
 
+    private var swapMode = false
+    private var swapTop = true
+
     private var focus = Focus.GRID
     var activePlayer = 1
         private set
@@ -84,7 +88,6 @@ class SkylanderPortalFragment : Fragment() {
     private var columns = 4
 
     private val handler = Handler(Looper.getMainLooper())
-    private var hiddenUntilKey = false
     private var hiddenTimed = false
 
     /** Wird von der EmulationActivity gesetzt, damit das Menue sich schliessen kann. */
@@ -132,6 +135,9 @@ class SkylanderPortalFragment : Fragment() {
         binding.textFilterVariants.setOnClickListener { toggleVariants() }
         binding.badgeVariants.setOnClickListener { toggleVariants() }
         binding.textModeHint.setOnClickListener { toggleDeleteMode() }
+        binding.textSwapToggle.setOnClickListener { toggleSwapMode() }
+        binding.swapHead.setOnClickListener { selectSwapHalf(true) }
+        binding.swapFeet.setOnClickListener { selectSwapHalf(false) }
         binding.tabCollection.setOnClickListener { switchTo(Mode.COLLECTION) }
         binding.tabSummon.setOnClickListener { switchTo(Mode.SUMMON) }
         binding.tabMaxed.setOnClickListener { switchTo(Mode.MAXED) }
@@ -212,13 +218,28 @@ class SkylanderPortalFragment : Fragment() {
         (figure.variant and 0xFF) >= FIRST_SPECIAL && plainVariantExists.contains(figure.id)
 
     private fun slotOfFile(path: String): Int =
-        slots.indexOfFirst { it.filePath == path }
+        slots.indexOfFirst { it.filePath == path || it.bottomFilePath == path }
 
     /** Baut die Karten des Rasters neu auf, passend zur Ansicht und den Filtern. */
     private fun rebuildRows(resetCursor: Boolean = false) {
         val ownedKeys = collection.map { it.id to it.variant }.toHashSet()
 
-        rows = when (mode) {
+        rows = if (swapMode) {
+            val owned = collection.mapNotNull { file ->
+                val figure = byKey[file.id to file.variant] ?: return@mapNotNull null
+                if (!passesSwapFilter(figure)) return@mapNotNull null
+                val path = file.file.absolutePath
+                val slot = slotOfFile(path)
+                FigureRow(
+                    figure = figure, file = file, owned = true,
+                    state = if (slot >= 0) "auf " + slotName(slot) else null
+                )
+            }
+            val missing = allFigures.filter { figure ->
+                passesSwapFilter(figure) && !ownedKeys.contains(figure.id to figure.variant)
+            }.map { figure -> FigureRow(figure = figure, owned = false) }
+            (owned + missing).sortedWith(compareBy({ elementOrder(it.figure.element) }, { it.figure.name }))
+        } else when (mode) {
             Mode.COLLECTION -> collection.mapNotNull { file ->
                 val figure = byKey[file.id to file.variant] ?: return@mapNotNull null
                 if (!passesFilter(figure)) return@mapNotNull null
@@ -285,34 +306,103 @@ class SkylanderPortalFragment : Fragment() {
         updateButtonBar()
     }
 
+    private fun passesSwapFilter(figure: CatalogFigure): Boolean =
+        figure.type == "Swapper" &&
+            figure.id in (if (swapTop) 2000..2015 else 1000..1015) &&
+            (elementFilter == 0 || figure.element == ELEMENTS[elementFilter]) &&
+            (allVariants || !isRepaint(figure))
+
+    private fun slotName(index: Int): String = when (index) {
+        0 -> "Spieler 1"
+        1 -> "Spieler 2"
+        2 -> "Extra 1"
+        else -> "Extra 2"
+    }
+
     // ------------------------------------------------------------ Portalplätze
 
     private fun buildSlotRow() {
         val inflater = LayoutInflater.from(requireContext())
-        slotViews = (0 until SLOT_COUNT).map { index ->
-            val slotBinding = ListItemPortalSlotBinding.inflate(inflater, binding.rowSlots, true)
-            slotBinding.root.layoutParams = android.widget.LinearLayout.LayoutParams(
-                0,
-                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT,
-                if (index < 2) 1.35f else 0.75f
-            ).apply {
-                marginStart = (3 * resources.displayMetrics.density).toInt()
-                marginEnd = marginStart
-            }
+        val main = arrayOfNulls<ListItemPortalSlotBinding>(SLOT_COUNT)
+        val bottom = arrayOfNulls<ListItemPortalSlotBinding>(2)
+        val gap = (3 * resources.displayMetrics.density).toInt()
+
+        fun configure(slotBinding: ListItemPortalSlotBinding, visual: Int) {
+            val isBottomTile = visual >= SLOT_COUNT
             slotBinding.root.setOnClickListener {
-                focus = Focus.PORTAL
-                activeSlot = index
+                if (isBottomTile) {
+                    activePlayer = visual - SLOT_COUNT + 1
+                    activeSlot = activePlayer - 1
+                    swapTop = false
+                    focus = Focus.GRID
+                    rebuildRows(resetCursor = true)
+                } else {
+                    activeSlot = visual
+                    activePlayer = if (visual == 0 || visual == 2) 1 else 2
+                    if (swapMode && visual < 2 && !swapTop) {
+                        swapTop = true
+                        rebuildRows(resetCursor = true)
+                    }
+                    focus = Focus.PORTAL
+                }
                 updateSlots()
                 updateButtonBar()
             }
-            slotBinding
+            if (isBottomTile) bottom[visual - SLOT_COUNT] = slotBinding
+            else main[visual] = slotBinding
         }
+
+        binding.rowSlots.removeAllViews()
+        for (player in 0..1) {
+            val group = android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                setBackgroundResource(R.drawable.sky_card_idle)
+                setPadding(gap, gap, gap, gap)
+            }
+            binding.rowSlots.addView(group, android.widget.LinearLayout.LayoutParams(
+                0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f
+            ).apply { marginStart = gap; marginEnd = gap })
+
+            val stack = android.widget.LinearLayout(requireContext()).apply {
+                orientation = android.widget.LinearLayout.VERTICAL
+            }
+            group.addView(stack, android.widget.LinearLayout.LayoutParams(
+                0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1.25f
+            ))
+
+            val top = ListItemPortalSlotBinding.inflate(inflater, stack, false)
+            configure(top, player)
+            stack.addView(top.root, android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginStart = gap; marginEnd = gap; bottomMargin = gap })
+
+            val feet = ListItemPortalSlotBinding.inflate(inflater, stack, false)
+            configure(feet, player + SLOT_COUNT)
+            stack.addView(feet.root, android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT,
+                android.widget.LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply { marginStart = gap; marginEnd = gap })
+
+            val extra = ListItemPortalSlotBinding.inflate(inflater, group, false)
+            configure(extra, player + 2)
+            group.addView(extra.root, android.widget.LinearLayout.LayoutParams(
+                0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 0.8f
+            ).apply { marginStart = gap; marginEnd = gap })
+        }
+        slotViews = main.requireNoNulls().toList()
+        bottomSlotViews = bottom.requireNoNulls().toList()
     }
 
     /** A controller opens the grid directly for its own figure. */
     fun selectPlayer(player: Int) {
         activePlayer = player.coerceIn(1, 2)
         activeSlot = activePlayer - 1
+        if (swapMode && !swapTop) {
+            swapTop = true
+            rebuildRows(resetCursor = true)
+        }
         focus = Focus.GRID
         if (_binding != null) {
             updateSlots()
@@ -335,16 +425,25 @@ class SkylanderPortalFragment : Fragment() {
             val slot = slots[index]
             val here = focus == Focus.PORTAL && index == activeSlot
 
-            val chosen = index == activeSlot
+            val chosen = index == activeSlot && (index >= 2 || !swapMode || swapTop)
             view.textSlotNumber.text = (if (here) "▶ " else "") + when (index) {
-                0 -> "SPIELER 1"
-                1 -> "SPIELER 2"
+                0 -> if (swapMode) "S1 · KOPF" else "SPIELER 1"
+                1 -> if (swapMode) "S2 · KOPF" else "SPIELER 2"
                 else -> "EXTRA " + (index - 1)
             }
-            view.textSlotLabel.text = slot.figure?.name ?: "leer"
+            view.textSlotLabel.text = if (index < 2 && (swapMode || slot.bottomFigure != null)) {
+                if (swapMode) slot.figure?.name?.removeSuffix(" (Top)") ?: "leer"
+                else (slot.figure?.name?.removeSuffix(" (Top)") ?: "leer") + " + " +
+                    (slot.bottomFigure?.name?.removeSuffix(" (Bottom)") ?: "leer")
+            } else slot.figure?.name ?: "leer"
+            view.textSlotBottom.visibility = View.GONE
             view.imageSlotFigure.setImageBitmap(
-                slot.figure?.let { SkylanderCatalog.getArtwork(requireContext(), it) }
+                (slot.figure ?: slot.bottomFigure)?.let { SkylanderCatalog.getArtwork(requireContext(), it) }
             )
+            val topHeight = ((if (swapMode) 43 else 62) * resources.displayMetrics.density).toInt()
+            if (view.imageSlotFigure.layoutParams.height != topHeight) {
+                view.imageSlotFigure.layoutParams = view.imageSlotFigure.layoutParams.apply { height = topHeight }
+            }
             // Der gewaehlte Platz bleibt umrandet, auch wenn das Raster am Zug
             // ist: er ist eine bleibende Auswahl, kein Fokus auf Zeit.
             view.root.setBackgroundResource(
@@ -353,6 +452,25 @@ class SkylanderPortalFragment : Fragment() {
                 else R.drawable.sky_slot_frame
             )
             view.root.alpha = if (chosen) 1.0f else if (index < 2) 0.84f else 0.66f
+        }
+        bottomSlotViews.forEachIndexed { index, view ->
+            val slot = slots[index]
+            view.root.visibility = if (swapMode) View.VISIBLE else View.GONE
+            view.textSlotNumber.text = "S${index + 1} · FÜSSE"
+            view.textSlotLabel.text = slot.bottomFigure?.name?.removeSuffix(" (Bottom)") ?: "leer"
+            view.textSlotBottom.visibility = View.GONE
+            view.imageSlotFigure.setImageBitmap(
+                slot.bottomFigure?.let { SkylanderCatalog.getArtwork(requireContext(), it) }
+            )
+            val bottomHeight = (43 * resources.displayMetrics.density).toInt()
+            if (view.imageSlotFigure.layoutParams.height != bottomHeight) {
+                view.imageSlotFigure.layoutParams = view.imageSlotFigure.layoutParams.apply { height = bottomHeight }
+            }
+            val chosen = swapMode && activeSlot == index && !swapTop
+            view.root.setBackgroundResource(
+                if (chosen) R.drawable.sky_slot_frame_player2 else R.drawable.sky_slot_frame
+            )
+            view.root.alpha = if (chosen) 1f else 0.84f
         }
         adapter.selectionVisible = focus == Focus.GRID
     }
@@ -393,7 +511,7 @@ class SkylanderPortalFragment : Fragment() {
                 scroll.smoothScrollTo(target.coerceAtLeast(0), 0)
             }
         }
-        binding.textFilterGame.text = "Spiel: " +
+        binding.textFilterGame.text = if (swapMode) (if (swapTop) "Oberteile" else "Unterteile") else "Spiel: " +
             if (gameFilter == 0) "Alle"
             else (CatalogFigure.GAME_LABELS[GAMES[gameFilter]] ?: GAMES[gameFilter])
         binding.textFilterVariants.text =
@@ -438,7 +556,8 @@ class SkylanderPortalFragment : Fragment() {
             focus == Focus.PORTAL -> {
                 hint(R.drawable.ic_ps_cross, null, "Platz leeren")
                 hint(R.drawable.ic_ps_square, null, "Portal leeren")
-                hint(null, "L2", "Menü ausblenden")
+                hint(null, "L2", if (swapMode) "Swap-Modus beenden" else "Swap-Modus")
+                if (swapMode) hint(null, "R2", "Oberteil / Unterteil")
                 hint(R.drawable.ic_ps_circle, null, "Spielerplatz / Extra")
             }
 
@@ -447,7 +566,7 @@ class SkylanderPortalFragment : Fragment() {
                 // bedienen. Hier steht nur noch, was sonst nirgends steht.
                 hint(
                     R.drawable.ic_ps_cross, null,
-                    when (mode) {
+                    if (swapMode) "Teil für " else when (mode) {
                         Mode.COLLECTION -> "Für "
                         Mode.SUMMON -> "Beschwören für "
                         Mode.MAXED -> "Ultimativ für "
@@ -458,7 +577,8 @@ class SkylanderPortalFragment : Fragment() {
                         else -> "Extra " + (activeSlot - 1)
                     }
                 )
-                hint(null, "L2", "Menü ausblenden")
+                hint(null, "L2", if (swapMode) "Swap-Modus beenden" else "Swap-Modus")
+                if (swapMode) hint(null, "R2", "Oberteil / Unterteil")
                 hint(R.drawable.ic_ps_circle, null, "Spielerplatz / Extra")
             }
         }
@@ -466,6 +586,7 @@ class SkylanderPortalFragment : Fragment() {
         binding.textModeHint.text = when {
             confirming -> "Wirklich löschen?"
             deleteMode -> "Options: Löschmodus beenden"
+            swapMode -> "R2: Kopf / Füße"
             mode == Mode.COLLECTION -> "Options: Löschmodus"
             mode == Mode.MAXED ->
                 "Options: Pfad " + (if (upperPath) "oben" else "unten")
@@ -480,13 +601,15 @@ class SkylanderPortalFragment : Fragment() {
      * Phase 7 dazu.
      */
     private fun updateTitle() {
-        val total = when (mode) {
+        val total = if (swapMode) allFigures.count { passesSwapFilter(it) } else when (mode) {
             Mode.COLLECTION -> collection.size
             Mode.ITEMS -> allFigures.count { it.type in ITEM_TYPES }
             else -> allFigures.size
         }
         binding.textTitle.text = rows.size.toString() + " von " + total +
-            if (mode == Mode.MAXED) {
+            if (swapMode) {
+                "   ·   " + (if (swapTop) "Oberteile" else "Unterteile")
+            } else if (mode == Mode.MAXED) {
                 "   ·   " + (if (upperPath) "oberer Pfad" else "unterer Pfad")
             } else {
                 ""
@@ -503,10 +626,18 @@ class SkylanderPortalFragment : Fragment() {
             }
         }
 
-        tab(binding.tabCollection, mode == Mode.COLLECTION, true)
-        tab(binding.tabSummon, mode == Mode.SUMMON, true)
-        tab(binding.tabMaxed, mode == Mode.MAXED, true)
-        tab(binding.tabItems, mode == Mode.ITEMS, true)
+        tab(binding.tabCollection, !swapMode && mode == Mode.COLLECTION, true)
+        tab(binding.tabSummon, !swapMode && mode == Mode.SUMMON, true)
+        tab(binding.tabMaxed, !swapMode && mode == Mode.MAXED, true)
+        tab(binding.tabItems, !swapMode && mode == Mode.ITEMS, true)
+        binding.textSwapToggle.setBackgroundResource(
+            if (swapMode) R.drawable.sky_element_active else R.drawable.sky_shoulder_button
+        )
+        binding.rowSwapHalves.visibility = if (swapMode) View.VISIBLE else View.GONE
+        binding.swapHead.setBackgroundResource(if (swapMode && swapTop) R.drawable.sky_tab_active else 0)
+        binding.swapFeet.setBackgroundResource(if (swapMode && !swapTop) R.drawable.sky_tab_active else 0)
+        binding.swapHead.alpha = if (swapTop) 1f else 0.55f
+        binding.swapFeet.alpha = if (!swapTop) 1f else 0.55f
     }
 
     private fun setStatus(text: String) {
@@ -531,6 +662,10 @@ class SkylanderPortalFragment : Fragment() {
             return
         }
 
+        if (swapMode) {
+            row.file?.let { placeFile(row.figure, it) } ?: summon(row.figure)
+            return
+        }
         when (mode) {
             Mode.COLLECTION -> row.file?.let { placeFile(row.figure, it) }
             Mode.SUMMON -> summon(row.figure)
@@ -544,21 +679,64 @@ class SkylanderPortalFragment : Fragment() {
      * ersetzt: Dolphin nimmt die alte herunter — ihr Spielstand wird dabei
      * ganz normal geschrieben — und legt die neue auf denselben Platz.
      */
+    private fun isBottom(figure: CatalogFigure): Boolean =
+        figure.type == "Swapper" && figure.id in 1000..1015
+
+    /** Nur die beiden Spielerplaetze haben einen zweiten RFID-Platz. */
+    private fun portalSlotFor(index: Int, figure: CatalogFigure): Int {
+        val slot = slots[index]
+        return if (index < 2 && isBottom(figure)) slot.bottomPortalSlot else slot.portalSlot
+    }
+
+    private fun recordPlacement(index: Int, figure: CatalogFigure, path: String, portalSlot: Int) {
+        val slot = slots[index]
+        if (index < 2 && isBottom(figure)) {
+            if (slot.figure != null && slot.figure?.type != "Swapper") {
+                if (slot.portalSlot >= 0) SkylanderConfig.removeSkylander(slot.portalSlot)
+                slot.clearTop()
+            }
+            slot.bottomPortalSlot = portalSlot
+            slot.bottomFigure = figure
+            slot.bottomFilePath = path
+        } else {
+            if (index < 2 && figure.type != "Swapper" && slot.bottomPortalSlot >= 0) {
+                SkylanderConfig.removeSkylander(slot.bottomPortalSlot)
+                slot.clearBottom()
+            }
+            slot.portalSlot = portalSlot
+            slot.figure = figure
+            slot.filePath = path
+        }
+    }
+
+    /** Dieselbe Save-Datei darf nie zweimal gleichzeitig vom Portal beschrieben werden. */
+    private fun releaseDuplicateFile(path: String, target: Int) {
+        slots.forEachIndexed { index, slot ->
+            if (index == target) return@forEachIndexed
+            if (slot.filePath == path) {
+                if (slot.portalSlot >= 0) SkylanderConfig.removeSkylander(slot.portalSlot)
+                slot.clearTop()
+            }
+            if (slot.bottomFilePath == path) {
+                if (slot.bottomPortalSlot >= 0) SkylanderConfig.removeSkylander(slot.bottomPortalSlot)
+                slot.clearBottom()
+            }
+        }
+    }
+
     private fun placeFile(figure: CatalogFigure, file: CollectedFigure) {
         val target = activeSlot
         val slot = slots[target]
-        val vorher = slot.figure?.name
-
-        val result = SkylanderConfig.loadSkylander(slot.portalSlot, file.file.absolutePath)
+        val path = file.file.absolutePath
+        releaseDuplicateFile(path, target)
+        val result = SkylanderConfig.loadSkylander(portalSlotFor(target, figure), path)
         val portalSlot = result?.first
-        if (portalSlot == null) {
+        if (portalSlot == null || portalSlot !in 0..15) {
             setStatus(figure.name + " ließ sich nicht auflegen.")
             return
         }
 
-        slot.portalSlot = portalSlot
-        slot.figure = figure
-        slot.filePath = file.file.absolutePath
+        recordPlacement(target, figure, path, portalSlot)
         activeSlot = target
 
         rebuildRows()
@@ -576,30 +754,35 @@ class SkylanderPortalFragment : Fragment() {
             figure.id,
             figure.variant,
             file.absolutePath,
-            slot.portalSlot
+            portalSlotFor(target, figure)
         )
 
         val portalSlot = created?.first
-        if (portalSlot == null) {
+        if (portalSlot == null || portalSlot !in 0..15) {
             setStatus(figure.name + " ließ sich nicht erschaffen.")
             return
         }
 
-        slot.portalSlot = portalSlot
-        slot.figure = figure
-        slot.filePath = file.absolutePath
+        recordPlacement(target, figure, file.absolutePath, portalSlot)
         activeSlot = target
 
         SkyCollection.pruneItemCopies(userDirectory(), figure, file) { oldFile ->
             // The native portal saves and closes its file synchronously on removal.
             // Never unlink a file while another portal slot can still write to it.
-            val oldSlots = slots.filter { it.filePath == oldFile.absolutePath }
+            val oldSlots = slots.filter {
+                it.filePath == oldFile.absolutePath || it.bottomFilePath == oldFile.absolutePath
+            }
             oldSlots.all { oldSlot ->
-                if (oldSlot.portalSlot >= 0 && !SkylanderConfig.removeSkylander(oldSlot.portalSlot)) {
-                    false
-                } else {
-                    oldSlot.clear()
-                    true
+                when (oldFile.absolutePath) {
+                    oldSlot.filePath -> {
+                        if (oldSlot.portalSlot >= 0 && !SkylanderConfig.removeSkylander(oldSlot.portalSlot)) false
+                        else { oldSlot.clearTop(); true }
+                    }
+                    oldSlot.bottomFilePath -> {
+                        if (oldSlot.bottomPortalSlot >= 0 && !SkylanderConfig.removeSkylander(oldSlot.bottomPortalSlot)) false
+                        else { oldSlot.clearBottom(); true }
+                    }
+                    else -> true
                 }
             }
         }
@@ -633,7 +816,6 @@ class SkylanderPortalFragment : Fragment() {
 
         val target = activeSlot
         val slot = slots[target]
-        val vorher = slot.figure?.name
 
         // Erfahrung und Gold in beide Speicherbereiche schreiben. Die
         // Pruefsummen rechnet die Bruecke danach neu, deshalb darf hier alles
@@ -662,7 +844,7 @@ class SkylanderPortalFragment : Fragment() {
             figure.id,
             figure.variant,
             file.absolutePath,
-            slot.portalSlot,
+            portalSlotFor(target, figure),
             template,
             if (upperPath) UPGRADES_UPPER else UPGRADES_LOWER,
             -1,
@@ -670,14 +852,12 @@ class SkylanderPortalFragment : Fragment() {
         )
 
         val portalSlot = created?.first
-        if (portalSlot == null) {
+        if (portalSlot == null || portalSlot !in 0..15) {
             setStatus(figure.name + " ließ sich nicht erschaffen.")
             return
         }
 
-        slot.portalSlot = portalSlot
-        slot.figure = figure
-        slot.filePath = file.absolutePath
+        recordPlacement(target, figure, file.absolutePath, portalSlot)
 
         rescanCollection()
         rebuildRows()
@@ -691,13 +871,14 @@ class SkylanderPortalFragment : Fragment() {
 
     private fun ejectSlot(index: Int) {
         val slot = slots[index]
-        if (slot.portalSlot < 0) {
+        if (slot.portalSlot < 0 && slot.bottomPortalSlot < 0) {
             setStatus("Platz " + (index + 1) + " ist leer.")
             return
         }
 
-        SkylanderConfig.removeSkylander(slot.portalSlot)
-        val name = slot.figure?.name ?: "Figur"
+        if (slot.portalSlot >= 0) SkylanderConfig.removeSkylander(slot.portalSlot)
+        if (slot.bottomPortalSlot >= 0) SkylanderConfig.removeSkylander(slot.bottomPortalSlot)
+        val name = slot.figure?.name ?: slot.bottomFigure?.name ?: "Figur"
         slot.clear()
 
         rebuildRows()
@@ -709,10 +890,16 @@ class SkylanderPortalFragment : Fragment() {
         var removed = 0
         for (index in 0 until SLOT_COUNT) {
             val slot = slots[index]
-            if (slot.portalSlot >= 0) {
-                SkylanderConfig.removeSkylander(slot.portalSlot)
+            if (slot.portalSlot >= 0 || slot.bottomPortalSlot >= 0) {
+                if (slot.portalSlot >= 0) {
+                    SkylanderConfig.removeSkylander(slot.portalSlot)
+                    removed++
+                }
+                if (slot.bottomPortalSlot >= 0) {
+                    SkylanderConfig.removeSkylander(slot.bottomPortalSlot)
+                    removed++
+                }
                 slot.clear()
-                removed++
             }
         }
 
@@ -732,6 +919,10 @@ class SkylanderPortalFragment : Fragment() {
      * gibt es nichts einzustellen.
      */
     private fun toggleDeleteMode() {
+        if (swapMode) {
+            selectSwapHalf(!swapTop)
+            return
+        }
         if (mode == Mode.MAXED) {
             upperPath = !upperPath
             rescanCollection()
@@ -804,8 +995,33 @@ class SkylanderPortalFragment : Fragment() {
     }
 
     private fun cycleGame() {
+        if (swapMode) {
+            selectSwapHalf(!swapTop)
+            return
+        }
         gameFilter = (gameFilter + 1) % GAMES.size
         rebuildRows(resetCursor = true)
+    }
+
+    private fun toggleSwapMode() {
+        swapMode = !swapMode
+        deleteMode = false
+        confirming = false
+        marked.clear()
+        focus = Focus.GRID
+        if (swapMode) swapTop = true
+        rebuildRows(resetCursor = true)
+        setStatus(if (swapMode) "Swap-Modus: Oberteil wählen. R2 wechselt zum Unterteil."
+            else "Swap-Modus beendet.")
+    }
+
+    private fun selectSwapHalf(top: Boolean) {
+        if (!swapMode || swapTop == top) return
+        swapTop = top
+        focus = Focus.GRID
+        rebuildRows(resetCursor = true)
+        setStatus(if (top) "Oberteile für ${slotName(activeSlot)}."
+            else "Unterteile für ${slotName(activeSlot)}.")
     }
 
     private fun toggleMode() {
@@ -831,9 +1047,10 @@ class SkylanderPortalFragment : Fragment() {
     }
 
     private fun switchTo(target: Mode) {
-        if (target == mode) return
+        if (target == mode && !swapMode) return
         savedCursors[mode.ordinal] = adapter.selected
         mode = target
+        swapMode = false
         deleteMode = false
         confirming = false
         marked.clear()
@@ -938,16 +1155,7 @@ class SkylanderPortalFragment : Fragment() {
         }, millis)
     }
 
-    /** L2: beiseite, bis die naechste Taste kommt. */
-    private fun peekHold() {
-        hiddenUntilKey = true
-        handler.removeCallbacksAndMessages(null)
-        hiddenTimed = false
-        binding.root.visibility = View.INVISIBLE
-    }
-
     private fun unpeek() {
-        hiddenUntilKey = false
         hiddenTimed = false
         handler.removeCallbacksAndMessages(null)
         _binding?.root?.visibility = View.VISIBLE
@@ -967,7 +1175,7 @@ class SkylanderPortalFragment : Fragment() {
         if (player != activePlayer) selectPlayer(player)
 
         // Solange das Menue beiseite steht, holt der naechste Druck es zurueck.
-        if (hiddenUntilKey || hiddenTimed) {
+        if (hiddenTimed) {
             unpeek()
             return true
         }
@@ -996,7 +1204,7 @@ class SkylanderPortalFragment : Fragment() {
 
             KeyEvent.KEYCODE_BUTTON_L1 -> cycleElement(-1)
             KeyEvent.KEYCODE_BUTTON_R1 -> cycleElement(1)
-            KeyEvent.KEYCODE_BUTTON_L2 -> peekHold()
+            KeyEvent.KEYCODE_BUTTON_L2 -> toggleSwapMode()
             KeyEvent.KEYCODE_BUTTON_R2 -> cycleGame()
             KeyEvent.KEYCODE_BUTTON_SELECT -> toggleVariants()
 
@@ -1027,7 +1235,7 @@ class SkylanderPortalFragment : Fragment() {
 
         if (player != activePlayer) selectPlayer(player)
         lastStickMove = now
-        if (hiddenUntilKey || hiddenTimed) {
+        if (hiddenTimed) {
             unpeek()
             return true
         }
@@ -1041,11 +1249,25 @@ class SkylanderPortalFragment : Fragment() {
         var portalSlot: Int = -1
         var figure: CatalogFigure? = null
         var filePath: String? = null
+        var bottomPortalSlot: Int = -1
+        var bottomFigure: CatalogFigure? = null
+        var bottomFilePath: String? = null
 
-        fun clear() {
+        fun clearTop() {
             portalSlot = -1
             figure = null
             filePath = null
+        }
+
+        fun clearBottom() {
+            bottomPortalSlot = -1
+            bottomFigure = null
+            bottomFilePath = null
+        }
+
+        fun clear() {
+            clearTop()
+            clearBottom()
         }
     }
 

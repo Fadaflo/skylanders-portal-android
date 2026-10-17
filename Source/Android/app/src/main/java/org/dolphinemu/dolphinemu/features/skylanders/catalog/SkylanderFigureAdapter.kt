@@ -3,6 +3,7 @@
 package org.dolphinemu.dolphinemu.features.skylanders.catalog
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import org.dolphinemu.dolphinemu.R
@@ -65,8 +66,23 @@ class SkylanderFigureAdapter(
         val row = rows[position]
         val context = holder.itemView.context
 
+        val isHead = row.figure.type == "Swapper" && row.figure.id in 2000..2015
+        val isFeet = row.figure.type == "Swapper" && row.figure.id in 1000..1015
         holder.binding.textFigureName.text = row.figure.name
-        holder.binding.textFigureGame.text = row.state ?: row.figure.gameLabel
+            .removeSuffix(" (Top)").removeSuffix(" (Bottom)")
+        holder.binding.textFigureGame.text = when {
+            isHead -> "KOPF  ·  " + (row.state ?: row.figure.gameLabel)
+            isFeet -> "FÜSSE  ·  " + (row.state ?: row.figure.gameLabel)
+            else -> row.state ?: row.figure.gameLabel
+        }
+        holder.binding.imageSwapPart.visibility = if (isHead || isFeet) View.VISIBLE else View.GONE
+        if (isHead || isFeet) {
+            holder.binding.imageSwapPart.setImageResource(
+                if (isHead) R.drawable.sky_swap_head else R.drawable.sky_swap_feet
+            )
+            holder.binding.imageSwapPart.contentDescription =
+                if (isHead) "Oberteil" else "Unterteil"
+        }
         // Fallen haben kein Artwork. Statt einer leeren Karte tritt dann das
         // Elementsymbol an seine Stelle.
         val artwork = SkylanderCatalog.getArtwork(context, row.figure)
