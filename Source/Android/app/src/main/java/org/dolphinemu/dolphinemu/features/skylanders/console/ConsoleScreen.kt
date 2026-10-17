@@ -827,12 +827,12 @@ private fun SceneTile(game: ConsoleGame, active: Boolean, size: androidx.compose
             scaleY = scaleX
         }
         .shadow(
-            elevation = if (active) 22.dp else 9.dp,
+            elevation = if (active) 30.dp else 17.dp,
             shape = tileShape,
-            ambientColor = if (active) Color(0xFFD9F2FF).copy(alpha = 0.62f)
-                else Color.Black.copy(alpha = 0.38f),
-            spotColor = if (active) Color.White.copy(alpha = 0.72f)
-                else Color.Black.copy(alpha = 0.48f)
+            ambientColor = if (active) Color(0xFFD9F2FF).copy(alpha = 0.82f)
+                else Color(game.color).copy(alpha = 0.30f),
+            spotColor = if (active) Color.White.copy(alpha = 0.90f)
+                else Color(game.color).copy(alpha = 0.45f)
         )) {
         PortalSurface(Modifier.fillMaxSize().semantics { selected = active }
             .onGloballyPositioned { if (active && !launching) onBounds(it.boundsInRoot()) },
