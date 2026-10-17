@@ -28,6 +28,7 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.contentDescription
@@ -68,6 +69,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -145,6 +147,7 @@ internal fun ConsoleScreen(
     val inputMode = LocalInputModeManager.current
     val dispatchKey by rememberUpdatedState(dispatchMenuKey)
     val pageFocus = remember { FocusRequester() }
+    var settingsNavigating by remember { mutableStateOf(false) }
     LaunchedEffect(state.controllers.isNotEmpty()) {
         if (state.controllers.isNotEmpty()) inputMode.requestInputMode(InputMode.Keyboard)
     }
@@ -154,11 +157,17 @@ internal fun ConsoleScreen(
             // Let the focus targets update before delivering the first controller action.
             withFrameNanos { }
             withFrameNanos { }
+            if (settingsNavigating && key in listOf(android.view.KeyEvent.KEYCODE_ENTER,
+                    android.view.KeyEvent.KEYCODE_DPAD_CENTER, android.view.KeyEvent.KEYCODE_DPAD_LEFT,
+                    android.view.KeyEvent.KEYCODE_DPAD_RIGHT)) {
+                // Confirm/adjust the destination card, never the old control during its transition.
+                snapshotFlow { settingsNavigating }.first { !it }
+            }
             dispatchKey(key)
         }
     }
     LaunchedEffect(state.page) {
-        if (state.page != ConsolePage.GAMES && inputMode.inputMode == InputMode.Keyboard) {
+        if (state.page != ConsolePage.GAMES && state.page != ConsolePage.SETTINGS && inputMode.inputMode == InputMode.Keyboard) {
             withFrameNanos { }
             pageFocus.requestFocus()
         }
@@ -186,7 +195,8 @@ internal fun ConsoleScreen(
                             FiguresPage(state, onRefresh, { onPage(ConsolePage.GAMES) })
                         }
                         ConsolePage.CONTROLLERS -> ControllersPage(state, onBluetooth, onControllerSettings, onAutoController)
-                        ConsolePage.SETTINGS -> SettingsPage(state, onAudioSettings, onInfoAnimation, onAutoGraphics, onSettings, onAdvanced, onSetup, onAddGames)
+                        ConsolePage.SETTINGS -> SettingsPage(state, onAudioSettings, onInfoAnimation, onAutoGraphics,
+                            onSettings, onAdvanced, onSetup, onAddGames, { settingsNavigating = it })
                     }
                 }
             }
@@ -870,104 +880,214 @@ private fun ControllersPage(state: ConsoleState, onBluetooth: () -> Unit, onMapp
 private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSettings) -> Unit,
     onInfoAnimation: (Boolean) -> Unit,
     onAutoGraphics: (Boolean) -> Unit,
-    onSettings: () -> Unit, onAdvanced: () -> Unit, onSetup: () -> Unit, onAddGames: () -> Unit) {
+    onSettings: () -> Unit, onAdvanced: () -> Unit, onSetup: () -> Unit, onAddGames: () -> Unit,
+    onNavigationChanged: (Boolean) -> Unit) {
     val sound = LocalMenuSound.current
-    val focusManager = LocalFocusManager.current
-    LazyColumn(modifier = Modifier.onPreviewKeyEvent { event ->
-        // Traverse the settings in reading order. Spatial search skips switches
-        // aligned on the right, and Material sliders consume vertical arrows.
-        val direction = when (event.key) {
-            Key.DirectionUp -> androidx.compose.ui.focus.FocusDirection.Previous
-            Key.DirectionDown -> androidx.compose.ui.focus.FocusDirection.Next
-            else -> null
+    val inputMode = LocalInputModeManager.current
+    val list = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val titles = listOf("Bibliothek und Einrichtung", "Grafik", "Spielinfos", "Menümusik",
+        "Menüklänge", "Lokales Profil", "Bild, Ton und Spielsteuerung", "Erweiterte Verwaltung")
+    val targets = remember { List(8) { FocusRequester() } }
+    var selectedCard by rememberSaveable { mutableIntStateOf(0) }
+    var navigationJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
+    val onFocused: (Int) -> Unit = { if (navigationJob?.isActive != true) selectedCard = it }
+    DisposableEffect(Unit) { onDispose { onNavigationChanged(false) } }
+    LaunchedEffect(inputMode.inputMode) {
+        if (inputMode.inputMode == InputMode.Keyboard) {
+            onNavigationChanged(true)
+            withFrameNanos { }
+            list.scrollToItem(selectedCard + 1)
+            withFrameNanos { }
+            targets[selectedCard].requestFocus()
+            onNavigationChanged(false)
         }
-        if (direction == null) false else {
-            if (event.type == KeyEventType.KeyDown) focusManager.moveFocus(direction)
-            true
+    }
+    LazyColumn(state = list, modifier = Modifier.onPreviewKeyEvent { event ->
+        val step = when (event.key) {
+            Key.DirectionUp -> -1
+            Key.DirectionDown -> 1
+            else -> 0
+        }
+        if (step == 0) false else {
+            if (event.type == KeyEventType.KeyDown) {
+                val next = (selectedCard + step).coerceIn(titles.indices)
+                if (next != selectedCard) {
+                    selectedCard = next
+                    navigationJob?.cancel()
+                    onNavigationChanged(true)
+                    navigationJob = scope.launch {
+                        // Align the complete card before focusing a control inside it.
+                        // The last card stays fully visible even when the list cannot align its top.
+                        try {
+                            list.animateScrollToItem(next + 1)
+                            withFrameNanos { }
+                            targets[next].requestFocus()
+                        } finally {
+                            if (selectedCard == next) onNavigationChanged(false)
+                        }
+                    }
+                }
+            }
+            true // Clamp both ends: never let focus wrap into the tabs.
         }
     }, contentPadding = PaddingValues(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        item { PortalIntro("Einstellungen", "Deine Konsole.", "Dein Klang. Deine Steuerung. Dein Abenteuer.") }
-        item {
-            InfoCard("Bibliothek und Einrichtung", "${state.games.count { it.path != null }} Spiele auf diesem Gerät · Figuren und Spielstände bleiben lokal gespeichert.") {
-                ConsoleButton("Eigene Spiele einbinden", Icons.Outlined.FolderOpen, onAddGames, primary = true, enabled = state.ready && !state.importing)
-                ConsoleButton("Einrichtung öffnen", Icons.Outlined.CheckCircle, onSetup)
-            }
-        }
-        item {
-            InfoCard("Grafik", if (state.autoGraphics) state.graphicsSetup else "Deine eigenen Grafikeinstellungen sind aktiv.") {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Grafik automatisch optimieren", color = Color.White, modifier = Modifier.weight(1f))
-                    Switch(state.autoGraphics, onAutoGraphics,
-                        modifier = Modifier.semantics { contentDescription = "Grafik automatisch optimieren" })
-                }
-                Text("Passende Auflösung und Einstellungen werden beim Spielstart für dein Gerät gewählt.",
-                    color = Muted, fontSize = 12.sp)
-            }
-        }
-        item {
-            InfoCard("Spielinfos", if (state.immersiveInfo)
-                "Immersiv: zwei einrastende Ansichten mit Unschärfe und weichem Übergang."
-                else "Klassisch: frei zwischen Spielemenü und Spielinfos scrollen.") {
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text("Immersive Spielinfos", color = Color.White, modifier = Modifier.weight(1f))
-                    Switch(state.immersiveInfo, onInfoAnimation,
-                        modifier = Modifier.semantics { contentDescription = "Immersive Spielinfos" })
+        item(key = "intro") { PortalIntro("Einstellungen", "Deine Konsole.", "Dein Klang. Deine Steuerung. Dein Abenteuer.") }
+        item(key = "library") {
+            SettingsCardFrame(titles[0], targets[0], { onFocused(0) }) {
+                InfoCard(titles[0], "${state.games.count { it.path != null }} Spiele auf diesem Gerät · Figuren und Spielstände bleiben lokal gespeichert.") {
+                    Row(Modifier.horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        ConsoleButton("Eigene Spiele einbinden", Icons.Outlined.FolderOpen, onAddGames, primary = true, enabled = state.ready && !state.importing)
+                        ConsoleButton("Einrichtung öffnen", Icons.Outlined.CheckCircle, onSetup)
+                    }
                 }
             }
         }
-        item {
-            AudioControl("Menümusik", "Skylanders Main Theme · Hans Zimmer & Lorne Balfe",
-                state.audio.musicEnabled, state.audio.musicVolume,
-                { onAudioSettings(state.audio.copy(musicEnabled = it)); sound(ConsoleCue.CONFIRM) },
-                { onAudioSettings(state.audio.copy(musicVolume = it)) })
-        }
-        item {
-            AudioControl("Menüklänge", "Ein kurzes, weiches Wischen beim Navigieren und Bestätigen.",
-                state.audio.effectsEnabled, state.audio.effectsVolume,
-                { onAudioSettings(state.audio.copy(effectsEnabled = it)); sound(ConsoleCue.CONFIRM) },
-                { onAudioSettings(state.audio.copy(effectsVolume = it)) }) {
-                ConsoleButton("Klang testen", Icons.Outlined.VolumeUp, {},
-                    enabled = state.audio.effectsEnabled && state.audio.effectsVolume > 0f)
+        item(key = "graphics") {
+            SettingsCardFrame(titles[1], targets[1], { onFocused(1) }) {
+                InfoCard(titles[1], if (state.autoGraphics) state.graphicsSetup else "Deine eigenen Grafikeinstellungen sind aktiv.") {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("Grafik automatisch optimieren", color = Color.White, modifier = Modifier.weight(1f))
+                        SettingsSwitch(state.autoGraphics, onAutoGraphics, "Grafik automatisch optimieren")
+                    }
+                    Text("Passende Auflösung und Einstellungen werden beim Spielstart für dein Gerät gewählt.", color = Muted, fontSize = 12.sp)
+                }
             }
         }
-        if (state.audioError != null) item { Text(state.audioError, color = MaterialTheme.colorScheme.error) }
-        item { InfoCard("Lokales Profil", "Deine Figuren und Spielstände werden auf diesem Gerät gespeichert. Anmeldung und Cloud-Abgleich kommen in einem späteren Schritt.") }
-        item {
-            InfoCard("Bild, Ton und Spielsteuerung", "Öffne die vorhandenen Einstellungen des Emulators.") {
-                ConsoleButton("Einstellungen öffnen", Icons.Outlined.Settings, onSettings, primary = true)
+        item(key = "information") {
+            SettingsCardFrame(titles[2], targets[2], { onFocused(2) }) {
+                InfoCard(titles[2], if (state.immersiveInfo)
+                    "Immersiv: zwei einrastende Ansichten mit Unschärfe und weichem Übergang."
+                    else "Klassisch: frei zwischen Spielemenü und Spielinfos scrollen.") {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                        Text("Immersive Spielinfos", color = Color.White, modifier = Modifier.weight(1f))
+                        SettingsSwitch(state.immersiveInfo, onInfoAnimation, "Immersive Spielinfos")
+                    }
+                }
             }
         }
-        item {
-            InfoCard("Erweiterte Verwaltung", "Die bisherige Dolphin-Oberfläche bleibt für zusätzliche Werkzeuge erreichbar.") {
-                ConsoleButton("Dolphin-Werkzeuge", Icons.Outlined.Tune, onAdvanced)
+        item(key = "music") {
+            SettingsCardFrame(titles[3], targets[3], { onFocused(3) }) {
+                AudioControl(titles[3], "Skylanders Main Theme · Hans Zimmer & Lorne Balfe",
+                    state.audio.musicEnabled, state.audio.musicVolume,
+                    { onAudioSettings(state.audio.copy(musicEnabled = it)); sound(ConsoleCue.CONFIRM) },
+                    { onAudioSettings(state.audio.copy(musicVolume = it)) })
+            }
+        }
+        item(key = "effects") {
+            SettingsCardFrame(titles[4], targets[4], { onFocused(4) }) {
+                AudioControl(titles[4], "Ein kurzes, weiches Wischen beim Navigieren und Bestätigen.",
+                    state.audio.effectsEnabled, state.audio.effectsVolume,
+                    { onAudioSettings(state.audio.copy(effectsEnabled = it)); sound(ConsoleCue.CONFIRM) },
+                    { onAudioSettings(state.audio.copy(effectsVolume = it)) }, previewSound = true) {
+                    if (state.audioError != null) Text(state.audioError, color = MaterialTheme.colorScheme.error)
+                }
+            }
+        }
+        item(key = "profile") {
+            SettingsCardFrame(titles[5], targets[5], { onFocused(5) }, passive = true) {
+                InfoCard(titles[5], "Deine Figuren und Spielstände werden auf diesem Gerät gespeichert. Anmeldung und Cloud-Abgleich kommen in einem späteren Schritt.")
+            }
+        }
+        item(key = "emulator") {
+            SettingsCardFrame(titles[6], targets[6], { onFocused(6) }) {
+                InfoCard(titles[6], "Öffne die vorhandenen Einstellungen des Emulators.") {
+                    ConsoleButton("Einstellungen öffnen", Icons.Outlined.Settings, onSettings, primary = true)
+                }
+            }
+        }
+        item(key = "advanced") {
+            SettingsCardFrame(titles[7], targets[7], { onFocused(7) }) {
+                InfoCard(titles[7], "Die bisherige Dolphin-Oberfläche bleibt für zusätzliche Werkzeuge erreichbar.") {
+                    ConsoleButton("Dolphin-Werkzeuge", Icons.Outlined.Tune, onAdvanced)
+                }
             }
         }
     }
 }
 
 @Composable
-private fun AudioControl(title: String, description: String, enabled: Boolean, volume: Float,
-    onEnabled: (Boolean) -> Unit, onVolume: (Float) -> Unit, extra: @Composable () -> Unit = {}) {
-    PortalSurface(Modifier.fillMaxWidth(), shadow = false) {
-    Column(Modifier.fillMaxWidth().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            PortalCardTitle(title, Modifier.weight(1f))
-            Switch(enabled, onEnabled, modifier = Modifier.semantics { contentDescription = title })
-        }
-        Text(description, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
-        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-            Slider(volume, onVolume, enabled = enabled, steps = 19,
-                modifier = Modifier.weight(1f).semantics { contentDescription = "Lautstärke $title" })
-            Text(if (enabled) "${(volume * 100).roundToInt()} %" else "Aus", color = Color.White,
-                fontWeight = FontWeight.Bold, modifier = Modifier.width(48.dp))
-        }
-        extra()
-    }
-    }
+private fun SettingsCardFrame(title: String, target: FocusRequester, onFocused: () -> Unit,
+    passive: Boolean = false, content: @Composable () -> Unit) {
+    var focused by remember { mutableStateOf(false) }
+    Box(Modifier.fillMaxWidth().focusRequester(target).onFocusChanged {
+        focused = it.hasFocus
+        if (it.hasFocus) onFocused()
+    }.focusGroup().then(if (passive) Modifier.focusable() else Modifier)
+        .semantics { contentDescription = "Einstellung: $title" }
+        .border(if (passive && focused) 2.dp else 0.dp,
+            if (passive && focused) Ice else Color.Transparent, Shape)) { content() }
 }
 
+@Composable
+private fun SettingsSwitch(checked: Boolean, onChecked: (Boolean) -> Unit, label: String,
+    emphasized: Boolean = false, keyboardFocus: Boolean = true) {
+    var focused by remember { mutableStateOf(false) }
+    val keyboard = LocalInputModeManager.current.inputMode == InputMode.Keyboard
+    Switch(checked, onChecked, modifier = Modifier.onFocusChanged { focused = it.isFocused }
+        .focusProperties { canFocus = keyboardFocus }
+        .border(2.dp, if (emphasized || (focused && keyboard)) Ice else Color.Transparent, CircleShape)
+        .padding(4.dp).semantics { contentDescription = label })
+}
+
+@Composable
+private fun AudioControl(title: String, description: String, enabled: Boolean, volume: Float,
+    onEnabled: (Boolean) -> Unit, onVolume: (Float) -> Unit, previewSound: Boolean = false,
+    extra: @Composable () -> Unit = {}) {
+    val sound = LocalMenuSound.current
+    val inputMode = LocalInputModeManager.current
+    var focused by remember { mutableStateOf(false) }
+    var toggleFocus by remember { mutableStateOf(false) }
+    val controllerFocus = focused && inputMode.inputMode == InputMode.Keyboard
+    // One controller stop per audio card. Touch and accessibility keep the individual controls.
+    PortalSurface(Modifier.fillMaxWidth().onFocusChanged {
+        if (it.isFocused && !focused) toggleFocus = !enabled
+        focused = it.isFocused
+    }.onPreviewKeyEvent { event ->
+        when (event.key) {
+            Key.Enter, Key.NumPadEnter, Key.DirectionCenter -> {
+                if (event.type == KeyEventType.KeyDown) { toggleFocus = true; onEnabled(!enabled) }
+                true
+            }
+            Key.DirectionLeft, Key.DirectionRight -> {
+                if (event.type == KeyEventType.KeyDown) {
+                    toggleFocus = !enabled
+                    if (enabled) {
+                        val delta = if (event.key == Key.DirectionRight) 1 else -1
+                        onVolume(((volume * 20).roundToInt() + delta).coerceIn(0, 20) / 20f)
+                    }
+                }
+                true
+            }
+            else -> if (previewSound && event.nativeKeyEvent.keyCode == android.view.KeyEvent.KEYCODE_BUTTON_X) {
+                if (event.type == KeyEventType.KeyDown) sound(ConsoleCue.CONFIRM)
+                true
+            } else false
+        }
+    }.focusable().semantics { contentDescription = "$title: Bestätigen schaltet ein oder aus, links und rechts ändern die Lautstärke" },
+        shadow = false, focusWholeSurface = false) {
+        Column(Modifier.fillMaxWidth().padding(24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                PortalCardTitle(title, Modifier.weight(1f))
+                SettingsSwitch(enabled, onEnabled, title,
+                    emphasized = controllerFocus && (toggleFocus || !enabled), keyboardFocus = false)
+            }
+            Text(description, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                Slider(volume, onVolume, enabled = enabled, steps = 19,
+                    modifier = Modifier.weight(1f).focusProperties { canFocus = false }
+                        .border(2.dp, if (controllerFocus && !toggleFocus && enabled) Ice else Color.Transparent, RoundedCornerShape(14.dp))
+                        .padding(horizontal = 8.dp).semantics { contentDescription = "Lautstärke $title" })
+                Text(if (enabled) "${(volume * 100).roundToInt()} %" else "Aus", color = Color.White,
+                    fontWeight = FontWeight.Bold, modifier = Modifier.width(48.dp))
+            }
+            if (previewSound) ConsoleButton("Klang testen · □ / X", Icons.Outlined.VolumeUp, {},
+                enabled = enabled && volume > 0f, modifier = Modifier.focusProperties { canFocus = false })
+            extra()
+        }
+    }
+}
 @Composable
 private fun PageTitle(title: String, subtitle: String) {
     Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -978,7 +1098,7 @@ private fun PageTitle(title: String, subtitle: String) {
 
 @Composable
 private fun InfoCard(title: String, text: String, action: @Composable () -> Unit = {}) {
-    PortalSurface(Modifier.fillMaxWidth(), shadow = false) {
+    PortalSurface(Modifier.fillMaxWidth(), shadow = false, focusWholeSurface = false) {
     Column(Modifier.fillMaxWidth().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
         PortalCardTitle(title)

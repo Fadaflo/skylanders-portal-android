@@ -69,6 +69,7 @@ internal fun PortalSurface(
     breathe: Boolean = false,
     prominentMotion: Boolean = false,
     shadow: Boolean = true,
+    focusWholeSurface: Boolean = true,
     shape: RoundedCornerShape = PortalPalette.Shape,
     onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit
@@ -76,7 +77,7 @@ internal fun PortalSurface(
     var focused by remember { mutableStateOf(false) }
     val interactions = remember { MutableInteractionSource() }
     val hovered by interactions.collectIsHoveredAsState()
-    val highlighted = selected || focused || hovered
+    val highlighted = selected || (focusWholeSurface && (focused || hovered))
     val motion = LocalPortalMotion.current
     val lift = animateFloatAsState(if (highlighted) 1f else 0f,
         tween(if (motion) 360 else 0, easing = PortalPalette.GlideEasing), label = "portalFocus")
