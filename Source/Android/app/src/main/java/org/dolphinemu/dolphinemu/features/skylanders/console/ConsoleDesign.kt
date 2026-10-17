@@ -68,6 +68,7 @@ internal fun PortalSurface(
     enabled: Boolean = true,
     breathe: Boolean = false,
     prominentMotion: Boolean = false,
+    shadow: Boolean = true,
     shape: RoundedCornerShape = PortalPalette.Shape,
     onClick: (() -> Unit)? = null,
     content: @Composable BoxScope.() -> Unit
@@ -99,7 +100,7 @@ internal fun PortalSurface(
                 if (prominentMotion) -1f + breath * 2f else -0.5f + breath * 0.6f
             } else 0f
             cameraDistance = 16f * density
-            shadowElevation = (if (highlighted) 24f else 8f) * density
+            shadowElevation = if (shadow) (if (highlighted) 24f else 8f) * density else 0f
             this.shape = shape
             ambientShadowColor = accent.copy(alpha = if (highlighted) 0.35f else 0.08f)
             spotShadowColor = accent.copy(alpha = if (highlighted) 0.45f else 0.08f)

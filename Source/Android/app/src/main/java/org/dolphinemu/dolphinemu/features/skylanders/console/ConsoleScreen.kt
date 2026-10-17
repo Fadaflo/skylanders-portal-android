@@ -872,7 +872,20 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
     onAutoGraphics: (Boolean) -> Unit,
     onSettings: () -> Unit, onAdvanced: () -> Unit, onSetup: () -> Unit, onAddGames: () -> Unit) {
     val sound = LocalMenuSound.current
-    LazyColumn(contentPadding = PaddingValues(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+    val focusManager = LocalFocusManager.current
+    LazyColumn(modifier = Modifier.onPreviewKeyEvent { event ->
+        // Traverse the settings in reading order. Spatial search skips switches
+        // aligned on the right, and Material sliders consume vertical arrows.
+        val direction = when (event.key) {
+            Key.DirectionUp -> androidx.compose.ui.focus.FocusDirection.Previous
+            Key.DirectionDown -> androidx.compose.ui.focus.FocusDirection.Next
+            else -> null
+        }
+        if (direction == null) false else {
+            if (event.type == KeyEventType.KeyDown) focusManager.moveFocus(direction)
+            true
+        }
+    }, contentPadding = PaddingValues(24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
         item { PortalIntro("Einstellungen", "Deine Konsole.", "Dein Klang. Deine Steuerung. Dein Abenteuer.") }
         item {
             InfoCard("Bibliothek und Einrichtung", "${state.games.count { it.path != null }} Spiele auf diesem Gerät · Figuren und Spielstände bleiben lokal gespeichert.") {
@@ -935,15 +948,14 @@ private fun SettingsPage(state: ConsoleState, onAudioSettings: (ConsoleAudioSett
 @Composable
 private fun AudioControl(title: String, description: String, enabled: Boolean, volume: Float,
     onEnabled: (Boolean) -> Unit, onVolume: (Float) -> Unit, extra: @Composable () -> Unit = {}) {
-    PortalSurface(Modifier.fillMaxWidth()) {
+    PortalSurface(Modifier.fillMaxWidth(), shadow = false) {
     Column(Modifier.fillMaxWidth().padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Text(title, color = Color.White, fontWeight = FontWeight.Bold, fontSize = 19.sp,
-                modifier = Modifier.weight(1f))
+            PortalCardTitle(title, Modifier.weight(1f))
             Switch(enabled, onEnabled, modifier = Modifier.semantics { contentDescription = title })
         }
-        Text(description, color = Muted, fontSize = 13.sp, lineHeight = 20.sp)
+        Text(description, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(18.dp)) {
             Slider(volume, onVolume, enabled = enabled, steps = 19,
@@ -966,14 +978,20 @@ private fun PageTitle(title: String, subtitle: String) {
 
 @Composable
 private fun InfoCard(title: String, text: String, action: @Composable () -> Unit = {}) {
-    PortalSurface(Modifier.fillMaxWidth()) {
+    PortalSurface(Modifier.fillMaxWidth(), shadow = false) {
     Column(Modifier.fillMaxWidth().padding(24.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text(title, color = Color.White, fontSize = 22.sp, fontWeight = FontWeight.Black)
+        PortalCardTitle(title)
         Text(text, color = Muted, fontSize = 14.sp, lineHeight = 21.sp)
         action()
     }
     }
+}
+
+@Composable
+private fun PortalCardTitle(title: String, modifier: Modifier = Modifier) {
+    Text(title, modifier = modifier, color = Color.White, fontSize = 22.sp,
+        lineHeight = 28.sp, fontWeight = FontWeight.Black)
 }
 
 @Composable
