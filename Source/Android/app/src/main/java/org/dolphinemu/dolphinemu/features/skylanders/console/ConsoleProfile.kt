@@ -404,35 +404,34 @@ private fun SignedOutProfile(account: ConsoleAccountState,
 internal fun RegistrationConfirmation(email: String, onDismiss: () -> Unit) {
     Dialog(onDismissRequest = onDismiss,
         properties = DialogProperties(usePlatformDefaultWidth = false)) {
-        BoxWithConstraints(Modifier.padding(20.dp).widthIn(max = 1000.dp).fillMaxWidth()) {
+        BoxWithConstraints(Modifier.padding(20.dp).widthIn(max = 1100.dp).fillMaxWidth()) {
             val compact = maxWidth < 650.dp
             Surface(shape = RoundedCornerShape(12.dp), color = ProfileInk,
                 border = BorderStroke(1.dp, Color(0xFFFFCE64).copy(alpha = 0.55f))) {
-                if (compact) Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp),
+                if (compact) Column(Modifier.verticalScroll(rememberScrollState()),
                     horizontalAlignment = Alignment.CenterHorizontally) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center) {
-                        ConfirmationArtwork(R.drawable.sky_confirmation_left,
-                            Modifier.weight(1f).height(130.dp))
-                        Icon(Icons.Outlined.MarkEmailRead, null, tint = Color(0xFFFFCE64),
-                            modifier = Modifier.padding(12.dp).size(40.dp))
-                        ConfirmationArtwork(R.drawable.sky_confirmation_right,
-                            Modifier.weight(1f).height(130.dp))
+                    Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
+                        ConfirmationScene(Modifier.fillMaxSize())
+                        Box(Modifier.fillMaxSize().background(Brush.verticalGradient(listOf(
+                            Color.Transparent, Color.Transparent, ProfileInk))))
                     }
-                    Spacer(Modifier.height(16.dp))
-                    ConfirmationMessage(email, onDismiss)
-                } else Row(Modifier.heightIn(min = 330.dp), verticalAlignment = Alignment.CenterVertically) {
-                    ConfirmationArtwork(R.drawable.sky_confirmation_left,
-                        Modifier.weight(1f).height(330.dp))
-                    Column(Modifier.weight(1.65f).padding(horizontal = 24.dp, vertical = 32.dp),
+                    Column(Modifier.padding(horizontal = 24.dp, vertical = 20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally) {
-                        Icon(Icons.Outlined.MarkEmailRead, null, tint = Color(0xFFFFCE64),
-                            modifier = Modifier.size(44.dp))
-                        Spacer(Modifier.height(20.dp))
                         ConfirmationMessage(email, onDismiss)
                     }
-                    ConfirmationArtwork(R.drawable.sky_confirmation_right,
-                        Modifier.weight(1f).height(330.dp))
+                } else Box(Modifier.fillMaxWidth().aspectRatio(16f / 9f)) {
+                    ConfirmationScene(Modifier.fillMaxSize())
+                    Column(Modifier.align(Alignment.Center).fillMaxWidth(0.42f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(ProfileInk.copy(alpha = 0.82f))
+                        .padding(horizontal = 24.dp, vertical = 22.dp)
+                        .verticalScroll(rememberScrollState()),
+                        horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Outlined.MarkEmailRead, null, tint = Color(0xFFFFCE64),
+                            modifier = Modifier.size(36.dp))
+                        Spacer(Modifier.height(14.dp))
+                        ConfirmationMessage(email, onDismiss)
+                    }
                 }
             }
         }
@@ -440,9 +439,9 @@ internal fun RegistrationConfirmation(email: String, onDismiss: () -> Unit) {
 }
 
 @Composable
-private fun ConfirmationArtwork(resource: Int, modifier: Modifier) {
+private fun ConfirmationScene(modifier: Modifier) {
     // Decorative artwork; the complete confirmation remains readable by screen readers.
-    AsyncImage(resource, null, modifier = modifier, contentScale = ContentScale.Fit)
+    AsyncImage(R.drawable.sky_confirmation_scene, null, modifier = modifier, contentScale = ContentScale.Fit)
 }
 
 @Composable
