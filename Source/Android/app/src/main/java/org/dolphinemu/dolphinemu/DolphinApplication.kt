@@ -17,6 +17,12 @@ class DolphinApplication : Application() {
     override fun onCreate() {
         super.onCreate()
         instance = this
+        // The short profile handoff owns no emulator state. It must not open
+        // another account's files while the previous process is shutting down.
+        val processName = if (android.os.Build.VERSION.SDK_INT >= 28) getProcessName()
+            else getSystemService(android.app.ActivityManager::class.java)
+                .runningAppProcesses?.firstOrNull { it.pid == android.os.Process.myPid() }?.processName
+        if (processName == "$packageName:profile_switch") return
         registerActivityLifecycleCallbacks(activityTracker)
         System.loadLibrary("main")
 

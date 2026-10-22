@@ -73,6 +73,13 @@
             android:theme="@style/Theme.Dolphin.Splash.Main" />
 
         <activity
+            android:name=".features.skylanders.console.ConsoleProfileSwitchActivity"
+            android:exported="false"
+            android:process=":profile_switch"
+            android:excludeFromRecents="true"
+            android:theme="@android:style/Theme.Material.NoActionBar" />
+
+        <activity
             android:name=".ui.main.TvMainActivity"
             android:exported="true"
             android:theme="@style/Theme.Dolphin.Splash.TV">

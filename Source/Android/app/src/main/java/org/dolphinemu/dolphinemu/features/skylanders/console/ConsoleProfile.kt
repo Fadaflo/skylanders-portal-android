@@ -33,6 +33,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import org.dolphinemu.dolphinemu.R
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -321,6 +325,16 @@ private fun SignedOutProfile(account: ConsoleAccountState,
     var code by remember { mutableStateOf("") }
     var newPassword by remember { mutableStateOf("") }
     var localError by remember { mutableStateOf<String?>(null) }
+    var confirmationDismissed by rememberSaveable(account.confirmationEmail) { mutableStateOf(false) }
+    LaunchedEffect(account.confirmationEmail) {
+        account.confirmationEmail?.let { email = it; password = ""; localError = null }
+    }
+    account.confirmationEmail?.takeUnless { confirmationDismissed }?.let { address ->
+        RegistrationConfirmation(address) {
+            confirmationDismissed = true
+            mode = "login"
+        }
+    }
     ProfilePanel(Modifier.widthIn(max = 650.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(18.dp)) {
@@ -384,6 +398,71 @@ private fun SignedOutProfile(account: ConsoleAccountState,
         }
         account.message?.let { Text(it, color = ProfileIce, fontSize = 13.sp) }
     }
+}
+
+@Composable
+internal fun RegistrationConfirmation(email: String, onDismiss: () -> Unit) {
+    Dialog(onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false)) {
+        BoxWithConstraints(Modifier.padding(20.dp).widthIn(max = 1000.dp).fillMaxWidth()) {
+            val compact = maxWidth < 650.dp
+            Surface(shape = RoundedCornerShape(12.dp), color = ProfileInk,
+                border = BorderStroke(1.dp, Color(0xFFFFCE64).copy(alpha = 0.55f))) {
+                if (compact) Column(Modifier.verticalScroll(rememberScrollState()).padding(20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center) {
+                        ConfirmationArtwork(R.drawable.sky_confirmation_left,
+                            Modifier.weight(1f).height(130.dp))
+                        Icon(Icons.Outlined.MarkEmailRead, null, tint = Color(0xFFFFCE64),
+                            modifier = Modifier.padding(12.dp).size(40.dp))
+                        ConfirmationArtwork(R.drawable.sky_confirmation_right,
+                            Modifier.weight(1f).height(130.dp))
+                    }
+                    Spacer(Modifier.height(16.dp))
+                    ConfirmationMessage(email, onDismiss)
+                } else Row(Modifier.heightIn(min = 330.dp), verticalAlignment = Alignment.CenterVertically) {
+                    ConfirmationArtwork(R.drawable.sky_confirmation_left,
+                        Modifier.weight(1f).height(330.dp))
+                    Column(Modifier.weight(1.65f).padding(horizontal = 24.dp, vertical = 32.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally) {
+                        Icon(Icons.Outlined.MarkEmailRead, null, tint = Color(0xFFFFCE64),
+                            modifier = Modifier.size(44.dp))
+                        Spacer(Modifier.height(20.dp))
+                        ConfirmationMessage(email, onDismiss)
+                    }
+                    ConfirmationArtwork(R.drawable.sky_confirmation_right,
+                        Modifier.weight(1f).height(330.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ConfirmationArtwork(resource: Int, modifier: Modifier) {
+    // Decorative artwork; the complete confirmation remains readable by screen readers.
+    AsyncImage(resource, null, modifier = modifier, contentScale = ContentScale.Fit)
+}
+
+@Composable
+private fun ConfirmationMessage(email: String, onDismiss: () -> Unit) {
+    Text("E-Mail gesendet", color = Color.White, fontSize = 28.sp,
+        fontWeight = FontWeight.Black, textAlign = TextAlign.Center)
+    Spacer(Modifier.height(12.dp))
+    Text("Dein Abenteuer kann bald beginnen.", color = ProfileMuted,
+        fontSize = 15.sp, textAlign = TextAlign.Center)
+    Spacer(Modifier.height(16.dp))
+    Text(email, color = Color(0xFFFFCE64), fontSize = 14.sp,
+        fontWeight = FontWeight.Bold, textAlign = TextAlign.Center)
+    Spacer(Modifier.height(12.dp))
+    Text("Öffne die E-Mail und tippe auf den Bestätigungslink. Danach kannst du dich hier anmelden.",
+        color = Color.White, fontSize = 14.sp, textAlign = TextAlign.Center)
+    Spacer(Modifier.height(10.dp))
+    Text("Keine E-Mail da? Schau auch im Spam-Ordner nach.", color = ProfileMuted,
+        fontSize = 12.sp, textAlign = TextAlign.Center)
+    Spacer(Modifier.height(24.dp))
+    ProfileButton("Zur Anmeldung", Icons.Outlined.Login, onDismiss, primary = true)
 }
 
 @Composable

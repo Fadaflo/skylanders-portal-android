@@ -34,6 +34,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
@@ -180,7 +181,14 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 onAccountSignUp = { email, password, name ->
                     accountAction { accountAuth.signUp(email, password, name) }
                 },
-                onAccountSignOut = { accountAction { accountAuth.signOut() } },
+                onAccountSignOut = { accountAction {
+                    // Finish account work before removing its session. The signed-out
+                    // screen does not need to activate another Dolphin directory.
+                    prepareLaunchJob?.cancelAndJoin()
+                    cloudJob?.cancelAndJoin()
+                    accountRefreshJob?.cancelAndJoin()
+                    accountAuth.signOut()
+                } },
                 onAccountUpdateName = { name -> accountAction { accountAuth.updateName(name) } },
                 onAccountUpdateAvatar = { avatar -> accountAction { accountAuth.updateAvatar(avatar) } },
                 onAccountUpdatePassword = { current, next ->
@@ -192,7 +200,6 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 onAccountCompleteReset = { email, code, password ->
                     accountAction { accountAuth.completePasswordReset(email, code, password) }
                 },
-                onCloseForProfileSwitch = { finishAffinity() },
                 onCloudRefresh = ::startCloudSync,
                 onDownloadUpdate = ::downloadUpdate,
                 onCloudChooseLocal = { resolveCloudConflict(true) },
@@ -340,7 +347,8 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
 
     private fun accountAction(action: suspend () -> AuthOutcome) {
         if (state.account.busy) return
-        state = state.copy(account = state.account.copy(busy = true, error = null, message = null))
+        state = state.copy(account = state.account.copy(busy = true, error = null, message = null,
+            confirmationEmail = null))
         lifecycleScope.launch {
             try {
                 val previousUserId = accountAuth.currentUserId()
@@ -348,6 +356,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 if (previousUserId != accountAuth.currentUserId()) requireProfileRestart()
                 else if (accountAuth.currentUserId() != null) startCloudSync()
             } catch (error: Exception) {
+                if (error is kotlinx.coroutines.CancellationException) throw error
                 val message = when (error) {
                     is AuthHttpException -> when (error.code) {
                         "invalid_credentials" -> "E-Mail oder Passwort stimmt nicht."
@@ -377,6 +386,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 avatar = outcome.avatar, offline = outcome.offline,
                 message = if (explicit) outcome.notice ?: "Angemeldet." else null)
             is AuthOutcome.ConfirmationRequired -> ConsoleAccountState(
+                confirmationEmail = outcome.email,
                 message = "Prüfe ${outcome.email} und bestätige deine Registrierung. Danach kannst du dich anmelden.")
             is AuthOutcome.Notice -> state.account.copy(busy = false, error = null,
                 message = outcome.message)
@@ -385,15 +395,39 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                     else "Deine Sitzung ist abgelaufen. Melde dich erneut an.")
         }
         state = state.copy(account = updated)
-        if (outcome == AuthOutcome.SignedOut) requireProfileRestart()
+        if (outcome == AuthOutcome.SignedOut) {
+            prepareLaunchJob?.cancel()
+            cloudJob?.cancel()
+            collectionJob?.cancel()
+            playTimeJob?.cancel()
+            launchJob?.cancel()
+            stopMenuRepeat()
+            state = state.copy(accountOpen = false, page = ConsolePage.GAMES,
+                profileRestartRequired = false, figures = emptyList(), figureError = null,
+                games = state.games.map { it.copy(playTimeMs = null) },
+                cloudBusy = false, cloudConflictScope = null, cloudSaveInfo = emptyList(),
+                cloudDeferred = false, cloudStatus = "Melde dich für den Cloud-Abgleich an.",
+                setupOpen = false, importOpen = false, importMessage = null,
+                controllerTestActive = false, launchingGameKey = null, refreshing = false)
+        }
     }
 
     private fun requireProfileRestart() {
+        // Keep the inactive native profile until the next login. Nothing from it
+        // is shown or playable behind the signed-out screen.
+        if (accountAuth.currentUserId() == null) {
+            state = state.copy(profileRestartRequired = false)
+            return
+        }
         if (!DirectoryInitialization.areDolphinDirectoriesReady()) return
         val active = java.io.File(DirectoryInitialization.getUserDirectory()).canonicalPath
         val expected = ConsoleProfileStorage.expectedDirectory(this,
             getExternalFilesDir(null) ?: return).canonicalPath
-        if (active != expected) state = state.copy(profileRestartRequired = true, accountOpen = false)
+        val wasSwitching = state.profileRestartRequired
+        state = state.copy(profileRestartRequired = active != expected, accountOpen = false)
+        if (active != expected && !wasSwitching) {
+            startActivity(Intent(this, ConsoleProfileSwitchActivity::class.java))
+        }
     }
 
     private fun startCloudSync() {
@@ -450,6 +484,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     }
 
     private suspend fun performCloudSync(): CloudResult = cloudLock.withLock {
+        if (accountAuth.currentUserId() == null) return@withLock CloudResult("Bitte anmelden.")
         if (state.profileRestartRequired) return@withLock CloudResult("Profilwechsel nötig.")
         val connectivity = getSystemService(ConnectivityManager::class.java)
         val network = connectivity.activeNetwork
@@ -656,6 +691,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
 
     private fun refreshPlayTimes() {
         playTimeJob?.cancel()
+        if (accountAuth.currentUserId() == null) return
         val files = (GameFileCacheManager.getGameFiles().value.orEmpty().toList() + directGames).distinctBy { it.getPath() }
         playTimeJob = lifecycleScope.launch {
             // Dolphin reads TimePlayed.ini by game ID; do not infer progress from save files.
@@ -670,6 +706,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
 
     private fun refreshCollection() {
         collectionJob?.cancel()
+        if (accountAuth.currentUserId() == null) return
         collectionJob = lifecycleScope.launch {
             val result = withContext(Dispatchers.IO) {
                 runCatching {
@@ -735,6 +772,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     }
 
     private fun synchronizeController() {
+        if (accountAuth.currentUserId() == null) return
         if (!state.ready || !DirectoryInitialization.areDolphinDirectoriesReady()) return
         if (!NativeLibrary.IsUninitialized() || state.profileRestartRequired) return
         BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.setBoolean(NativeConfig.LAYER_BASE, false)

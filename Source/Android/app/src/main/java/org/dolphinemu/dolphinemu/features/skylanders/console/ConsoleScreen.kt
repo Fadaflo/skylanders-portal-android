@@ -150,7 +150,6 @@ internal fun ConsoleScreen(
     onAccountUpdatePassword: (String, String) -> Unit,
     onAccountRequestReset: (String) -> Unit,
     onAccountCompleteReset: (String, String, String) -> Unit,
-    onCloseForProfileSwitch: () -> Unit,
     onCloudRefresh: () -> Unit,
     onDownloadUpdate: () -> Unit,
     onCloudChooseLocal: () -> Unit,
@@ -265,7 +264,7 @@ internal fun ConsoleScreen(
                 state.games.firstOrNull { it.key == state.launchingGameKey } ?: selectedGame,
                 launchProgress, heroSwipe.coverBounds)
             if (!state.controllerTestActive && (state.refreshing || !state.ready || state.account.busy)) {
-                CircularProgressIndicator(Modifier.align(Alignment.BottomStart).padding(16.dp).size(22.dp),
+                CircularProgressIndicator(Modifier.align(Alignment.TopStart).padding(16.dp).size(22.dp),
                     color = Ice, strokeWidth = 2.dp)
             }
             if (!signedOut && state.setupOpen) ConsoleSetup(state, onImportFiles, onImportFolder, onBluetooth, onCloseSetup)
@@ -281,11 +280,6 @@ internal fun ConsoleScreen(
                 onDismissRequest = onDismissImportMessage,
                 title = { Text("Spieleimport") }, text = { Text(state.importMessage) },
                 confirmButton = { TextButton(onDismissImportMessage) { Text("OK") } })
-            if (state.profileRestartRequired) AlertDialog(
-                onDismissRequest = {},
-                title = { Text("Profil wechseln") },
-                text = { Text("Deine Spielstände werden getrennt pro Konto geladen. Schließe die App und öffne sie erneut, damit das richtige Profil aktiv wird.") },
-                confirmButton = { TextButton(onCloseForProfileSwitch) { Text("App schließen") } })
             state.cloudConflictScope?.let { scope ->
                 val saveInfo = state.cloudSaveInfo.firstOrNull { it.scope == scope }
                 AlertDialog(onDismissRequest = {},

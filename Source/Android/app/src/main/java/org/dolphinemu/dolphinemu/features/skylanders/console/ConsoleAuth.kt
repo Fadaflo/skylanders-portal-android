@@ -28,6 +28,7 @@ internal data class ConsoleAccountState(
     val avatar: String = "spyro",
     val busy: Boolean = false,
     val offline: Boolean = false,
+    val confirmationEmail: String? = null,
     val message: String? = null,
     val error: String? = null
 )
