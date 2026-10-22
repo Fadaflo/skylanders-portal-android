@@ -273,6 +273,8 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
             // The console defaults to no telemetry. Preserve an existing user's choice.
             if (!BooleanSetting.MAIN_ANALYTICS_PERMISSION_ASKED.boolean) Analytics.firstAnalyticsAdd(false)
             state = state.copy(ready = true)
+            if (accountAuth.currentUserId() != null) requireProfileRestart()
+            if (state.profileRestartRequired) return@runWithLifecycle
             synchronizeController()
             GameFileCacheManager.startLoad()
             refreshCollection()
@@ -302,15 +304,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         state = state.copy(launchingGameKey = null)
         menuAudio.resume()
         menuHaptics.resume()
-        accountRefreshJob?.cancel()
-        accountRefreshJob = lifecycleScope.launch {
-            while (true) {
-                if (state.account.email != null && !state.account.busy) {
-                    runCatching { accountAuth.refreshIfNeeded() }.onSuccess(::applyAccountOutcome)
-                }
-                delay(60_000)
-            }
-        }
+        startAccountRefresh()
         WindowCompat.getInsetsController(window, window.decorView).apply {
             hide(WindowInsetsCompat.Type.systemBars())
             systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
@@ -428,6 +422,25 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         state = state.copy(profileRestartRequired = active != expected, accountOpen = false)
         if (active != expected && !wasSwitching) {
             startActivity(Intent(this, ConsoleProfileSwitchActivity::class.java))
+        } else if (active == expected) {
+            // Logging back into the already loaded account needs no handoff,
+            // but its cleared collection and sync status must be loaded again.
+            refreshCollection()
+            refreshPlayTimes()
+            startAccountRefresh()
+            startCloudSync()
+        }
+    }
+
+    private fun startAccountRefresh() {
+        accountRefreshJob?.cancel()
+        accountRefreshJob = lifecycleScope.launch {
+            while (true) {
+                if (state.account.email != null && !state.account.busy) {
+                    runCatching { accountAuth.refreshIfNeeded() }.onSuccess(::applyAccountOutcome)
+                }
+                delay(60_000)
+            }
         }
     }
 
