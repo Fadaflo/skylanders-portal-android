@@ -12,7 +12,7 @@ class ConsoleLoadingTest {
             refreshing = true).foregroundLoading)
     }
 
-    @Test funForegroundActionsShowSpinnerOnlyUntilTheirOperationFinishes() {
+    @Test fun foregroundActionsShowSpinnerOnlyUntilTheirOperationFinishes() {
         val idle = ConsoleState(ready = true)
         assertTrue(idle.copy(account = ConsoleAccountState(busy = true)).foregroundLoading)
         assertTrue(idle.copy(importing = true).foregroundLoading)
