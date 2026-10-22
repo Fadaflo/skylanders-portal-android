@@ -62,7 +62,11 @@ internal fun assignConsoleControllers(preferences: SharedPreferences, devices: L
         controller.saveProfile(current.absolutePath)
         val currentUsable = usableSkylandersProfile(current.readText())
         if (currentUsable && profile.isFile && usableSkylandersProfile(profile.readText()) && preferences.getString(activeKey, null) == key && controller.getDefaultDevice() == pad.qualifier) {
-            controller.saveProfile(profile.absolutePath)
+            val coreDevice = requireNotNull(ControllerInterface.getDevice(pad.qualifier))
+            profile.writeText(skylandersControllerProfile(pad.qualifier,
+                coreDevice.getInputs().map { it.getName() }.toSet(),
+                coreDevice.getOutputs().map { it.getName() }.toSet(), current.readText()))
+            controller.loadProfile(profile.absolutePath)
         } else {
             val backup = File(folder, if (index == 0) "Vor-Automatik.ini" else "Vor-Automatik-Spieler2.ini")
             if (!backup.exists()) controller.saveProfile(backup.absolutePath)

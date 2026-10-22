@@ -53,6 +53,18 @@ class ConsoleControllerProfilesTest {
         assertTrue(usableSkylandersProfile(result))
     }
 
+    @Test fun reconnectRepairsEarlyAutomaticPointerFallback() {
+        val early = skylandersControllerProfile(dualSense, emptySet(), emptySet(), null)
+        assertTrue(early.contains("IR/Up = deadzone(`Axis 1-`, 0.15)"))
+        val repaired = skylandersControllerProfile(dualSense, inputs, emptySet(), early)
+        assertTrue(repaired.contains("IR/Up = deadzone(`Axis 14-`, 0.15)"))
+        assertTrue(repaired.contains("IR/Left = deadzone(`Axis 11-`, 0.15)"))
+        assertTrue(repaired.contains("Nunchuk/Stick/Up = `Axis 1-`"))
+        val custom = early.replace("IR/Up = deadzone(`Axis 1-`, 0.15)", "IR/Up = `Button Y`")
+        assertTrue(skylandersControllerProfile(dualSense, inputs, emptySet(), custom)
+            .contains("IR/Up = `Button Y`"))
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun refusesMultilineDeviceNamesInIniProfiles() {
         skylandersControllerProfile("Android/0/Gamepad\n[Other]", inputs, emptySet(), null)

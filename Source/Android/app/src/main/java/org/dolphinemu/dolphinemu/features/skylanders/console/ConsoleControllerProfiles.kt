@@ -57,6 +57,16 @@ internal fun skylandersControllerProfile(device: String, inputs: Set<String>, ou
         val shake = if ("Button R2" in inputs) "`Button R2`" else "`Axis 18+`"
         listOf("X", "Y", "Z").forEach { values["Shake/$it"] = shake }
     }
+    // Early automatic profiles fell back to the movement stick before the pad's
+    // right-stick axes were enumerated. Repair that exact fallback on reconnect.
+    val fallbackPointer = mapOf("Up" to "1-", "Down" to "1+", "Left" to "0-", "Right" to "0+")
+    if ("Axis 11+" in inputs && "Axis 14+" in inputs && fallbackPointer.all { (direction, axis) ->
+            values["IR/$direction"] == "deadzone(`Axis $axis`, 0.15)"
+        }) {
+        mapOf("Up" to "14-", "Down" to "14+", "Left" to "11-", "Right" to "11+").forEach { (direction, axis) ->
+            values["IR/$direction"] = "deadzone(`Axis $axis`, 0.15)"
+        }
+    }
     val oldDevice = values["Device"].orEmpty()
     if (oldDevice.isNotEmpty()) values.replaceAll { _, expression -> expression.replace("$oldDevice:", "$device:") }
     values["Device"] = device
