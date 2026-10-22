@@ -28,7 +28,7 @@ internal fun assignConsoleControllers(preferences: SharedPreferences, devices: L
         if (!inputs.containsAll(setOf("Button A", "Button B", "Axis 0-", "Axis 1-", "Button L1", "Button R1")))
             return@mapNotNull null
         ConnectedPad(device, qualifier)
-    }.distinctBy { it.qualifier }.toMutableList()
+    }.distinctBy { if (it.device.controllerNumber > 0) "pad:${it.device.controllerNumber}" else it.qualifier }.toMutableList()
     if (available.isEmpty()) {
         IntSetting.WIIMOTE_2_SOURCE.setInt(NativeConfig.LAYER_BASE, 0)
         NativeConfig.save(NativeConfig.LAYER_BASE)

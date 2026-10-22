@@ -213,8 +213,8 @@ internal fun ConsoleScreen(
             dispatchKey(key)
         }
     }
-    LaunchedEffect(state.page) {
-        if (state.page != ConsolePage.GAMES && state.page != ConsolePage.SETTINGS && inputMode.inputMode == InputMode.Keyboard) {
+    LaunchedEffect(state.page, state.account.email) {
+        if (state.account.email != null && state.page != ConsolePage.GAMES && state.page != ConsolePage.SETTINGS && inputMode.inputMode == InputMode.Keyboard) {
             withFrameNanos { }
             pageFocus.requestFocus()
         }
