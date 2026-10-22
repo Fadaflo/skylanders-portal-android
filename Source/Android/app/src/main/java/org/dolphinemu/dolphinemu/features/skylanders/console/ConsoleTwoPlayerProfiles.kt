@@ -58,14 +58,17 @@ internal fun assignConsoleControllers(preferences: SharedPreferences, devices: L
         val family = controllerFamily(device.vendorId, device.productId, device.name)
         val activeKey = if (index == 0) "controller_profile_active" else "controller_profile_active_2"
         val profile = File(folder, if (index == 0) "$key.ini" else "$key-player2.ini")
-        if (profile.isFile && usableSkylandersProfile(profile.readText()) && preferences.getString(activeKey, null) == key && controller.getDefaultDevice() == pad.qualifier) {
+        val current = File(folder, "Aktuell-Spieler${index + 1}.ini")
+        controller.saveProfile(current.absolutePath)
+        val currentUsable = usableSkylandersProfile(current.readText())
+        if (currentUsable && profile.isFile && usableSkylandersProfile(profile.readText()) && preferences.getString(activeKey, null) == key && controller.getDefaultDevice() == pad.qualifier) {
             controller.saveProfile(profile.absolutePath)
         } else {
             val backup = File(folder, if (index == 0) "Vor-Automatik.ini" else "Vor-Automatik-Spieler2.ini")
             if (!backup.exists()) controller.saveProfile(backup.absolutePath)
             preferences.getString(activeKey, null)?.let { old ->
                 val previousProfile = File(folder, if (index == 0) "$old.ini" else "$old-player2.ini")
-                if (old != key && old.matches(Regex("[a-f0-9]{24}")) && previousProfile.isFile &&
+                if (currentUsable && old != key && old.matches(Regex("[a-f0-9]{24}")) && previousProfile.isFile &&
                     controller.getDefaultDevice().startsWith("Android/")) {
                     controller.saveProfile(previousProfile.absolutePath)
                 }
