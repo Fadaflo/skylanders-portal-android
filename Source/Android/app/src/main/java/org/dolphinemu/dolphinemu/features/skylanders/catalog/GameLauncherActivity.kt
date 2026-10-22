@@ -7,6 +7,8 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import org.dolphinemu.dolphinemu.activities.EmulationActivity
+import org.dolphinemu.dolphinemu.features.skylanders.console.ConsoleActivity
+import org.dolphinemu.dolphinemu.features.skylanders.console.ConsoleAuth
 import org.dolphinemu.dolphinemu.model.GameFile
 import org.dolphinemu.dolphinemu.services.GameFileCacheManager
 import org.dolphinemu.dolphinemu.ui.main.MainActivity
@@ -36,6 +38,12 @@ abstract class GameLauncherActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        if (ConsoleAuth(this).currentUserId() == null) {
+            startActivity(Intent(this, ConsoleActivity::class.java))
+            finish()
+            return
+        }
 
         DirectoryInitialization.start(this)
         AfterDirectoryInitializationRunner().runWithLifecycle(this) {

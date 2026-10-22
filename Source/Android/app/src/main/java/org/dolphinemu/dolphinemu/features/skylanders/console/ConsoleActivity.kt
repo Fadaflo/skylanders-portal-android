@@ -408,7 +408,8 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
                 cloudBusy = false, cloudConflictScope = null, cloudSaveInfo = emptyList(),
                 cloudDeferred = false, cloudStatus = "Melde dich für den Cloud-Abgleich an.",
                 setupOpen = false, importOpen = false, importMessage = null,
-                controllerTestActive = false, launchingGameKey = null, refreshing = false)
+                controllerTestActive = false, launchingGameKey = null, refreshing = false,
+                refreshRequested = false)
         }
     }
 
@@ -649,6 +650,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     private fun refresh() {
         playMenuFeedback(ConsoleCue.CONFIRM)
         AfterDirectoryInitializationRunner().runWithLifecycle(this) {
+            state = state.copy(refreshRequested = true, refreshing = true)
             GameFileCacheManager.startRescan()
             refreshCollection()
             reloadDirectGames()
@@ -981,7 +983,9 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
         playMenuFeedback(ConsoleCue.CONFIRM)
         AfterDirectoryInitializationRunner().runWithLifecycle(this) { SettingsActivity.launch(this, menuTag) }
     }
-    override fun setRefreshing(refreshing: Boolean) { state = state.copy(refreshing = refreshing) }
+    override fun setRefreshing(refreshing: Boolean) {
+        state = state.copy(refreshing = refreshing, refreshRequested = state.refreshRequested && refreshing)
+    }
     override fun reloadGrid() = showGames()
     override fun showGridOptions() { startActivity(Intent(this, MainActivity::class.java)) }
     override fun setTheme(resId: Int) { super.setTheme(resId); themeId = resId }

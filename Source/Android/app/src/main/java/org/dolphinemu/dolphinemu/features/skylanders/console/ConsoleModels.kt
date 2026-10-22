@@ -105,8 +105,13 @@ internal data class ConsoleState(
     val importing: Boolean = false,
     val importMessage: String? = null,
     val ready: Boolean = false,
-    val refreshing: Boolean = true
-)
+    val refreshing: Boolean = false,
+    val refreshRequested: Boolean = false
+) {
+    // Background library notifications must not leave a permanent spinner in the menu.
+    val foregroundLoading: Boolean
+        get() = !ready || account.busy || importing || updateBusy || (refreshRequested && refreshing)
+}
 
 internal val consoleCatalog = listOf(
     ConsoleGame("spyro", "Spyro’s Adventure", "Hier beginnt die Reise.\nEntdecke die Magie der Skylands.", "16-0.png", 0xFFBD9BFF,

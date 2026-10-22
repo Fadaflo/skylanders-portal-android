@@ -263,7 +263,7 @@ internal fun ConsoleScreen(
             if (state.launchingGameKey != null) PortalLaunchOverlay(
                 state.games.firstOrNull { it.key == state.launchingGameKey } ?: selectedGame,
                 launchProgress, heroSwipe.coverBounds)
-            if (!state.controllerTestActive && (state.refreshing || !state.ready || state.account.busy)) {
+            if (!state.controllerTestActive && state.foregroundLoading) {
                 CircularProgressIndicator(Modifier.align(Alignment.TopStart).padding(16.dp).size(22.dp),
                     color = Ice, strokeWidth = 2.dp)
             }

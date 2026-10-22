@@ -1,5 +1,16 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <application>
+        <!-- QA is reachable only through an explicit adb launch, never extra launcher icons. -->
+        <activity android:name=".features.skylanders.console.ConsoleActivity">
+            <intent-filter tools:node="removeAll" />
+        </activity>
+        <activity android:name=".ui.main.TvMainActivity">
+            <intent-filter tools:node="removeAll" />
+        </activity>
+        <activity android:name=".features.skylanders.catalog.GiantsLauncherActivity" tools:node="remove" />
+        <activity android:name=".features.skylanders.catalog.SwapForceLauncherActivity" tools:node="remove" />
+        <activity android:name=".features.skylanders.catalog.TrapTeamLauncherActivity" tools:node="remove" />
         <activity android:name=".features.skylanders.console.ConsoleConfirmationPreviewActivity"
             android:exported="true" android:theme="@style/Theme.Dolphin.Main" />
     </application>
