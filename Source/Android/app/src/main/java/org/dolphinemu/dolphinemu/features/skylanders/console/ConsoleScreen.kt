@@ -268,7 +268,7 @@ internal fun ConsoleScreen(
                     color = Ice, strokeWidth = 2.dp)
             }
             if (!signedOut && state.setupOpen) ConsoleSetup(state, onImportFiles, onImportFolder, onBluetooth, onCloseSetup)
-            if (state.importOpen) AlertDialog(onDismissRequest = onCloseImport,
+            if (!signedOut && state.importOpen) AlertDialog(onDismissRequest = onCloseImport,
                 title = { Text("Eigene Spiele einbinden", fontWeight = FontWeight.Black) },
                 text = { Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
                     Text("Wähle einzelne Wii-Spieldateien oder einen Ordner mit deinen Spielen. Die Dateien bleiben an ihrem Speicherort.")
@@ -276,7 +276,7 @@ internal fun ConsoleScreen(
                     ConsoleButton("Dateien auswählen", Icons.Outlined.InsertDriveFile, onImportFiles, primary = true, enabled = state.ready && !state.importing)
                     ConsoleButton("Spieleordner verbinden", Icons.Outlined.FolderOpen, onImportFolder, enabled = state.ready && !state.importing)
                 } }, confirmButton = { TextButton(onCloseImport) { Text("Schließen") } })
-            if (state.importMessage != null && !state.setupOpen && !state.importOpen) AlertDialog(
+            if (!signedOut && state.importMessage != null && !state.setupOpen && !state.importOpen) AlertDialog(
                 onDismissRequest = onDismissImportMessage,
                 title = { Text("Spieleimport") }, text = { Text(state.importMessage) },
                 confirmButton = { TextButton(onDismissImportMessage) { Text("OK") } })
