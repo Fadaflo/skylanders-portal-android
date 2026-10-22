@@ -228,19 +228,17 @@ internal fun ConsoleScreen(
         surface = Panel, onSurface = Color.White, onBackground = Color.White), typography = ConsoleTypography) {
         val selectedGame = state.games.firstOrNull { it.key == state.selectedKey } ?: consoleCatalog.first()
         Box(Modifier.fillMaxSize().background(Ink).focusRequester(pageFocus).focusGroup()) {
-            if (state.page != ConsolePage.GAMES || state.accountOpen) FigureBackdrop()
+            val signedOut = state.account.email == null
+            if (signedOut || state.page != ConsolePage.GAMES || state.accountOpen) FigureBackdrop()
             else ConsoleBackdrop(selectedGame, state.games, state.page != ConsolePage.GAMES, heroSwipe)
             Box(Modifier.fillMaxSize().graphicsLayer {
                 alpha = if (state.page == ConsolePage.GAMES) heroSwipe.infoProgress else 0f
             }.background(Color.Black.copy(alpha = 0.48f)))
             Column(Modifier.fillMaxSize().windowInsetsPadding(WindowInsets.safeDrawing)) {
-                if (!state.controllerTestActive) ConsoleHeader(state, onSelectPage, onOpenAccount, accountFocus)
-                if (!state.controllerTestActive && (state.refreshing || !state.ready)) {
-                    LinearProgressIndicator(Modifier.fillMaxWidth(), color = Ice, trackColor = Panel)
-                }
+                if (!signedOut && !state.controllerTestActive) ConsoleHeader(state, onSelectPage, onOpenAccount, accountFocus)
                 Box(Modifier.weight(1f)) {
-                    if (state.controllerTestActive) ControllerTestPage(state, onStopControllerTest)
-                    else if (state.accountOpen) ProfilePage(state.account, state.games,
+                    if (!signedOut && state.controllerTestActive) ControllerTestPage(state, onStopControllerTest)
+                    else if (signedOut || state.accountOpen) ProfilePage(state.account, state.games,
                         state.cloudStatus, state.cloudBusy, state.cloudSaveInfo,
                         state.updateAvailable, state.updateBusy, state.updateMessage,
                         onCloudRefresh, onDownloadUpdate, onCloseAccount,
@@ -266,7 +264,11 @@ internal fun ConsoleScreen(
             if (state.launchingGameKey != null) PortalLaunchOverlay(
                 state.games.firstOrNull { it.key == state.launchingGameKey } ?: selectedGame,
                 launchProgress, heroSwipe.coverBounds)
-            if (state.setupOpen) ConsoleSetup(state, onImportFiles, onImportFolder, onBluetooth, onCloseSetup)
+            if (!state.controllerTestActive && (state.refreshing || !state.ready || state.account.busy)) {
+                CircularProgressIndicator(Modifier.align(Alignment.BottomStart).padding(16.dp).size(22.dp),
+                    color = Ice, strokeWidth = 2.dp)
+            }
+            if (!signedOut && state.setupOpen) ConsoleSetup(state, onImportFiles, onImportFolder, onBluetooth, onCloseSetup)
             if (state.importOpen) AlertDialog(onDismissRequest = onCloseImport,
                 title = { Text("Eigene Spiele einbinden", fontWeight = FontWeight.Black) },
                 text = { Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {

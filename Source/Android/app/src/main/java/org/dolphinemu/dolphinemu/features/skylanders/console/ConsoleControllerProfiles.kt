@@ -20,11 +20,16 @@ internal fun controllerFamily(vendor: Int, product: Int, name: String): String =
     else -> name
 }
 
+internal fun usableSkylandersProfile(saved: String): Boolean =
+    saved.lineSequence().any { it.trim() == "Extension = Nunchuk" } &&
+        saved.lineSequence().any { it.substringBefore('=').trim() == "Buttons/A" &&
+            it.substringAfter('=', "").trim().isNotEmpty() }
+
 internal fun skylandersControllerProfile(device: String, inputs: Set<String>, outputs: Set<String>, saved: String?): String {
     require(device.startsWith("Android/") && '\n' !in device && '\r' !in device)
     val values = linkedMapOf<String, String>()
     var profileSection = false
-    saved.orEmpty().lineSequence().forEach { line ->
+    saved?.takeIf(::usableSkylandersProfile).orEmpty().lineSequence().forEach { line ->
         val trimmed = line.trim()
         if (trimmed.startsWith("[")) profileSection = trimmed == "[Profile]"
         else if (profileSection && '=' in trimmed) {
@@ -78,14 +83,16 @@ internal fun applyConsoleControllerProfile(preferences: SharedPreferences, devic
         val family = controllerFamily(device.vendorId, device.productId, device.name)
         val folder = File(controller.getUserProfileDirectoryPath(), "Skylanders Portal").apply { mkdirs() }
         val profile = File(folder, "$key.ini")
-        if (preferences.getString("controller_profile_active", null) == key && controller.getDefaultDevice() == qualifier) {
+        if (profile.isFile && usableSkylandersProfile(profile.readText()) && preferences.getString("controller_profile_active", null) == key && controller.getDefaultDevice() == qualifier) {
             controller.saveProfile(profile.absolutePath)
             return "$family · Spieler 1 automatisch eingerichtet"
         }
         val backup = File(folder, "Vor-Automatik.ini")
         if (!backup.exists()) controller.saveProfile(backup.absolutePath)
         preferences.getString("controller_profile_active", null)?.let { previous ->
-            if (previous.matches(Regex("[a-f0-9]{24}"))) controller.saveProfile(File(folder, "$previous.ini").absolutePath)
+            val previousProfile = File(folder, "$previous.ini")
+            if (previous != key && previous.matches(Regex("[a-f0-9]{24}")) && previousProfile.isFile &&
+                controller.getDefaultDevice().startsWith("Android/")) controller.saveProfile(previousProfile.absolutePath)
         }
         val coreDevice = requireNotNull(ControllerInterface.getDevice(qualifier))
         val inputs = coreDevice.getInputs().map { it.getName() }.toSet()

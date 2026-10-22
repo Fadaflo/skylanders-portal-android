@@ -563,6 +563,7 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
     }
 
     private fun play(game: ConsoleGame) {
+        if (accountAuth.currentUserId() == null) { state = state.copy(accountOpen = true); return }
         if (state.profileRestartRequired) return
         if (game.path == null) return addGames()
         if (state.cloudDeferred) return launchGame(game)
@@ -735,11 +736,13 @@ class ConsoleActivity : AppCompatActivity(), MainView, ThemeProvider,
 
     private fun synchronizeController() {
         if (!state.ready || !DirectoryInitialization.areDolphinDirectoriesReady()) return
+        if (!NativeLibrary.IsUninitialized() || state.profileRestartRequired) return
+        BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.setBoolean(NativeConfig.LAYER_BASE, false)
+        NativeConfig.save(NativeConfig.LAYER_BASE)
         if (!state.autoController) {
             state = state.copy(controllerSetup = "Manuelle Belegung aktiv. Deine Einstellungen bleiben erhalten.")
             return
         }
-        if (!NativeLibrary.IsUninitialized()) return
         val devices = InputDevice.getDeviceIds().toList().mapNotNull { InputDevice.getDevice(it) }
             .filter { !it.isVirtual && it.isController() }
         val result = runCatching {

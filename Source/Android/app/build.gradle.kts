@@ -48,8 +48,8 @@ android {
         buildConfigField("String", "BRANCH", "\"${getBranch()}\"")
         buildConfigField("String", "SKY_AUTH_URL", "\"https://zggpgsxxmkowkuzabntp.supabase.co\"")
         buildConfigField("String", "SKY_AUTH_KEY", "\"sb_publishable_T2RRtqtFRZH7EyCvNNBhcQ_5VgrBMWR\"")
-        buildConfigField("int", "SKY_PORTAL_RELEASE", "23")
-        buildConfigField("String", "SKY_PORTAL_VERSION", "\"2026.10.17.23-preview\"")
+        buildConfigField("int", "SKY_PORTAL_RELEASE", "24")
+        buildConfigField("String", "SKY_PORTAL_VERSION", "\"2026.10.22.24-preview\"")
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

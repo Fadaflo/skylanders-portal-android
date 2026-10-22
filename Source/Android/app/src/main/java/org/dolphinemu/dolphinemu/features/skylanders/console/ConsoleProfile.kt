@@ -50,15 +50,16 @@ private val ProfileShape = RoundedCornerShape(2.dp)
 internal fun ProfileAvatar(avatar: String, name: String?, size: Dp, selected: Boolean,
     onClick: (() -> Unit)? = null, modifier: Modifier = Modifier) {
     var focused by remember { mutableStateOf(false) }
-    val figure = consoleCatalog.firstOrNull { it.key == avatar } ?: consoleCatalog.first()
+    val figure = if (name == null) null else consoleCatalog.firstOrNull { it.key == avatar } ?: consoleCatalog.first()
     Box(modifier.size(size).onFocusChanged { focused = it.isFocused }
         .border(if (focused) 3.dp else if (selected) 2.dp else 1.dp,
             if (focused || selected) ProfileIce else Color.White.copy(alpha = 0.6f), CircleShape)
-        .padding(3.dp).clip(CircleShape).background(Color(figure.color))
+        .padding(3.dp).clip(CircleShape).background(figure?.let { Color(it.color) } ?: ProfileInk)
         .then(if (onClick != null) Modifier.clickable(onClick = onClick) else Modifier)
         .semantics { contentDescription = "Profil ${name?.takeIf { it.isNotBlank() } ?: "öffnen"}" },
         contentAlignment = Alignment.Center) {
-        AsyncImage("file:///android_asset/skylanders/images/${figure.artwork}",
+        if (figure == null) Icon(Icons.Outlined.QuestionMark, "Nicht angemeldet", tint = Color.White)
+        else AsyncImage("file:///android_asset/skylanders/images/${figure.artwork}",
             name ?: "Profilbild", modifier = Modifier.fillMaxSize(), contentScale = ContentScale.Crop)
     }
 }
@@ -82,10 +83,10 @@ internal fun ProfilePage(account: ConsoleAccountState, games: List<ConsoleGame>,
             Column(Modifier.weight(1f)) {
                 Text("SKYLANDERS · PROFIL", color = ProfileIce, fontSize = 12.sp,
                     fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
-                Text(if (account.email == null) "Dein Profil." else "Willkommen zurück.",
+                Text(if (account.email == null) "Wer spielt heute?" else "Willkommen zurück.",
                     color = Color.White, fontSize = 36.sp, fontWeight = FontWeight.Black)
             }
-            ProfileButton("Zurück", Icons.Outlined.ArrowBack, onBack,
+            if (account.email != null) ProfileButton("Zurück", Icons.Outlined.ArrowBack, onBack,
                 modifier = Modifier.focusRequester(backFocus))
         }
         if (updateAvailable != null) UpdatePanel(updateAvailable, updateBusy, updateMessage, onDownloadUpdate)
@@ -323,11 +324,11 @@ private fun SignedOutProfile(account: ConsoleAccountState,
     ProfilePanel(Modifier.widthIn(max = 650.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-            ProfileAvatar("spyro", "Gast", 80.dp, selected = false)
+            ProfileAvatar("", null, 80.dp, selected = false)
             Column {
                 Text("Noch nicht angemeldet", color = Color.White,
                     fontSize = 24.sp, fontWeight = FontWeight.Black)
-                Text("Deine lokalen Spiele und Figuren bleiben verfügbar.",
+                Text("Melde dich an oder erstelle dein eigenes Konto.",
                     color = ProfileMuted, fontSize = 13.sp)
             }
         }
@@ -399,9 +400,16 @@ private fun ProfilePanel(modifier: Modifier = Modifier, content: @Composable Col
 @Composable
 private fun ProfileField(value: String, onValue: (String) -> Unit, label: String,
     password: Boolean = false, emailField: Boolean = false) {
+    var visible by remember { mutableStateOf(false) }
     OutlinedTextField(value, onValue, label = { Text(label) },
         singleLine = true, modifier = Modifier.fillMaxWidth(), shape = ProfileShape,
-        visualTransformation = if (password) PasswordVisualTransformation()
+        trailingIcon = if (password) { {
+            IconButton(onClick = { visible = !visible }) {
+                Icon(if (visible) Icons.Outlined.VisibilityOff else Icons.Outlined.Visibility,
+                    if (visible) "Passwort ausblenden" else "Passwort anzeigen")
+            }
+        } } else null,
+        visualTransformation = if (password && !visible) PasswordVisualTransformation()
             else androidx.compose.ui.text.input.VisualTransformation.None,
         keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
             keyboardType = if (password) KeyboardType.Password

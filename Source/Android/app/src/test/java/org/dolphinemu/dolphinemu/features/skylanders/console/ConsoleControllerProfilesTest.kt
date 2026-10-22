@@ -42,6 +42,17 @@ class ConsoleControllerProfilesTest {
         assertTrue(result.contains("Rumble/Motor = \n"))
     }
 
+    @Test fun freshAccountWithAnEmptySavedProfileGetsCompleteBindings() {
+        val empty = "[Profile]\nDevice = Android/0/Device Sensors\nExtension = None\nButtons/A = \n"
+        val result = skylandersControllerProfile(dualSense, inputs, emptySet(), empty)
+        assertTrue(result.contains("Extension = Nunchuk"))
+        assertTrue(result.contains("Buttons/A = `Button A`"))
+        assertTrue(result.contains("Nunchuk/Buttons/Z = `Button R1`"))
+        assertFalse(result.contains("Device Sensors"))
+        assertFalse(usableSkylandersProfile(empty))
+        assertTrue(usableSkylandersProfile(result))
+    }
+
     @Test(expected = IllegalArgumentException::class)
     fun refusesMultilineDeviceNamesInIniProfiles() {
         skylandersControllerProfile("Android/0/Gamepad\n[Other]", inputs, emptySet(), null)

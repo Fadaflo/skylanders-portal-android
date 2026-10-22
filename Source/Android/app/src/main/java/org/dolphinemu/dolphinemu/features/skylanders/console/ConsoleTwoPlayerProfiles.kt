@@ -7,6 +7,7 @@ import org.dolphinemu.dolphinemu.features.input.model.ControllerInterface
 import org.dolphinemu.dolphinemu.features.input.model.MappingCommon
 import org.dolphinemu.dolphinemu.features.input.model.controlleremu.EmulatedController
 import org.dolphinemu.dolphinemu.features.settings.model.IntSetting
+import org.dolphinemu.dolphinemu.features.settings.model.BooleanSetting
 import org.dolphinemu.dolphinemu.features.settings.model.NativeConfig
 import java.io.File
 
@@ -17,7 +18,9 @@ private data class ConnectedPad(val device: InputDevice, val qualifier: String)
 
 /** Exact Android IDs keep two controllers with identical display names separate. */
 internal fun assignConsoleControllers(preferences: SharedPreferences, devices: List<InputDevice>): ConsoleControllerSetup {
-    val available = devices.filter { it.controllerNumber > 0 }.sortedBy { it.id }.mapNotNull { device ->
+    // Console play always uses physical pads, including a fresh account without Config files.
+    BooleanSetting.MAIN_SHOW_INPUT_OVERLAY.setBoolean(NativeConfig.LAYER_BASE, false)
+    val available = devices.sortedBy { it.id }.mapNotNull { device ->
         val qualifier = ControllerInterface.getDeviceStringForId(device.id) ?: return@mapNotNull null
         android.util.Log.i("PortalController", "Candidate id=${device.id} name=${device.name} number=${device.controllerNumber} qualifier=$qualifier")
         val inputs = ControllerInterface.getDevice(qualifier)?.getInputs()?.map { it.getName() }?.toSet()
@@ -25,7 +28,7 @@ internal fun assignConsoleControllers(preferences: SharedPreferences, devices: L
         if (!inputs.containsAll(setOf("Button A", "Button B", "Axis 0-", "Axis 1-", "Button L1", "Button R1")))
             return@mapNotNull null
         ConnectedPad(device, qualifier)
-    }.distinctBy { it.device.controllerNumber }.toMutableList()
+    }.distinctBy { it.qualifier }.toMutableList()
     if (available.isEmpty()) {
         IntSetting.WIIMOTE_2_SOURCE.setInt(NativeConfig.LAYER_BASE, 0)
         NativeConfig.save(NativeConfig.LAYER_BASE)
@@ -55,14 +58,17 @@ internal fun assignConsoleControllers(preferences: SharedPreferences, devices: L
         val family = controllerFamily(device.vendorId, device.productId, device.name)
         val activeKey = if (index == 0) "controller_profile_active" else "controller_profile_active_2"
         val profile = File(folder, if (index == 0) "$key.ini" else "$key-player2.ini")
-        if (preferences.getString(activeKey, null) == key && controller.getDefaultDevice() == pad.qualifier) {
+        if (profile.isFile && usableSkylandersProfile(profile.readText()) && preferences.getString(activeKey, null) == key && controller.getDefaultDevice() == pad.qualifier) {
             controller.saveProfile(profile.absolutePath)
         } else {
             val backup = File(folder, if (index == 0) "Vor-Automatik.ini" else "Vor-Automatik-Spieler2.ini")
             if (!backup.exists()) controller.saveProfile(backup.absolutePath)
             preferences.getString(activeKey, null)?.let { old ->
-                if (old.matches(Regex("[a-f0-9]{24}"))) controller.saveProfile(File(folder,
-                    if (index == 0) "$old.ini" else "$old-player2.ini").absolutePath)
+                val previousProfile = File(folder, if (index == 0) "$old.ini" else "$old-player2.ini")
+                if (old != key && old.matches(Regex("[a-f0-9]{24}")) && previousProfile.isFile &&
+                    controller.getDefaultDevice().startsWith("Android/")) {
+                    controller.saveProfile(previousProfile.absolutePath)
+                }
             }
             val coreDevice = requireNotNull(ControllerInterface.getDevice(pad.qualifier))
             val inputs = coreDevice.getInputs().map { it.getName() }.toSet()
